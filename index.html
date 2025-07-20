@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Federico Pignatta — Proyecto</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    /* Variables globales */
+    :root {
+      --black: #434343;
+      --white: #FFFEFB;
+      --gray: #c5c5c5;
+      --carousel-width: 33.333vw;
+    }
+
+    /* Reset y base */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 16px;
+      line-height: 1.1;
+      color: var(--black);
+      background: var(--white);
+      overflow-x: hidden;
+    }
+
+    /* ===== DESKTOP / TABLET (>600px) ===== */
+    .container {
+      display: flex;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    .left-panel {
+      width: 72%;
+      padding: 64px;
+      height: 100vh;
+      overflow-y: auto;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    .left-panel::-webkit-scrollbar { display: none; }
+
+    .right-panel {
+      width: 30%;
+      padding: 64px 40px 40px;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: sticky;
+      top: 0;
+    }
+
+    .project-section {
+      display: grid;
+      grid-template-columns: var(--carousel-width) 1fr;
+      grid-template-rows: auto auto;
+      grid-template-areas: "carousel label" "texts label";
+      gap: 16px;
+      margin-bottom: 382px;
+    }
+
+    .carousel-wrapper, .single-wrapper {
+      grid-area: carousel;
+      position: relative;
+      width: var(--carousel-width);
+      overflow: hidden;
+    }
+
+    .carousel {
+      display: flex;
+    }
+
+    .slide {
+      min-width: 100%;
+      cursor: pointer;
+    }
+
+    .slide img, .single-img {
+      width: 100%;
+      display: block;
+      cursor: pointer;
+    }
+
+    /* Navegación de carrusel */
+    .carousel-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 32px;
+      height: 32px;
+      background: none;
+      border: none;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      font-size: 0;
+      color: #fff;
+      cursor: pointer;
+      user-select: none;
+      z-index: 10;
+      opacity: 1;
+      transition: opacity .15s;
+    }
+
+    .carousel-wrapper:hover .carousel-nav {
+      display: flex;
+    }
+
+    .carousel-nav.prev { left: 14px; }
+    .carousel-nav.next { right: 14px; }
+
+    .carousel-nav::before {
+      content: '';
+      display: block;
+      width: 20px;
+      height: 20px;
+      border-left: 2.5px solid #fff;
+      border-bottom: 2.5px solid #fff;
+      border-radius: 2px;
+      opacity: .97;
+    }
+
+    .carousel-nav.prev::before {
+      transform: rotate(45deg) scale(.85);
+    }
+
+    .carousel-nav.next::before {
+      transform: rotate(-135deg) scale(.85);
+    }
+
+    .project-label {
+      grid-area: label;
+      justify-self: end;
+      align-self: start;
+      background: rgba(255,255,255,.8);
+      padding: 2px 6px;
+      font-size: 16px;
+    }
+
+    .project-texts {
+      grid-area: texts;
+      max-width: var(--carousel-width);
+    }
+
+    .project-title {
+      font-size: 16px;
+      margin-bottom: 8px;
+    }
+
+    .project-title a {
+      color: var(--black);
+      text-decoration: underline;
+    }
+
+    .project-text {
+      margin-bottom: 8px;
+    }
+
+    .project-credit {
+      font-style: italic;
+      color: var(--gray);
+    }
+
+    /* Panel derecho */
+    .studio-title {
+      font-size: 16px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: 32px;
+    }
+
+    .bio p {
+      margin-bottom: 16px;
+    }
+
+    .cta {
+      font-size: 16px;
+      margin: 24px 0;
+    }
+
+    .contact {
+      margin-bottom: 32px;
+    }
+
+    .contact a {
+      display: block;
+      text-decoration: underline;
+      color: var(--black);
+      margin: 8px 0;
+      transition: color .2s ease;
+    }
+
+    .contact a:hover {
+      color: magenta;
+    }
+
+    .footer {
+      margin-top: auto;
+    }
+
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      grid-template-rows: auto auto;
+      gap: 4px 16px;
+      color: var(--gray);
+    }
+
+    .footer-grid .updated-label { grid-area: 1/1; }
+    .footer-grid .updated-date { grid-area: 2/1; }
+    .footer-grid .copy { grid-area: 1/3; text-align: right; }
+    .footer-grid .time { grid-area: 2/2; text-align: center; }
+    .footer-grid .site { grid-area: 2/3; text-align: right; }
+
+    /* Lightbox */
+    .lightbox {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,.9);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .lightbox.open { display: flex; }
+
+    .lb-wrapper {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .lb-carousel {
+      display: flex;
+      transition: transform 2.7s ease-in-out;
+    }
+
+    .lb-slide {
+      min-width: 100%;
+      height: 100%;
+    }
+
+    .lb-slide img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      max-height: 90vh;
+    }
+
+    .lb-nav, .lightbox .close {
+      position: absolute;
+      z-index: 2;
+      width: 50px;
+      height: 50px;
+      background: rgba(200,200,200,.7);
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 2rem;
+      color: var(--black);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .lb-nav.prev {
+      left: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    .lb-nav.next {
+      right: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    .lightbox .close {
+      top: 20px;
+      right: 20px;
+      text-decoration: none;
+    }
+
+    /* Ocultar móvil en desktop */
+    @media (min-width: 601px) {
+      .mobile-main {
+        display: none !important;
+      }
+    }
+
+    @media screen and (min-width: 1024px) {
+      .carousel-wrapper, .carousel { width: 28vw; }
+    }
+
+    /* ===== MÓVIL (≤600px) ===== */
+    @media (max-width: 600px) {
+      .container { display: none !important; }
+
+      html, body {
+        width: 100vw !important;
+        height: auto !important;
+        overflow-x: hidden !important;
+        background: #FFFCF6 !important;
+      }
+
+      body {
+        font-size: 12px !important;
+        line-height: 1.22 !important;
+        color: #232323 !important;
+      }
+
+      .mobile-main {
+        display: block !important;
+        width: 100vw;
+        min-height: 100vh;
+        background: #fff;
+        padding: 0;
+        margin: 0;
+      }
+
+      .mobile-info {
+        padding: 18px 14px 0 14px;
+        margin-bottom: 0;
+      }
+
+      .studio-title, .bio, .cta, .contact {
+        font-size: 12px !important;
+        text-align: left !important;
+        margin: 0 0 8px 0 !important;
+        padding: 0 !important;
+        letter-spacing: .01em !important;
+        font-weight: normal !important;
+      }
+
+      .studio-title { margin-bottom: 6px !important; }
+      .bio p { margin-bottom: 8px !important; }
+      .cta { margin: 12px 0 8px !important; }
+      .contact { margin-bottom: 7px !important; }
+
+      .contact a {
+        margin: 5px 0 !important;
+        font-size: 12px !important;
+        text-decoration: underline;
+        color: #232323 !important;
+        word-break: break-all;
+      }
+
+      .mobile-gallery {
+        width: 100vw;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 0;
+        margin: 0 auto;
+      }
+
+      .gallery-img-wrapper {
+        width: 92vw;
+        max-width: 420px;
+        margin: 30px auto 10px;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .gallery-img {
+        width: 100%;
+        max-width: 92vw;
+        display: block;
+        object-fit: contain;
+        background: #fff;
+        margin: 0;
+        box-shadow: 0 4px 12px #0001;
+        transition: box-shadow .2s;
+      }
+
+      .gallery-arrow {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 32px;
+        height: 32px;
+        background: none;
+        border: none;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 0;
+        cursor: pointer;
+        z-index: 10;
+        opacity: .8;
+        transition: opacity .2s;
+        user-select: none;
+      }
+
+      .gallery-arrow.left { left: 12px !important; }
+      .gallery-arrow.right { right: 12px !important; }
+
+      .gallery-arrow::before {
+        content: '';
+        display: block;
+        width: 20px;
+        height: 20px;
+        border-left: 2px solid #fff;
+        border-bottom: 2px solid #fff;
+        box-sizing: border-box;
+        opacity: 0.85;
+      }
+
+      .gallery-arrow.left::before {
+        transform: rotate(45deg) scale(0.85);
+      }
+
+      .gallery-arrow.right::before {
+        transform: rotate(-135deg) scale(0.85);
+      }
+
+      .gallery-arrow:active { opacity: 1; }
+
+      .gallery-caption {
+        font-size: 12px;
+        color: #232323;
+        text-align: left;
+        margin: 18px 0 48px 0;
+        min-height: 20px;
+        padding: 0 16px;
+        font-family: 'IBM Plex Mono', monospace;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- LEFT PANEL: Proyectos -->
+    <div class="left-panel">
+      <!-- PROJECT 01 -->
+      <div class="project-section" id="project1">
+        <div class="project-label">[01]</div>
+        <div class="carousel-wrapper bounce-carousel">
+          <div class="carousel-nav prev">❮</div>
+          <div class="carousel-nav next">❯</div>
+          <div class="carousel">
+            <div class="slide"><img src="https://i.imgur.com/GlaO5F9.jpeg" alt="Foto 1"></div>
+            <div class="slide"><img src="https://i.imgur.com/xtpM5d4.jpeg" alt="Foto 2"></div>
+            <div class="slide"><img src="https://i.imgur.com/HhU3bUH.jpeg" alt="Foto 3"></div>
+          </div>
+        </div>
+        <div class="project-texts">
+          <p class="project-title"><a href="#">Holomate</a></p>
+          <p class="project-text">Controlador MIDI portátil y experimental. Lanzado como una edición limitada de 50 unidades, es compatible con Holomate Play y Ableton Live.</p>
+          <p class="project-credit">– Diseño de producto, dirección creativa –</p>
+        </div>
+      </div>
+
+      <!-- PROJECT 02 -->
+      <div class="project-section" id="project2">
+        <div class="project-label">[02]</div>
+        <div class="carousel-wrapper bounce-carousel">
+          <div class="carousel-nav prev">❮</div>
+          <div class="carousel-nav next">❯</div>
+          <div class="carousel">
+            <div class="slide"><img src="https://i.imgur.com/C0uNKjq.jpeg" alt="Foto 1"></div>
+            <div class="slide"><img src="https://i.imgur.com/sELz8tj.jpeg" alt="Foto 2"></div>
+            <div class="slide"><img src="https://i.imgur.com/jCY91qu.jpeg" alt="Foto 3"></div>
+          </div>
+        </div>
+        <div class="project-texts">
+          <p class="project-title"><a href="#">Holomate play</a></p>
+          <p class="project-text">Es una plataforma web para hacer música de forma simple, lúdica y colectiva. Funciona como una app en el navegador, sin necesidad de instalar nada, y está pensada para conectarse directamente con el controlador Holomate o usarse de forma independiente. ↳ play.holomate.cc</p>
+          <p class="project-credit">– Diseño de producto, UX/UI –</p>
+        </div>
+      </div>
+
+      <!-- PROJECT 03 -->
+      <div class="project-section" id="project3">
+        <div class="project-label">[03]</div>
+        <div class="single-wrapper">
+          <img class="single-img" src="https://i.imgur.com/rIJUdYH.jpeg" alt="Imagen única">
+        </div>
+        <div class="project-texts">
+          <p class="project-title"><a href="#">Vicky Ismach y Federico Pignatta</a></p>
+          <p class="project-text">Performance "Ruido de la Plata" en el Ciclo Solar en Palacete 1111.</p>
+          <p class="project-credit">– Solo imagen –</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL: Bio y Contacto -->
+    <div class="right-panel">
+      <div class="studio-title">PIGNATTA</div>
+      <div class="bio">
+        <p>Federico Pignatta González es un creador interdisciplinar uruguayo radicado en Montevideo. Se dedica al diseño gráfico, investiga en artes visuales y experimentación sonora. Su práctica fusiona pensamiento conceptual con métodos experimentales y tecnologías emergentes.</p>
+      </div>
+      <p class="cta">↳ Contacto para colaboraciones y trabajos por encargo.</p>
+      <div class="contact">
+        <a href="mailto:fedepignatta@gmail.com">fedepignatta@gmail.com</a>
+        <a href="https://instagram.com/efe_defede" target="_blank">instagram.com/efe_defede_________</a>
+      </div>
+      <div class="footer">
+        <div class="footer-grid">
+          <div class="updated-label">ÚLTIMA ACTUALIZACIÓN:</div>
+          <div class="updated-date">19.07.25</div>
+          <div class="copy">© 2025</div>
+          <div class="time" id="clock">[00:00:00]</div>
+          <div class="site">WWW.PIGNATTA.INFO</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LIGHTBOX FULLSCREEN -->
+  <div id="lightbox" class="lightbox">
+    <a href="/" class="close">×</a>
+    <div class="lb-wrapper">
+      <div class="lb-nav prev">❮</div>
+      <div class="lb-carousel"></div>
+      <div class="lb-nav next">❯</div>
+    </div>
+  </div>
+
+  <!-- MOBILE-ONLY CONTENT -->
+  <div class="mobile-main">
+    <div class="mobile-info">
+      <div class="studio-title">PIGNATTA</div>
+      <div class="bio">
+        <p>Federico Pignatta González es un creador interdisciplinar uruguayo radicado en Montevideo. Se dedica al diseño gráfico, investiga en artes visuales y experimentación sonora. Su práctica fusiona pensamiento conceptual con métodos experimentales y tecnologías emergentes.</p>
+      </div>
+      <p class="cta">↳ Contacto para colaboraciones y trabajos por encargo.</p>
+      <div class="contact">
+        <a href="mailto:fedepignatta@gmail.com">fedepignatta@gmail.com</a>
+        <a href="https://instagram.com/efe_defede" target="_blank">instagram.com/efe_defede</a>
+      </div>
+    </div>
+    <div class="mobile-gallery">
+      <div class="gallery-img-wrapper">
+        <button class="gallery-arrow left">❮</button>
+        <img src="https://i.imgur.com/GlaO5F9.jpeg" alt="Foto galería" class="gallery-img" />
+        <button class="gallery-arrow right">❯</button>
+      </div>
+      <div class="gallery-caption"></div>
+    </div>
+  </div>
+
+  <script>
+    // Portfolio Federico Pignatta - Optimizado
+    document.addEventListener('DOMContentLoaded', () => {
+      const isMobile = window.matchMedia('(max-width:600px)').matches;
+      
+      // Reloj en tiempo real
+      const updateClock = () => {
+        const now = new Date();
+        const time = [now.getHours(), now.getMinutes(), now.getSeconds()]
+          .map(n => String(n).padStart(2, '0')).join(':');
+        const clock = document.getElementById('clock');
+        if (clock) clock.textContent = `[${time}]`;
+      };
+      updateClock();
+      setInterval(updateClock, 1000);
+
+      // Lightbox para desktop
+      const lightbox = document.getElementById('lightbox');
+      if (lightbox && !isMobile) {
+        const lbCarousel = lightbox.querySelector('.lb-carousel');
+        const lbPrev = lightbox.querySelector('.lb-nav.prev');
+        const lbNext = lightbox.querySelector('.lb-nav.next');
+        const lbClose = lightbox.querySelector('.close');
+        let lbIdx = 0, lbCount = 0;
+
+        const createSlide = src => {
+          const div = document.createElement('div');
+          div.className = 'lb-slide';
+          div.innerHTML = `<img src="${src}">`;
+          return div;
+        };
+
+        const lbMove = (to, animate = true) => {
+          lbCarousel.style.transition = animate ? 'transform .7s ease-in-out' : 'none';
+          lbIdx = to;
+          lbCarousel.style.transform = `translateX(-${100 * lbIdx}%)`;
+        };
+
+        window.openLightbox = (urls, startIdx = 0) => {
+          lbCarousel.innerHTML = '';
+          const N = urls.length;
+          
+          // Crear slides con duplicados para loop infinito
+          lbCarousel.appendChild(createSlide(urls[N - 1]));
+          urls.forEach(src => lbCarousel.appendChild(createSlide(src)));
+          lbCarousel.appendChild(createSlide(urls[0]));
+          
+          lbCount = N;
+          lbIdx = startIdx + 1;
+          lbMove(lbIdx, false);
+          lightbox.classList.add('open');
+        };
+
+        lbCarousel.addEventListener('transitionend', () => {
+          if (lbIdx === 0) lbMove(lbCount, false);
+          else if (lbIdx === lbCount + 1) lbMove(1, false);
+        });
+        
+        lbPrev.onclick = () => lbMove(lbIdx - 1);
+        lbNext.onclick = () => lbMove(lbIdx + 1);
+        lbClose.onclick = e => {
+          e.preventDefault();
+          lightbox.classList.remove('open');
+        };
+      }
+
+      // Carruseles de proyectos
+      document.querySelectorAll('.bounce-carousel').forEach(wrapper => {
+        const carousel = wrapper.querySelector('.carousel');
+        if (!carousel) return;
+
+        if (isMobile) {
+          // Versión móvil simplificada
+          const slides = Array.from(carousel.querySelectorAll('.slide'));
+          let idx = 0;
+          
+          slides.forEach((s, i) => s.style.display = i === 0 ? 'block' : 'none');
+
+          const navigate = (direction) => {
+            const newIdx = direction === 'prev' 
+              ? Math.max(0, idx - 1) 
+              : Math.min(slides.length - 1, idx + 1);
+            
+            if (newIdx !== idx) {
+              slides[idx].style.display = 'none';
+              slides[newIdx].style.display = 'block';
+              idx = newIdx;
+            }
+          };
+
+          wrapper.querySelector('.carousel-nav.prev')?.addEventListener('click', () => navigate('prev'));
+          wrapper.querySelector('.carousel-nav.next')?.addEventListener('click', () => navigate('next'));
+
+          // Gestos táctiles
+          let startX = 0, moving = false;
+          
+          carousel.addEventListener('touchstart', e => {
+            if (e.touches.length === 1) {
+              startX = e.touches[0].clientX;
+              moving = true;
+            }
+          });
+          
+          carousel.addEventListener('touchend', e => {
+            if (!moving) return;
+            const dx = e.changedTouches[0].clientX - startX;
+            if (Math.abs(dx) > 70) {
+              navigate(dx > 0 ? 'prev' : 'next');
+            }
+            moving = false;
+          }, { passive: true });
+        } else {
+          // Versión desktop con bounce
+          let slides = Array.from(carousel.children);
+          const N = slides.length;
+          
+          // Agregar duplicados solo si no existen
+          if (carousel.children.length === N) {
+            carousel.appendChild(slides[0].cloneNode(true));
+            carousel.insertBefore(slides[N - 1].cloneNode(true), carousel.firstChild);
+            slides = Array.from(carousel.children);
+          }
+          
+          let idx = 1, dir = 1;
+          carousel.style.transition = 'none';
+          carousel.style.transform = `translateX(-${100 * idx}%)`;
+          
+          const step = () => {
+            idx += dir;
+            if (idx > N) { dir = -1; idx = N - 1; }
+            else if (idx < 1) { dir = 1; idx = 2; }
+            
+            carousel.style.transition = 'transform 1s cubic-bezier(0.25,0.1,0.25,1)';
+            carousel.style.transform = `translateX(-${100 * idx}%)`;
+          };
+          
+          let autoPlay = setInterval(step, 3000);
+          
+          wrapper.addEventListener('mouseenter', () => clearInterval(autoPlay));
+          wrapper.addEventListener('mouseleave', () => autoPlay = setInterval(step, 3000));
+          
+          wrapper.querySelector('.carousel-nav.prev').onclick = () => {
+            clearInterval(autoPlay);
+            dir = -1;
+            step();
+          };
+          
+          wrapper.querySelector('.carousel-nav.next').onclick = () => {
+            clearInterval(autoPlay);
+            dir = 1;
+            step();
+          };
+
+          // Lightbox en click
+          slides.forEach((slide, i) => {
+            slide.onclick = () => {
+              const imageUrls = Array.from(carousel.querySelectorAll('.slide img')).map(img => img.src);
+              window.openLightbox?.(imageUrls, Math.max(0, i - 1));
+            };
+          });
+        }
+      });
+
+      // Imágenes individuales para lightbox (desktop)
+      if (!isMobile) {
+        document.querySelectorAll('.single-img').forEach(img => {
+          img.addEventListener('click', () => window.openLightbox?.([img.src], 0));
+        });
+      }
+
+      // Galería móvil
+      if (isMobile) {
+        const images = [
+          { src: "https://i.imgur.com/GlaO5F9.jpeg", caption: "Holomate es un controlador MIDI portátil y experimental. Lanzado como una edición limitada de 50 unidades, es compatible con Holomate Play y Ableton Live." },
+          { src: "https://i.imgur.com/xtpM5d4.jpeg", caption: "Holomate es un controlador MIDI portátil y experimental. Lanzado como una edición limitada de 50 unidades, es compatible con Holomate Play y Ableton Live." },
+          { src: "https://i.imgur.com/HhU3bUH.jpeg", caption: "Holomate es un controlador MIDI portátil y experimental. Lanzado como una edición limitada de 50 unidades, es compatible con Holomate Play y Ableton Live." }
+        ];
+        
+        const imgTag = document.querySelector(".gallery-img");
+        const captionTag = document.querySelector(".gallery-caption");
+        const prevBtn = document.querySelector(".gallery-arrow.left");
+        const nextBtn = document.querySelector(".gallery-arrow.right");
+        
+        let idx = 0;
+        
+        const show = n => {
+          const img = images[n];
+          if (imgTag && captionTag && img) {
+            imgTag.src = img.src;
+            imgTag.alt = img.caption;
+            captionTag.textContent = img.caption;
+          }
+        };
+        
+        show(idx);
+        
+        prevBtn?.addEventListener('click', () => {
+          idx = (idx - 1 + images.length) % images.length;
+          show(idx);
+        });
+        
+        nextBtn?.addEventListener('click', () => {
+          idx = (idx + 1) % images.length;
+          show(idx);
+        });
+      }
+    });
+  </script>
+</body>
+</html>
