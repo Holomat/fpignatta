@@ -4,792 +4,278 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Federico Pignatta — Proyecto</title>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&display=swap" rel="stylesheet" />
-  <style>
-    /* Variables globales */
-    :root {
-      --black: #434343;
-      --white: #FFFEFB;
-      --gray: #c5c5c5;
-      --carousel-width: 33.333vw;
-    }
-
-    /* Reset y base */
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 16px;
-      line-height: 1.1;
-      color: var(--black);
-      background: var(--white);
-      overflow-x: hidden;
-    }
-
-    /* ===== DESKTOP / TABLET (>600px) ===== */
-    .container {
-      display: flex;
-      height: 100vh;
-      width: 100vw;
-    }
-
-    .left-panel {
-      width: 72%;
-      padding: 64px;
-      height: 100vh;
-      overflow-y: auto;
-      scrollbar-width: none;
-      -ms-overflow-style: none;
-    }
-    .left-panel::-webkit-scrollbar { display: none; }
-
-    .right-panel {
-      width: 30%;
-      padding: 64px 40px 40px;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      position: sticky;
-      top: 0;
-    }
-
-    .project-section {
-      display: grid;
-      grid-template-columns: var(--carousel-width) 1fr;
-      grid-template-rows: auto auto;
-      grid-template-areas: "carousel label" "texts label";
-      gap: 16px;
-      margin-bottom: 382px;
-    }
-
-    .carousel-wrapper, .single-wrapper {
-      grid-area: carousel;
-      position: relative;
-      width: var(--carousel-width);
-      overflow: hidden;
-    }
-
-    .carousel {
-      display: flex;
-    }
-
-    .slide {
-      min-width: 100%;
-      cursor: pointer;
-    }
-
-    .slide img, .single-img {
-      width: 100%;
-      display: block;
-      cursor: pointer;
-    }
-
-    /* Navegación de carrusel */
-    .carousel-nav {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 32px;
-      height: 32px;
-      background: none;
-      border: none;
-      display: none;
-      justify-content: center;
-      align-items: center;
-      font-size: 0;
-      color: #fff;
-      cursor: pointer;
-      user-select: none;
-      z-index: 10;
-      opacity: 1;
-      transition: opacity .15s;
-    }
-
-    .carousel-wrapper:hover .carousel-nav {
-      display: flex;
-    }
-
-    .carousel-nav.prev { left: 14px; }
-    .carousel-nav.next { right: 14px; }
-
-    .carousel-nav::before {
-      content: '';
-      display: block;
-      width: 20px;
-      height: 20px;
-      border-left: 2.5px solid #fff;
-      border-bottom: 2.5px solid #fff;
-      border-radius: 2px;
-      opacity: .97;
-    }
-
-    .carousel-nav.prev::before {
-      transform: rotate(45deg) scale(.85);
-    }
-
-    .carousel-nav.next::before {
-      transform: rotate(-135deg) scale(.85);
-    }
-
-    .project-label {
-      grid-area: label;
-      justify-self: end;
-      align-self: start;
-      background: rgba(255,255,255,.8);
-      padding: 2px 6px;
-      font-size: 16px;
-    }
-
-    .project-texts {
-      grid-area: texts;
-      max-width: var(--carousel-width);
-    }
-
-    .project-title {
-      font-size: 16px;
-      margin-bottom: 8px;
-    }
-
-    .project-title a {
-      color: var(--black);
-      text-decoration: underline;
-    }
-
-    .project-text {
-      margin-bottom: 8px;
-    }
-
-    .project-credit {
-      font-style: italic;
-      color: var(--gray);
-    }
-
-    /* Panel derecho */
-    .studio-title {
-      font-size: 16px;
-      text-transform: uppercase;
-      letter-spacing: .08em;
-      margin-bottom: 32px;
-    }
-
-    .bio p {
-      margin-bottom: 16px;
-    }
-
-    .cta {
-      font-size: 16px;
-      margin: 24px 0;
-    }
-
-    .contact {
-      margin-bottom: 32px;
-    }
-
-    .contact a {
-      display: block;
-      text-decoration: underline;
-      color: var(--black);
-      margin: 8px 0;
-      transition: color .2s ease;
-    }
-
-    .contact a:hover {
-      color: magenta;
-    }
-
-    .footer {
-      margin-top: auto;
-    }
-
-    .footer-grid {
-      display: grid;
-      grid-template-columns: 1fr auto 1fr;
-      grid-template-rows: auto auto;
-      gap: 4px 16px;
-      color: var(--gray);
-    }
-
-    .footer-grid .updated-label { grid-area: 1/1; }
-    .footer-grid .updated-date { grid-area: 2/1; }
-    .footer-grid .copy { grid-area: 1/3; text-align: right; }
-    .footer-grid .time { grid-area: 2/2; text-align: center; }
-    .footer-grid .site { grid-area: 2/3; text-align: right; }
-
-    /* Lightbox */
-    .lightbox {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0,0,0,.9);
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-
-    .lightbox.open { display: flex; }
-
-    .lb-wrapper {
-      position: relative;
-      width: 100vw;
-      height: 100vh;
-      overflow: hidden;
-    }
-
-    .lb-carousel {
-      display: flex;
-      transition: transform 2.7s ease-in-out;
-    }
-
-    .lb-slide {
-      min-width: 100%;
-      height: 100%;
-    }
-
-    .lb-slide img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      max-height: 90vh;
-    }
-
-    .lb-nav, .lightbox .close {
-      position: absolute;
-      z-index: 2;
-      width: 50px;
-      height: 50px;
-      background: rgba(200,200,200,.7);
-      border-radius: 50%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 2rem;
-      color: var(--black);
-      cursor: pointer;
-      user-select: none;
-    }
-
-    .lb-nav.prev {
-      left: 20px;
-      top: 50%;
-      transform: translateY(-50%);
-    }
-
-    .lb-nav.next {
-      right: 20px;
-      top: 50%;
-      transform: translateY(-50%);
-    }
-
-    .lightbox .close {
-      top: 20px;
-      right: 20px;
-      text-decoration: none;
-    }
-
-    /* Ocultar móvil en desktop */
-    @media (min-width: 601px) {
-      .mobile-main {
-        display: none !important;
-      }
-    }
-
-    @media screen and (min-width: 1024px) {
-      .carousel-wrapper, .carousel { width: 28vw; }
-    }
-
-    /* ===== MÓVIL (≤600px) ===== */
-    @media (max-width: 600px) {
-      .container { display: none !important; }
-
-      html, body {
-        width: 100vw !important;
-        height: auto !important;
-        overflow-x: hidden !important;
-        background: #FFFCF6 !important;
-      }
-
-      body {
-        font-size: 10px !important;
-        line-height: 1.19 !important;
-        color: #232323 !important;
-      }
-
-      .mobile-main {
-        display: block !important;
-        width: 100vw;
-        min-height: 100vh;
-        background: #fff;
-        padding: 0;
-        margin: 0;
-      }
-
-      .mobile-info {
-        padding: 18px 14px 0 14px;
-        margin-bottom: 0;
-      }
-
-      .studio-title, .bio, .cta, .contact {
-        font-size: 10px !important;
-        text-align: left !important;
-        margin: 0 0 8px 0 !important;
-        padding: 0 !important;
-        letter-spacing: .01em !important;
-        font-weight: normal !important;
-      }
-
-      .studio-title { margin-bottom: 6px !important; }
-      .bio p { margin-bottom: 8px !important; }
-      .cta { margin: 12px 0 8px !important; }
-      .contact { margin-bottom: 7px !important; }
-
-      .contact a {
-        margin: 5px 0 !important;
-        font-size: 10px !important;
-        text-decoration: underline;
-        color: #232323 !important;
-        word-break: break-all;
-      }
-
-      .mobile-gallery {
-        width: 100vw;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 0;
-        margin: 0 auto;
-      }
-
-      .gallery-img-wrapper {
-        width: 92vw;
-        max-width: 420px;
-        margin: 30px auto 10px;
-        position: relative;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .gallery-img {
-        width: 100%;
-        max-width: 92vw;
-        display: block;
-        object-fit: contain;
-        background: #fff;
-        margin: 0;
-        box-shadow: 0 4px 12px #0001;
-        transition: box-shadow .2s;
-      }
-
-      .gallery-arrow {
-        position: absolute;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 32px;
-        height: 32px;
-        background: none;
-        border: none;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-size: 0;
-        cursor: pointer;
-        z-index: 10;
-        opacity: .8;
-        transition: opacity .2s;
-        user-select: none;
-      }
-
-      .gallery-arrow.left { left: 12px !important; }
-      .gallery-arrow.right { right: 12px !important; }
-
-      .gallery-arrow::before {
-        content: '';
-        display: block;
-        width: 20px;
-        height: 20px;
-        border-left: 2px solid #fff;
-        border-bottom: 2px solid #fff;
-        box-sizing: border-box;
-        opacity: 0.85;
-      }
-
-      .gallery-arrow.left::before {
-        transform: rotate(45deg) scale(0.85);
-      }
-
-      .gallery-arrow.right::before {
-        transform: rotate(-135deg) scale(0.85);
-      }
-
-      .gallery-arrow:active { opacity: 1; }
-
-      .gallery-caption {
-        font-size: 12px;
-        color: #232323;
-        text-align: left;
-        margin: 18px 0 48px 0;
-        min-height: 20px;
-        padding: 0 16px;
-        font-family: 'IBM Plex Mono', monospace;
-      }
-    }
-  </style>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="container">
-    <!-- LEFT PANEL: Proyectos -->
-    <div class="left-panel">
-      <!-- PROJECT 01 -->
-      <div class="project-section" id="project1">
-        <div class="project-label">[OBJETO]</div>
-        <div class="carousel-wrapper bounce-carousel">
-          <div class="carousel-nav prev">❮</div>
-          <div class="carousel-nav next">❯</div>
-          <div class="carousel">
-            <div class="slide"><img src="https://i.imgur.com/GlaO5F9.jpeg" alt="Foto 1"></div>
-            <div class="slide"><img src="https://i.imgur.com/xtpM5d4.jpeg" alt="Foto 2"></div>
-            <div class="slide"><img src="https://i.imgur.com/HhU3bUH.jpeg" alt="Foto 3"></div>
-          </div>
-        </div>
-        <div class="project-texts">
-          <p class="project-title"><a href="#">Holomate</a></p>
-          <p class="project-text">Controlador MIDI portátil y experimental. Lanzado como una edición limitada de 50 unidades, es compatible con Holomate Play y Ableton Live.</p>
-          <p class="project-credit">– Diseño de producto, dirección creativa –</p>
-        </div>
-      </div>
-
-      <!-- PROJECT 02 -->
-      <div class="project-section" id="project2">
-        <div class="project-label">[PRODUCTO + UX/UI]</div>
-        <div class="carousel-wrapper bounce-carousel">
-          <div class="carousel-nav prev">❮</div>
-          <div class="carousel-nav next">❯</div>
-          <div class="carousel">
-            <div class="slide"><img src="https://i.imgur.com/C0uNKjq.jpeg" alt="Foto 1"></div>
-            <div class="slide"><img src="https://i.imgur.com/sELz8tj.jpeg" alt="Foto 2"></div>
-            <div class="slide"><img src="https://i.imgur.com/jCY91qu.jpeg" alt="Foto 3"></div>
-          </div>
-        </div>
-        <div class="project-texts">
-          <p class="project-title"><a href="#">Holomate play</a></p>
-          <p class="project-text">Es una plataforma web para hacer música de forma simple, lúdica y colectiva. Funciona como una app en el navegador, sin necesidad de instalar nada, y está pensada para conectarse directamente con el controlador Holomate o usarse de forma independiente. ↳ play.holomate.cc</p>
-          <p class="project-credit">– Diseño de producto, UX/UI –</p>
-        </div>
-      </div>
-
-      <!-- PROJECT 03 -->
-      <div class="project-section" id="project3">
-        <div class="project-label">[SONIDO]</div>
-        <div class="single-wrapper">
-          <img class="single-img" src="https://i.imgur.com/rIJUdYH.jpeg" alt="Imagen única">
-        </div>
-        <div class="project-texts">
-          <p class="project-title"><a href="#">Vicky Ismach y Federico Pignatta</a></p>
-          <p class="project-text">Performance "Ruido de la Plata" en el Ciclo Solar en Palacete 1111.</p>
-          <p class="project-credit">– Solo imagen –</p>
-        </div>
-      </div>
+  <!-- Barra de reflexiones inferior - MICRODOSIS DE SIGNIFICADOS -->
+  <div class="reflection-bar" id="reflectionBar">
+    <div class="reflection-content" id="reflectionContent">
+       • ESTA WEB ESTÁ DISEÑADA POR FEDERICO PIGNATTA UTILIZANDO IA COMO COPILOTO DURANTE TODO EL PROCESO • EL ENFOQUE DE CONSTRUCCIÓN FUE EXPERIMENTAL: UNA METODOLOGÍA SIMILAR AL COLLAGE, PERO APLICADA AL CÓDIGO • EL RESULTADO: UNA COMPOSICIÓN LIMPIA, CON MUCHO AIRE Y UN TOQUE DE DIVERSIÓN • 
     </div>
-
-    <!-- RIGHT PANEL: Bio y Contacto -->
-   <div class="right-panel">
-      <div class="studio-title">PIGNATTA</div>
-      <div class="bio">
-        <p>Federico Pignatta González es un creador interdisciplinar uruguayo radicado en Montevideo. Se dedica al diseño gráfico, investiga en artes visuales y experimentación sonora. Su práctica fusiona pensamiento conceptual con métodos experimentales y tecnologías emergentes.</p> Su trabajo abarca la construcción de identidad visual, la animación en motion graphics y la experiencia de usuario en entornos digitales (UX/UI).
-        </p>
-      </div>
-      <p class="cta">✉ Contacto para colaboraciones y trabajos por encargo.</p>
-      <div class="contact">
-        <a href="mailto:fedepignatta@gmail.com">MAIL</a>
-        <a href="https://instagram.com/efe_defede" target="_blank">INSTAGRAM</a>
-       
-      </div>
-      <p class="cta">✎ Proyectos personales:</p>
-      <div class="contact">
-        <a href="https://play.holomate.cc" target="_blank">PLAY.HOLOMATE.CC</a>
-      </div>
-      <p class="cta">↗ Trabajo destacado por:</p>
-      <div class="contact">
-        <a href="https://www.buenosaliens.com/notas.cfm/cod.83068.t.controlador-made-in-montevideo.htm" target="_blank">BUENOS ALIENS 2024</a>
-        <a href="https://fondos.culturaenlinea.uy/presentacion/proyectos-y-becas-seleccionadas/proy-y-becas-fefca/proyectos-y-becas-seleccionados-fefca-2020/" target="_blank">FEFCA 2020</a>
-        <a href="#" onclick="alert('FONAM 2019 - Proyecto N° 2-2019-454'); return false;">FONAM 2019</a>
-      </div>
-      <div class="footer">
-        <div class="footer-grid">
-          <div class="updated-label">ÚLTIMA ACTUALIZACIÓN:</div>
-          <div class="updated-date">21.07.25</div>
-          <div class="copy">© 2025</div>
-          <div class="time" id="clock">[00:00:00]</div>
-          <div class="site">WWW.PIGNATTA.INFO</div>
-        </div>
-      </div>
-    </div>
-
-  </div>
-  <!-- LIGHTBOX FULLSCREEN -->
-  <div id="lightbox" class="lightbox">
-    <a href="/" class="close">×</a>
-    <div class="lb-wrapper">
-      <div class="lb-nav prev">❮</div>
-      <div class="lb-carousel"></div>
-      <div class="lb-nav next">❯</div>
-    </div>
+    <button class="reflection-close" onclick="closeReflectionBar()">×</button>
   </div>
 
-  <!-- MOBILE-ONLY CONTENT -->
-  <div class="mobile-main">
-    <div class="mobile-info">
-      <div class="studio-title">PIGNATTA</div>
-      <div class="bio">
-         <p>Federico Pignatta González es un creador interdisciplinar uruguayo radicado en Montevideo. Se dedica al diseño gráfico, investiga en artes visuales y experimentación sonora. Su práctica fusiona pensamiento conceptual con métodos experimentales y tecnologías emergentes.</p>Actualmente trabaja como diseñador gráfico senior en la Dirección Nacional de Educación del Ministerio de Educación y Cultura de Uruguay. Su trabajo abarca la construcción de identidad visual, la animación en motion graphics y la experiencia de usuario en entornos digitales (UX/UI).
-        </p>
-      </div>
-      <p class="cta">✉ Contacto para colaboraciones y trabajos por encargo.</p>
-      <div class="contact">
-        <a href="mailto:fedepignatta@gmail.com">MAIL</a>
-        <a href="https://instagram.com/efe_defede" target="_blank">INSTAGRAM</a>
-       
-      </div>
-      <p class="cta">✎ Proyectos personales:</p>
-      <div class="contact">
-        <a href="https://play.holomate.cc" target="_blank">PLAY.HOLOMATE.CC</a>
-      </div>
-      <p class="cta">↗ Trabajo destacado por:</p>
-      <div class="contact">
-        <a href="https://www.buenosaliens.com/notas.cfm/cod.83068.t.controlador-made-in-montevideo.htm" target="_blank">BUENOS ALIENS 2024</a>
-        <a href="https://fondos.culturaenlinea.uy/presentacion/proyectos-y-becas-seleccionadas/proy-y-becas-fefca/proyectos-y-becas-seleccionados-fefca-2020/" target="_blank">FEFCA 2020</a>
-        <a href="#" onclick="alert('FONAM 2019 - Proyecto N° 2-2019-454'); return false;">FONAM 2019</a>
-      </div>
-    </div>
-    <div class="mobile-gallery">
-      <div class="gallery-img-wrapper">
-        <button class="gallery-arrow left">❮</button>
-        <img src="https://i.imgur.com/GlaO5F9.jpeg" alt="Foto galería" class="gallery-img" />
-        <button class="gallery-arrow right">❯</button>
-      </div>
-      <div class="gallery-caption"></div>
-    </div>
-  </div>
-
-  <script>
-    // Portfolio Federico Pignatta - Optimizado
-    document.addEventListener('DOMContentLoaded', () => {
-      const isMobile = window.matchMedia('(max-width:600px)').matches;
+  <div class="main-container">
+    
+    <!-- Panel Izquierdo - Proyectos - 44% -->
+    <div class="left-projects-panel">
       
-      // Reloj en tiempo real
-      const updateClock = () => {
-        const now = new Date();
-        const time = [now.getHours(), now.getMinutes(), now.getSeconds()]
-          .map(n => String(n).padStart(2, '0')).join(':');
-        const clock = document.getElementById('clock');
-        if (clock) clock.textContent = `[${time}]`;
-      };
-      updateClock();
-      setInterval(updateClock, 1000);
-
-      // Lightbox para desktop
-      const lightbox = document.getElementById('lightbox');
-      if (lightbox && !isMobile) {
-        const lbCarousel = lightbox.querySelector('.lb-carousel');
-        const lbPrev = lightbox.querySelector('.lb-nav.prev');
-        const lbNext = lightbox.querySelector('.lb-nav.next');
-        const lbClose = lightbox.querySelector('.close');
-        let lbIdx = 0, lbCount = 0;
-
-        const createSlide = src => {
-          const div = document.createElement('div');
-          div.className = 'lb-slide';
-          div.innerHTML = `<img src="${src}">`;
-          return div;
-        };
-
-        const lbMove = (to, animate = true) => {
-          lbCarousel.style.transition = animate ? 'transform .7s ease-in-out' : 'none';
-          lbIdx = to;
-          lbCarousel.style.transform = `translateX(-${100 * lbIdx}%)`;
-        };
-
-        window.openLightbox = (urls, startIdx = 0) => {
-          lbCarousel.innerHTML = '';
-          const N = urls.length;
-          
-          // Crear slides con duplicados para loop infinito
-          lbCarousel.appendChild(createSlide(urls[N - 1]));
-          urls.forEach(src => lbCarousel.appendChild(createSlide(src)));
-          lbCarousel.appendChild(createSlide(urls[0]));
-          
-          lbCount = N;
-          lbIdx = startIdx + 1;
-          lbMove(lbIdx, false);
-          lightbox.classList.add('open');
-        };
-
-        lbCarousel.addEventListener('transitionend', () => {
-          if (lbIdx === 0) lbMove(lbCount, false);
-          else if (lbIdx === lbCount + 1) lbMove(1, false);
-        });
+      <div class="project">
+        <div class="project-media">
+          <div class="project-carousel">
+            <div class="carousel-track">
+              <div class="carousel-slide">
+                <img src="https://i.imgur.com/GlaO5F9.jpeg" alt="Holomate Controller 1">
+              </div>
+              <div class="carousel-slide">
+                <img src="https://i.imgur.com/xtpM5d4.jpeg" alt="Holomate Controller 2">
+              </div>
+              <div class="carousel-slide">
+                <img src="https://i.imgur.com/HhU3bUH.jpeg" alt="Holomate Controller 3">
+              </div>
+            </div>
+            <div class="carousel-controls">
+              <button class="carousel-btn prev"></button>
+              <button class="carousel-btn next"></button>
+            </div>
+          </div>
+        </div>
         
-        lbPrev.onclick = () => lbMove(lbIdx - 1);
-        lbNext.onclick = () => lbMove(lbIdx + 1);
-        lbClose.onclick = e => {
-          e.preventDefault();
-          lightbox.classList.remove('open');
-        };
-      }
+        <div class="project-info-grid">
+          <div class="project-left">
+            <div class="project-number">[01</div>
+            <div class="project-category"></div>
+          </div>
+          <div class="project-details">
+            <Miv class="project-title">HOLOMATE
+            <p class="project-description">
+              ONTROLADOR MIDI PORTÁTIL Y EXPERIMENTAL. LANZADO COMO UNA EDICIÓN LIMITADA DE 50 UNIDADES,
+ES COMPATIBLE CON HOLOMATE PLAY Y ABLETON LIVE. UN DISPOSITIVO QUE FUSIONA DISEÑO FÍSICO
+CON EXPERIENCIA DIGITAL PARA LA CREACIÓN MUSICAL COLABORATIVA.
+            </p>
+          </div>
+        </div>
+      </div>
 
-      // Carruseles de proyectos
-      document.querySelectorAll('.bounce-carousel').forEach(wrapper => {
-        const carousel = wrapper.querySelector('.carousel');
-        if (!carousel) return;
-
-        if (isMobile) {
-          // Versión móvil simplificada
-          const slides = Array.from(carousel.querySelectorAll('.slide'));
-          let idx = 0;
-          
-          slides.forEach((s, i) => s.style.display = i === 0 ? 'block' : 'none');
-
-          const navigate = (direction) => {
-            const newIdx = direction === 'prev' 
-              ? Math.max(0, idx - 1) 
-              : Math.min(slides.length - 1, idx + 1);
-            
-            if (newIdx !== idx) {
-              slides[idx].style.display = 'none';
-              slides[newIdx].style.display = 'block';
-              idx = newIdx;
-            }
-          };
-
-          wrapper.querySelector('.carousel-nav.prev')?.addEventListener('click', () => navigate('prev'));
-          wrapper.querySelector('.carousel-nav.next')?.addEventListener('click', () => navigate('next'));
-
-          // Gestos táctiles
-          let startX = 0, moving = false;
-          
-          carousel.addEventListener('touchstart', e => {
-            if (e.touches.length === 1) {
-              startX = e.touches[0].clientX;
-              moving = true;
-            }
-          });
-          
-          carousel.addEventListener('touchend', e => {
-            if (!moving) return;
-            const dx = e.changedTouches[0].clientX - startX;
-            if (Math.abs(dx) > 70) {
-              navigate(dx > 0 ? 'prev' : 'next');
-            }
-            moving = false;
-          }, { passive: true });
-        } else {
-          // Versión desktop con bounce
-          let slides = Array.from(carousel.children);
-          const N = slides.length;
-          
-          // Agregar duplicados solo si no existen
-          if (carousel.children.length === N) {
-            carousel.appendChild(slides[0].cloneNode(true));
-            carousel.insertBefore(slides[N - 1].cloneNode(true), carousel.firstChild);
-            slides = Array.from(carousel.children);
-          }
-          
-          let idx = 1, dir = 1;
-          carousel.style.transition = 'none';
-          carousel.style.transform = `translateX(-${100 * idx}%)`;
-          
-          const step = () => {
-            idx += dir;
-            if (idx > N) { dir = -1; idx = N - 1; }
-            else if (idx < 1) { dir = 1; idx = 2; }
-            
-            carousel.style.transition = 'transform 1s cubic-bezier(0.25,0.1,0.25,1)';
-            carousel.style.transform = `translateX(-${100 * idx}%)`;
-          };
-          
-          let autoPlay = setInterval(step, 3000);
-          
-          wrapper.addEventListener('mouseenter', () => clearInterval(autoPlay));
-          wrapper.addEventListener('mouseleave', () => autoPlay = setInterval(step, 3000));
-          
-          wrapper.querySelector('.carousel-nav.prev').onclick = () => {
-            clearInterval(autoPlay);
-            dir = -1;
-            step();
-          };
-          
-          wrapper.querySelector('.carousel-nav.next').onclick = () => {
-            clearInterval(autoPlay);
-            dir = 1;
-            step();
-          };
-
-          // Lightbox en click
-          slides.forEach((slide, i) => {
-            slide.onclick = () => {
-              const imageUrls = Array.from(carousel.querySelectorAll('.slide img')).map(img => img.src);
-              window.openLightbox?.(imageUrls, Math.max(0, i - 1));
-            };
-          });
-        }
-      });
-
-      // Imágenes individuales para lightbox (desktop)
-      if (!isMobile) {
-        document.querySelectorAll('.single-img').forEach(img => {
-          img.addEventListener('click', () => window.openLightbox?.([img.src], 0));
-        });
-      }
-
-      // Galería móvil expandida
-      if (isMobile) {
-        const images = [
-          { src: "https://i.imgur.com/GlaO5F9.jpeg", caption: "Holomate es un controlador MIDI portátil y experimental. Lanzado como una edición limitada de 50 unidades, es compatible con Holomate Play y Ableton Live." },
-          { src: "https://i.imgur.com/xtpM5d4.jpeg", caption: "Holomate es un controlador MIDI portátil y experimental. Lanzado como una edición limitada de 50 unidades, es compatible con Holomate Play y Ableton Live." },
-          { src: "https://i.imgur.com/HhU3bUH.jpeg", caption: "Holomate es un controlador MIDI portátil y experimental. Lanzado como una edición limitada de 50 unidades, es compatible con Holomate Play y Ableton Live." },
-          { src: "https://i.imgur.com/C0uNKjq.jpeg", caption: "Holomate play es una plataforma web para hacer música de forma simple, lúdica y colectiva. Funciona como una app en el navegador, sin necesidad de instalar nada." },
-          { src: "https://i.imgur.com/sELz8tj.jpeg", caption: "Holomate play es una plataforma web para hacer música de forma simple, lúdica y colectiva. Funciona como una app en el navegador, sin necesidad de instalar nada." },
-          { src: "https://i.imgur.com/jCY91qu.jpeg", caption: "Holomate play es una plataforma web para hacer música de forma simple, lúdica y colectiva. Funciona como una app en el navegador, sin necesidad de instalar nada." },
-          { src: "https://i.imgur.com/rIJUdYH.jpeg", caption: "Performance 'Ruido de la Plata' con Vicky Ismach en el Ciclo Solar en Palacete 1111." },
-         
-        ];
+      <div class="project">
+        <div class="project-media">
+          <div class="project-carousel">
+            <div class="carousel-track">
+              <div class="carousel-slide">
+                <img src="https://i.imgur.com/C0uNKjq.jpeg" alt="Holomate Play 1">
+              </div>
+              <div class="carousel-slide">
+                <img src="https://i.imgur.com/sELz8tj.jpeg" alt="Holomate Play 2">
+              </div>
+              <div class="carousel-slide">
+                <img src="https://i.imgur.com/jCY91qu.jpeg" alt="Holomate Play 3">
+              </div>
+            </div>
+            <div class="carousel-controls">
+              <button class="carousel-btn prev"></button>
+              <button class="carousel-btn next"></button>
+            </div>
+          </div>
+        </div>
         
-        const imgTag = document.querySelector(".gallery-img");
-        const captionTag = document.querySelector(".gallery-caption");
-        const prevBtn = document.querySelector(".gallery-arrow.left");
-        const nextBtn = document.querySelector(".gallery-arrow.right");
+        <div class="project-info-grid">
+          <div class="project-left">
+            <div class="project-number">[02</div>
+            <div class="project-category"></div>
+          </div>
+          <div class="project-details">
+            <div class="project-title">HOLOMATE PLAY</div>
+            <p class="project-description">
+              ES UNA PLATAFORMA WEB PARA HACER MÚSICA DE FORMA SIMPLE, LÚDICA Y COLECTIVA.
+FUNCIONA COMO UNA APP EN EL NAVEGADOR, SIN NECESIDAD DE INSTALAR NADA, Y ESTÁ PENSADA
+PARA CONECTARSE DIRECTAMENTE CON EL CONTROLADOR HOLOMATE O USARSE DE FORMA INDEPENDIENTE.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="project">
+        <div class="project-media">
+          <img src="https://i.imgur.com/rIJUdYH.jpeg" alt="Performance Ruido de la Plata" class="single-image" onclick="openLightbox('https://i.imgur.com/rIJUdYH.jpeg')">
+        </div>
         
-        let idx = 0;
+        <div class="project-info-grid">
+          <div class="project-left">
+            <div class="project-number">[03]</div>
+            <div class="project-category"></div>
+          </div>
+          <div class="project-details">
+            <div class="project-title">VICKY ISMACH Y YO</div>
+            <p class="project-description">
+             PERFORMANCE "RUIDO DE LA PLATA" EN EL CICLO SOLAR EN PALACETE 1111.LA PERFORMANCE ABORDÓ LAS RESONANCIAS, FLUJOS
+Y TEXTURAS ACÚSTICAS DE ESTE CUERPO DE AGUA (RIO DE LA PLATA)
+INTEGRANDO REGISTROS DE CAMPO, SINTETIZADORES ANALÓGICOS Y ELEMENTOS IMPROVISADOS, PARA 
+CONSTRUIR UN ESPACIO DE ESCUCHA INMERSIVO Y
+SENSIBLE.
+            </p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Panel Central - Información complementaria - 28% -->
+    <div class="center-info-panel">
+      
+      <div class="info-section">
+        <div class="info-title">Educación</div>
+        <div class="info-item">
+          <div>Licenciatura en Artes Visuales</div>
+          <div class="info-description">Universidad de la República, Uruguay</div>
+        </div>
+        <div class="info-item">
+          <div>Tecnicatura en Diseño Gráfico</div>
+          <div class="info-description">UTU Comunicación Social</div>
+        </div>
+        <div class="info-item">
+          <div>Especialización en UX/UI</div>
+          <div class="info-description">Certificación Coderhouse</div>
+        </div>
+      </div>
+
+      <div class="info-section">
+        <div class="info-title">Experiencia</div>
+        <div class="info-item">
+          <div>Diseñador Gráfico Senior</div>
+          <div class="info-description">Ministerio de Educación y Cultura</div>
+        </div>
+        <div class="info-item">
+          <div>Freelance Designer</div>
+          <div class="info-description">Proyectos comisionados desde 2011 - presente</div>
+        </div>
+      </div>
+
+      <div class="info-section">
+        <div class="info-title">Enseñanza</div>
+        <div class="info-item">
+          <div>Talleres de Arte y Comunicación Visual en Contexto de Encierro </div>
+          <div class="info-description">2018 - 2021 (PAS)</div>
+        </div>
+      </div>
+
+      <div class="info-section">
+        <div class="info-title">Trabajos destacados por:</div>
+        <div class="info-item">
+          <a href="https://www.buenosaliens.com/notas.cfm/cod.83068.t.controlador-made-in-montevideo.htm" target="_blank">2024 Buenos Aliens</a>
+        </div>
+        <div class="info-item">
+          <a href="https://fondos.culturaenlinea.uy/presentacion/proyectos-y-becas-seleccionadas/proy-y-becas-fefca/proyectos-y-becas-seleccionados-fefca-2020/" target="_blank">2020 FEFCA</a>
+        </div>
+        <div class="info-item">
+          <a href="#" onclick="alert('FONAM 2019 - Proyecto N° 2-2019-454'); return false;">2019 FONAM</a>
+        </div>
+      </div>
+
+      <div class="info-section">
+        <div class="info-title">Proyectos colaborativos de autoría</div>
+        <div class="info-item">
+          <a href="https://play.holomate.cc" target="_blank">Holomate Play</a>
+        </div>
+        <div class="info-item">
+          <a href="#" target="_blank">Holomate Controlador MIDI experimental</a>
+        </div>
+        <div class="info-item">
+          <a href="https://instagram.com/riodelaplata_uy" target="_blank">Ruido de la Plata</a>
+        </div>
+      </div>
+
+      <div class="sound-section">
+        <div class="sound-label">Radio del Río</div>
         
-        const show = n => {
-          const img = images[n];
-          if (imgTag && captionTag && img) {
-            imgTag.src = img.src;
-            imgTag.alt = img.caption;
-            captionTag.textContent = img.caption;
-          }
-        };
+        <!-- Reproductor completo Radio del Río -->
+        <div class="sound-player-full">
+          <div class="sound-player-controls">
+            <button class="sound-control-btn" onclick="soundPreviousTrack()" title="Anterior">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M0 0v12h3V0zM3 6l9-6v12z" fill="currentColor"/>
+              </svg>
+            </button>
+            <button class="sound-control-btn play-btn" onclick="soundTogglePlayPause()" id="soundPlayBtn">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 0v12l9-6z" fill="currentColor"/>
+              </svg>
+            </button>
+            <button class="sound-control-btn" onclick="soundNextTrack()" title="Siguiente">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 0v12H9V0zM9 6L0 0v12z" fill="currentColor"/>
+              </svg>
+            </button>
+            <button class="sound-control-btn pause-btn" onclick="soundStop()" title="Detener">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="12" height="12" fill="currentColor"/>
+              </svg>
+            </button>
+          </div>
+          
+          <div class="sound-channel-list" id="soundChannelList">
+            <div class="sound-channel-item selected" onclick="soundSelectChannel(0)">CH 01: PRÓXIMAMENTE</div>
+            <div class="sound-channel-item" onclick="soundSelectChannel(1)">CH 02: PRÓXIMAMENTE</div>
+            <div class="sound-channel-item" onclick="soundSelectChannel(2)">CH 03: PRÓXIMAMENTE</div>
+            <div class="sound-channel-item" onclick="soundSelectChannel(3)">CH 04: PRÓXIMAMENTE</div>
+            <div class="sound-channel-item" onclick="soundSelectChannel(4)">CH 05: PRÓXIMAMENTE</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Panel Derecho - Bio y contacto - 28% -->
+    <div class="right-bio-panel">
+      <h1 class="studio-name">Pignatta</h1>
+      
+      <div class="bio-section">
+        <p class="bio-text">
+          Federico Pignatta González es un creador interdisciplinar uruguayo radicado en Montevideo. 
+          Se dedica al diseño gráfico, investiga en artes visuales y experimentación sonora.
+        Su práctica fusiona pensamiento conceptual con métodos experimentales y tecnologías emergentes.
+        </p>
         
-        show(idx);
+   
         
-        prevBtn?.addEventListener('click', () => {
-          idx = (idx - 1 + images.length) % images.length;
-          show(idx);
-        });
-        
-        nextBtn?.addEventListener('click', () => {
-          idx = (idx + 1) % images.length;
-          show(idx);
-        });
-      }
-    });
-  </script>
+        <p class="contact-collab">
+          ✉ Contacto para colaboraciones y trabajos por encargo.
+        </p>
+      </div>
+
+      <div class="contact-section">
+        <a href="mailto:hola@pignatta.info" class="contact-link">CORREO</a>
+        <a href="https://instagram.com/efe_defede" target="_blank" class="contact-link">INSTAGRAM</a>
+      </div>
+
+      <div class="time-section">
+        <div class="time-left">
+          <div class="update-date">
+            ÚLTIMA<br>
+            ACTUALIZACIÓN:<br>
+            21.JUL.2025
+          </div>
+        </div>
+        <div class="time-right">
+          <div class="weather-info">
+            <span class="location">MONTEVIDEO, UY</span>
+            <span class="weather-temp">11.4°C ☁️</span>
+          </div>
+          <div class="live-clock" id="liveClock">[23:40:39]</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Lightbox -->
+  <div class="lightbox" id="lightbox">
+    <div class="lightbox-content">
+      <img class="lightbox-image" id="lightboxImage" src="" alt="">
+      <button class="lightbox-close" onclick="closeLightbox()">×</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
