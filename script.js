@@ -200,40 +200,171 @@ function initializeCarousels() {
     const slides = carousel.querySelectorAll('.carousel-slide');
     const prevBtn = carousel.querySelector('.prev');
     const nextBtn = carousel.querySelector('.next');
+    const indicatorsContainer = carousel.querySelector('.carousel-indicators');
     
     if (!track || !slides.length) return;
     
     let currentSlide = 0;
     const totalSlides = slides.length;
+    let startX = 0;
+    let isDragging = false;
+    let startTransform = 0;
+
+    // Crear indicadores (pelotitas)
+    function createIndicators() {
+      if (!indicatorsContainer) return;
+      
+      indicatorsContainer.innerHTML = '';
+      for (let i = 0; i < totalSlides; i++) {
+        const dot = document.createElement('div');
+        dot.classList.add('carousel-dot');
+        if (i === 0) dot.classList.add('active');
+        dot.addEventListener('click', () => goToSlide(i));
+        indicatorsContainer.appendChild(dot);
+      }
+    }
 
     function updateCarousel() {
       const offset = -currentSlide * 100;
       track.style.transform = `translateX(${offset}%)`;
+      
+      // Actualizar indicadores
+      if (indicatorsContainer) {
+        const dots = indicatorsContainer.querySelectorAll('.carousel-dot');
+        dots.forEach((dot, index) => {
+          dot.classList.toggle('active', index === currentSlide);
+        });
+      }
     }
 
+    function goToSlide(index) {
+      currentSlide = index;
+      updateCarousel();
+    }
+
+    function nextSlide() {
+      currentSlide = (currentSlide + 1) % totalSlides;
+      updateCarousel();
+    }
+
+    function prevSlide() {
+      currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+      updateCarousel();
+    }
+
+    // Touch events para deslizamiento
+    function handleTouchStart(e) {
+      startX = e.touches[0].clientX;
+      isDragging = true;
+      startTransform = -currentSlide * 100;
+      track.style.transition = 'none';
+    }
+
+    function handleTouchMove(e) {
+      if (!isDragging) return;
+      
+      const currentX = e.touches[0].clientX;
+      const deltaX = currentX - startX;
+      const percentage = (deltaX / track.offsetWidth) * 100;
+      
+      track.style.transform = `translateX(${startTransform + percentage}%)`;
+    }
+
+    function handleTouchEnd(e) {
+      if (!isDragging) return;
+      
+      isDragging = false;
+      track.style.transition = 'transform 0.4s ease';
+      
+      const endX = e.changedTouches[0].clientX;
+      const deltaX = endX - startX;
+      const threshold = track.offsetWidth * 0.2; // 20% del ancho
+      
+      if (deltaX > threshold) {
+        prevSlide();
+      } else if (deltaX < -threshold) {
+        nextSlide();
+      } else {
+        updateCarousel();
+      }
+    }
+
+    // Mouse events para desktop
+    function handleMouseDown(e) {
+      startX = e.clientX;
+      isDragging = true;
+      startTransform = -currentSlide * 100;
+      track.style.transition = 'none';
+      e.preventDefault();
+    }
+
+    function handleMouseMove(e) {
+      if (!isDragging) return;
+      
+      const currentX = e.clientX;
+      const deltaX = currentX - startX;
+      const percentage = (deltaX / track.offsetWidth) * 100;
+      
+      track.style.transform = `translateX(${startTransform + percentage}%)`;
+    }
+
+    function handleMouseUp(e) {
+      if (!isDragging) return;
+      
+      isDragging = false;
+      track.style.transition = 'transform 0.4s ease';
+      
+      const endX = e.clientX;
+      const deltaX = endX - startX;
+      const threshold = track.offsetWidth * 0.2;
+      
+      if (deltaX > threshold) {
+        prevSlide();
+      } else if (deltaX < -threshold) {
+        nextSlide();
+      } else {
+        updateCarousel();
+      }
+    }
+
+    // Event listeners
     if (prevBtn && nextBtn) {
       prevBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
-        updateCarousel();
+        prevSlide();
       });
 
       nextBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        currentSlide = (currentSlide + 1) % totalSlides;
-        updateCarousel();
+        nextSlide();
       });
     }
 
+    // Touch events
+    track.addEventListener('touchstart', handleTouchStart, { passive: true });
+    track.addEventListener('touchmove', handleTouchMove, { passive: true });
+    track.addEventListener('touchend', handleTouchEnd, { passive: true });
+
+    // Mouse events
+    track.addEventListener('mousedown', handleMouseDown);
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
     // Click en slides para abrir lightbox
     slides.forEach(slide => {
-      slide.addEventListener('click', () => {
-        const img = slide.querySelector('img');
-        if (img && img.src) {
-          openLightbox(img.src);
+      slide.addEventListener('click', (e) => {
+        if (!isDragging) {
+          const img = slide.querySelector('img');
+          if (img && img.src) {
+            openLightbox(img.src);
+          }
         }
       });
     });
+
+    // Inicializar
+    createIndicators();
+    updateCarousel();
   });
 }
 
