@@ -8,11 +8,14 @@
   --medium-gray: #aaa;
   --accent-green: #76F84E;
   --accent-magenta: #FF00FF;
-  --player-gray: #f0f0f0;
-  --player-button: #e0e0e0;
-  --player-button-hover: #d0d0d0;
-  --player-channel: #d8d8d8;
-}
+  --player-gray: #fdfcfa;
+  --player-button: #f7f5f3;
+  --player-button-hover: #f2f0ee;
+  --player-channel: #f5f3f1;
+  /* Ocultar micrográficos móviles en desktop */
+  .mobile-micros {
+    display: none;
+  }
 
 /* Reset y base */
 * {
@@ -23,8 +26,8 @@
 
 body {
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 12px;
-  line-height: 1.1;
+  font-size: 14px;
+  line-height: 1.15;
   color: var(--black);
   background: var(--white);
   overflow-x: hidden;
@@ -49,8 +52,8 @@ body {
   white-space: nowrap;
   color: var(--medium-gray);
   background: var(--dark-bg);
-  font-size: 12px;
-  line-height: 1.1;
+  font-size: 14px;
+  line-height: 1.15;
   animation: scroll-left 60s linear infinite;
   padding-left: 100%;
   padding-top: 14px;
@@ -68,7 +71,7 @@ body {
   background: none;
   border: none;
   color: var(--medium-gray);
-  font-size: 12px;
+  font-size: 16px;
   cursor: pointer;
   width: 24px;
   height: 24px;
@@ -99,10 +102,10 @@ body {
   width: 100vw;
 }
 
-/* Panel izquierdo - Proyectos - 44% pantalla */
+/* Panel izquierdo - Proyectos - 33.33% pantalla */
 .left-projects-panel {
-  flex: 0 0 44%;
-  width: 44vw;
+  flex: 0 0 33.33%;
+  width: 33.33vw;
   height: calc(100vh - 40px);
   overflow-y: auto;
   scrollbar-width: none;
@@ -114,10 +117,10 @@ body {
   display: none;
 }
 
-/* Panel central - Información complementaria - 28% pantalla */
+/* Panel central - Información complementaria - 33.33% pantalla */
 .center-info-panel {
-  flex: 0 0 28%;
-  width: 28vw;
+  flex: 0 0 33.33%;
+  width: 33.33vw;
   height: calc(100vh - 40px);
   background: var(--white);
   position: relative;
@@ -131,10 +134,10 @@ body {
   display: none;
 }
 
-/* Panel derecho - Bio y contacto - 28% pantalla */
+/* Panel derecho - Bio y contacto - 33.33% pantalla */
 .right-bio-panel {
-  flex: 0 0 28%;
-  width: 28vw;
+  flex: 0 0 33.33%;
+  width: 33.33vw;
   height: calc(100vh - 40px);
   background: var(--white);
   position: relative;
@@ -151,22 +154,22 @@ body {
 }
 
 .studio-name {
-  font-size: 12px;
+  font-size: 14px;
+  line-height: 1.15;
   font-weight: 400;
   text-transform: uppercase;
   letter-spacing: 2px;
-  margin-bottom: 32px;
-  line-height: 1.1;
+  margin-bottom: 16px; /* Reducido de 32px */
   color: var(--black);
 }
 
 .bio-section {
-  margin-bottom: 32px;
+  margin-bottom: 24px; /* Reducido de 32px */
 }
 
 .bio-text {
-  font-size: 12px;
-  line-height: 1.1;
+  font-size: 14px;
+  line-height: 1.15;
   margin-bottom: 16px;
   color: var(--black);
   font-weight: 400;
@@ -177,27 +180,27 @@ body {
 }
 
 .contact-collab {
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.1;
-  margin-bottom: 0;
+  margin-bottom: 8px;
   margin-top: 16px;
   color: var(--black);
   font-weight: 400;
 }
 
 .contact-section {
-  margin-bottom: 8px;
+  margin-bottom: 16px;
   margin-top: 0;
 }
 
 .contact-link {
   display: block;
-  font-size: 12px;
+  font-size: 14px;
+  line-height: 1.15;
   color: var(--black);
   text-decoration: none;
   margin-bottom: 4px;
   transition: color 0.3s ease;
-  line-height: 1.1;
   font-weight: 400;
 }
 
@@ -205,32 +208,46 @@ body {
   color: var(--accent-magenta);
 }
 
-/* Sección de tiempo - Estilo simple reorganizada */
+/* Sección de tiempo - Composición centrada con reloj en el medio */
 .time-section {
   margin-top: auto;
   padding-top: 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  grid-template-areas: "date clock weather";
+  align-items: end;
+  gap: 8px;
 }
 
 .time-left {
+  grid-area: date;
   display: flex;
   flex-direction: column;
   gap: 4px;
+  justify-self: start;
+}
+
+.time-center {
+  grid-area: clock;
+  display: flex;
+  justify-content: center;
+  align-items: end;
 }
 
 .time-right {
+  grid-area: weather;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   gap: 4px;
+  justify-self: end;
 }
 
+/* MICROGRÁFICOS - Consistencia en 11px */
 .update-date {
-  font-size: 10px;
+  font-size: 11px;
+  line-height: 1.45;
   color: var(--gray);
-  line-height: 1.4;
   font-weight: 400;
   text-transform: uppercase;
   letter-spacing: 0px;
@@ -238,18 +255,18 @@ body {
 
 .live-clock {
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 10px;
+  font-size: 11px;
+  line-height: 1.15;
   color: var(--gray);
-  line-height: 1.0;
   font-weight: 400;
   text-transform: uppercase;
   letter-spacing: 0px;
 }
 
 .weather-info {
-  font-size: 10px;
+  font-size: 11px;
+  line-height: 1.15;
   color: var(--gray);
-  line-height: 1.1;
   font-weight: 400;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -260,11 +277,13 @@ body {
 }
 
 .location {
-  font-size: 10px;
+  font-size: 11px;
+  line-height: 1.15;
 }
 
 .weather-temp {
-  font-size: 10px;
+  font-size: 11px;
+  line-height: 1.15;
 }
 
 /* Estilos de proyectos */
@@ -335,7 +354,7 @@ body {
   transition: all 0.3s ease;
   pointer-events: auto;
   border-radius: 50%;
-  font-size: 14px;
+  font-size: 16px;
   color: var(--black);
   backdrop-filter: blur(8px);
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
@@ -396,16 +415,16 @@ body {
 }
 
 .project-number {
-  font-size: 12px;
+  font-size: 14px;
+  line-height: 1.15;
   color: var(--black);
-  line-height: 1.1;
   font-weight: 400;
 }
 
 .project-category {
-  font-size: 12px;
+  font-size: 14px;
+  line-height: 1.15;
   color: var(--gray);
-  line-height: 1.1;
   font-weight: 400;
   font-style: italic;
 }
@@ -417,47 +436,47 @@ body {
 }
 
 .project-title {
-  font-size: 12px;
-  line-height: 1.1;
+  font-size: 14px;
+  line-height: 1.15;
   color: var(--black);
   font-weight: 400;
 }
 
 .project-description {
-  font-size: 12px;
-  line-height: 1.1;
+  font-size: 14px;
+  line-height: 1.15;
   color: var(--black);
   font-weight: 400;
   margin-top: 8px;
 }
 
 .project-credits {
-  font-size: 12px;
+  font-size: 14px;
+  line-height: 1.15;
   color: var(--gray);
   font-style: italic;
   margin-top: 4px;
-  line-height: 1.1;
   font-weight: 400;
 }
 
 /* Estilos del panel de información */
 .info-section {
-  margin-bottom: 16px;
+  margin-bottom: 40px;
 }
 
 .info-title {
-  font-size: 12px;
+  font-size: 14px;
+  line-height: 1.1;
   font-weight: 400;
   text-transform: none;
   letter-spacing: 0px;
-  margin-bottom: 4px;
+  margin-bottom: 16px;
   color: var(--black);
-  line-height: 1.1;
 }
 
 .info-item {
-  margin-bottom: 4px;
-  font-size: 12px;
+  margin-bottom: 12px;
+  font-size: 14px;
   line-height: 1.1;
   font-weight: 400;
 }
@@ -477,25 +496,32 @@ body {
 
 .info-description {
   color: var(--gray);
-  font-size: 12px;
-  margin-top: 0;
+  font-size: 14px;
   line-height: 1.1;
+  margin-top: 2px;
+  font-weight: 400;
+}
+
+.info-item.compact {
+  margin-bottom: 2px !important;
+  font-size: 14px;
+  line-height: 1.0 !important;
   font-weight: 400;
 }
 
 /* Sección de sonido con reproductor integrado */
 .sound-section {
-  margin-top: 24px;
-  margin-bottom: 24px;
+  margin-top: 40px;
+  margin-bottom: 40px;
 }
 
 .sound-label {
-  font-size: 12px;
+  font-size: 14px;
+  line-height: 1.15;
   text-transform: none;
   letter-spacing: 0px;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
   color: var(--black);
-  line-height: 1.1;
   font-weight: 400;
 }
 
@@ -511,9 +537,26 @@ body {
 .sound-player-controls {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 6px;
-  margin-bottom: 24px;
+  margin-bottom: 32px;
   padding: 0 2px;
+}
+
+.sound-controls-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sound-brand {
+  font-size: 14px;
+  line-height: 1.15;
+  color: #a8a29e;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-right: 6px;
 }
 
 .sound-control-btn {
@@ -527,7 +570,7 @@ body {
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
-  color: #666;
+  color: #a8a29e;
   padding: 0;
 }
 
@@ -552,15 +595,9 @@ body {
   display: none;
 }
 
-.sound-control-btn.playing::after {
-  content: '';
-  width: 8px;
-  height: 8px;
-  background: #666;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
+.sound-control-btn.playing {
+  background: var(--accent-green) !important;
+  color: #000 !important;
 }
 
 .sound-control-btn.playing::before {
@@ -568,7 +605,7 @@ body {
   position: absolute;
   width: 2px;
   height: 8px;
-  background: var(--player-button);
+  background: #000;
   left: 7px;
 }
 
@@ -577,7 +614,7 @@ body {
   position: absolute;
   width: 2px;
   height: 8px;
-  background: var(--player-button);
+  background: #000;
   right: 7px;
 }
 
@@ -591,20 +628,20 @@ body {
   background: var(--player-channel);
   border-radius: 12px;
   padding: 4px 8px;
-  font-size: 9px;
+  font-size: 10px; /* Aumentado de 9px a 10px */
   font-weight: 400;
   text-transform: uppercase;
-  color: #666;
+  color: #999;
   cursor: pointer;
   transition: all 0.2s ease;
-  line-height: 1.1;
+  line-height: 1.15;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .sound-channel-item:hover {
-  background: #d0d0d0;
+  background: #ececec;
 }
 
 .sound-channel-item.selected {
@@ -663,12 +700,18 @@ body {
 
 /* Responsive móvil */
 @media (max-width: 768px) {
+  body {
+    font-size: 14px;
+    line-height: 1.15;
+  }
+
   .reflection-bar {
     height: 36px;
   }
 
   .reflection-content {
-    font-size: 10px;
+    font-size: 12px;
+    line-height: 1.15;
     padding-top: 12px;
     padding-bottom: 12px;
   }
@@ -704,6 +747,30 @@ body {
     padding-bottom: 60px;
   }
 
+  /* Ocultar micrográficos originales en móvil del panel derecho */
+  .right-bio-panel .time-section {
+    display: none;
+  }
+
+  /* Micrográficos móviles después del reproductor */
+  .mobile-micros {
+    display: block;
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+    text-align: center;
+  }
+
+  .mobile-micros-line {
+    font-size: 11px;
+    line-height: 1.45;
+    color: var(--gray);
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0px;
+    margin-bottom: 4px;
+  }
+
   .project-info-grid {
     grid-template-columns: 1fr;
     gap: 12px;
@@ -725,15 +792,15 @@ body {
   }
 
   .bio-text {
-    font-size: 11px;
+    font-size: 14px;
+    line-height: 1.15;
     margin-bottom: 8px;
-    line-height: 1.1;
   }
 
   .studio-name {
     font-size: 14px;
-    margin-bottom: 24px;
-    line-height: 1.1;
+    line-height: 1.15;
+    margin-bottom: 8px;
   }
 
   .info-section {
@@ -741,20 +808,20 @@ body {
   }
 
   .info-title {
-    font-size: 11px;
+    font-size: 14px;
+    line-height: 1.15;
     margin-bottom: 4px;
-    line-height: 1.1;
   }
 
   .info-item {
-    font-size: 11px;
+    font-size: 14px;
+    line-height: 1.15;
     margin-bottom: 4px;
-    line-height: 1.1;
   }
 
   .info-description {
-    font-size: 10px;
-    line-height: 1.1;
+    font-size: 14px;
+    line-height: 1.15;
   }
 
   .sound-player-full {
@@ -762,7 +829,8 @@ body {
   }
 
   .sound-channel-item {
-    font-size: 9px;
+    font-size: 11px; /* Aumentado de 10px a 11px en móvil */
+    line-height: 1.15;
     padding: 5px 6px;
   }
 
@@ -776,14 +844,13 @@ body {
     gap: 8px;
   }
 
+  /* MICROGRÁFICOS EN MÓVIL - Mantener 11px */
   .update-date,
   .live-clock,
-  .weather-info {
-    font-size: 9px;
-    
-  }
-
-  .location {
-    font-size: 8px;
+  .weather-info,
+  .location,
+  .weather-temp {
+    font-size: 11px;
+    line-height: 1.15;
   }
 }

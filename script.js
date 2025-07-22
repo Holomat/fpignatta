@@ -39,9 +39,18 @@ function updateClock() {
   const hh = String(now.getHours()).padStart(2, '0');
   const mm = String(now.getMinutes()).padStart(2, '0');
   const ss = String(now.getSeconds()).padStart(2, '0');
+  const timeString = `[${hh}:${mm}:${ss}]`;
+  
+  // Actualizar reloj desktop
   const clock = document.getElementById('liveClock');
   if (clock) {
-    clock.textContent = `[${hh}:${mm}:${ss}]`;
+    clock.textContent = timeString;
+  }
+  
+  // Actualizar reloj móvil
+  const mobileClock = document.getElementById('mobileLiveClock');
+  if (mobileClock) {
+    mobileClock.textContent = timeString;
   }
 }
 
@@ -307,24 +316,15 @@ function isMobileDevice() {
          /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 }
 
-// Ajustar comportamiento en móvil
+// Ajustar comportamiento en móvil (sin ocultar barra)
 if (isMobileDevice()) {
   document.addEventListener('DOMContentLoaded', function() {
-    // Ocultar barra de reflexiones en móvil después de 5 segundos
-    setTimeout(() => {
-      const reflectionBar = document.getElementById('reflectionBar');
-      if (reflectionBar) {
-        reflectionBar.style.opacity = '0';
-        setTimeout(() => {
-          reflectionBar.classList.add('hidden');
-        }, 300);
-      }
-    }, 5000);
+    console.log('Dispositivo móvil detectado. La barra de reflexiones permanecerá visible.');
   });
 }
 
 // Log para debugging
-console.log('Script cargado - Radio del Río v1.4');
+console.log('Script cargado - Radio Imaginaria v1.4');
 console.log('Canales disponibles:', channels.length);
 console.log('Canales configurados:', channels.map(ch => ch.name));
 console.log('Web diseñada por Pignatta - Codificada con IA como copiloto');
