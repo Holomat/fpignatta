@@ -68,7 +68,7 @@ body {
   background: none;
   border: none;
   color: var(--medium-gray);
-  font-size: 16px;
+  font-size: 12px;
   cursor: pointer;
   width: 24px;
   height: 24px;
@@ -260,7 +260,7 @@ body {
 }
 
 .location {
-  font-size: 9px;
+  font-size: 10px;
 }
 
 .weather-temp {
