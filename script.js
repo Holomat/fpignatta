@@ -1,8 +1,47 @@
 // Variables globales
 let isPlaying = false;
 let isMuted = false;
-let currentChannelIndex = 0;
+let currentChannelIndex =0;
 let currentAudio = null;
+
+// Variables para control de scroll temporal
+let scrollLocked = false;
+let scrollLockTimeout = null;
+
+// Función para bloquear scroll SIN saltar posición
+function lockScrollSmooth() {
+  if (scrollLocked) return;
+  
+  scrollLocked = true;
+  // Solo prevenir scroll, NO cambiar posición
+  document.body.style.overflow = 'hidden';
+  // NO usar position fixed para evitar salto
+  
+  console.log('🔒 Scroll bloqueado suavemente');
+}
+
+// Función para desbloquear scroll suavemente
+function unlockScrollSmooth() {
+  if (!scrollLocked) return;
+  
+  document.body.style.overflow = '';
+  scrollLocked = false;
+  console.log('🔓 Scroll desbloqueado suavemente');
+}
+
+// Función para programar desbloqueo suave
+function scheduleScrollUnlockSmooth(delay = 500) {
+  // Limpiar timeout anterior si existe
+  if (scrollLockTimeout) {
+    clearTimeout(scrollLockTimeout);
+  }
+  
+  // Programar desbloqueo
+  scrollLockTimeout = setTimeout(() => {
+    unlockScrollSmooth();
+    scrollLockTimeout = null;
+  }, delay);
+}
 
 // Configuración de canales con archivos de audio demo
 const channels = [
@@ -206,6 +245,7 @@ function initializeCarousels() {
     let isDragging = false;
     let isVerticalMove = false;
     let startTransform = 0;
+    let hasStarted = false; // Bandera para evitar dobles eventos
 
     // Crear indicadores mejorados
     function createIndicators() {
@@ -238,111 +278,167 @@ function initializeCarousels() {
     }
 
     function goToSlide(index) {
-      currentSlide = index;
-      updateCarousel();
+      if (index >= 0 && index < totalSlides) {
+        currentSlide = index;
+        updateCarousel();
+      }
     }
 
     function nextSlide() {
       if (currentSlide < totalSlides - 1) {
-        currentSlide = (currentSlide + 1);
+        currentSlide++;
         updateCarousel();
       }
     }
 
     function prevSlide() {
       if (currentSlide > 0) {
-        currentSlide = (currentSlide - 1);
+        currentSlide--;
         updateCarousel();
       }
     }
 
-    // Touch events con bounded navigation estilo Instagram
+    // Touch events INTELIGENTES - detección de intención real
     function handleTouchStart(e) {
-      startX = e.touches[0].clientX;
-      startY = e.touches[0].clientY;
+      // NO bloquear inmediatamente, solo preparar
+      if (hasStarted) return;
+      hasStarted = true;
+      
+      const touch = e.touches[0];
+      startX = touch.clientX;
+      startY = touch.clientY;
       isDragging = true;
       isVerticalMove = false;
       startTransform = -currentSlide * 100;
       track.style.transition = 'none';
+      
+      // NO prevenir nada aún, solo observar
+      setTimeout(() => { hasStarted = false; }, 30);
     }
 
     function handleTouchMove(e) {
       if (!isDragging) return;
       
-      const currentX = e.touches[0].clientX;
-      const currentY = e.touches[0].clientY;
+      const touch = e.touches[0];
+      const currentX = touch.clientX;
+      const currentY = touch.clientY;
       const deltaX = currentX - startX;
       const deltaY = currentY - startY;
       
-      // Detectar movimiento vertical estilo Instagram (umbral más alto)
-      if (!isVerticalMove && Math.abs(deltaY) > 30 && Math.abs(deltaY) > Math.abs(deltaX) * 1.3) {
-        isVerticalMove = true;
-        isDragging = false;
-        track.style.transition = 'transform 0.4s ease';
-        updateCarousel();
-        return;
+      const absX = Math.abs(deltaX);
+      const absY = Math.abs(deltaY);
+      
+      // Esperar movimiento mínimo para determinar intención
+      if (absX < 8 && absY < 8) return;
+      
+      // DETECCIÓN DE INTENCIÓN después de 15px de movimiento
+      if (!isVerticalMove && (absX > 15 || absY > 15)) {
+        
+        // CASO 1: Claramente VERTICAL - permitir scroll
+        if (absY > absX && absY > 20) {
+          isVerticalMove = true;
+          isDragging = false;
+          track.style.transition = 'transform 0.4s ease';
+          updateCarousel();
+          
+          // 🔓 MANTENER SCROLL LIBRE para vertical
+          console.log('📱 Scroll vertical detectado - carrusel bloqueado');
+          return; // Salir sin prevenir nada
+        }
+        
+        // CASO 2: Claramente HORIZONTAL - bloquear scroll
+        if (absX > absY && absX > 20) {
+          isVerticalMove = false;
+          
+          // 🔒 BLOQUEAR SCROLL solo ahora que sabemos que es horizontal
+          lockScrollSmooth();
+          console.log('🔄 Carrusel horizontal activado - scroll bloqueado');
+          
+          // Ahora sí prevenir eventos
+          e.preventDefault();
+          e.stopPropagation();
+        }
+        
+        // CASO 3: Diagonal - esperar más movimiento
+        // No hacer nada, seguir observando
       }
       
+      // Si ya se determinó que es vertical, salir completamente
       if (isVerticalMove) return;
       
-      // Prevenir scroll vertical con umbral tipo Instagram
-      if (Math.abs(deltaX) > 25 && Math.abs(deltaX) > Math.abs(deltaY)) {
+      // Solo actuar si ya se confirmó que es horizontal
+      if (!isVerticalMove && absX > absY && absX > 20) {
         e.preventDefault();
+        e.stopPropagation();
+        
+        // BOUNDED NAVIGATION
+        const percentage = (deltaX / track.offsetWidth) * 100;
+        let newTransform = startTransform + percentage;
+        
+        const minTransform = -(totalSlides - 1) * 100;
+        const maxTransform = 0;
+        
+        if (currentSlide === 0 && deltaX > 0) {
+          newTransform = Math.min(maxTransform, percentage * 0.2);
+        } else if (currentSlide === totalSlides - 1 && deltaX < 0) {
+          newTransform = Math.max(minTransform, minTransform + (percentage * 0.2));
+        } else {
+          newTransform = Math.max(minTransform, Math.min(maxTransform, newTransform));
+        }
+        
+        track.style.transform = `translateX(${newTransform}%)`;
       }
-      
-      // BOUNDED NAVIGATION ABSOLUTO
-      const percentage = (deltaX / track.offsetWidth) * 100;
-      let newTransform = startTransform + percentage;
-      
-      // Límites absolutos
-      const minTransform = -(totalSlides - 1) * 100;
-      const maxTransform = 0;
-      
-      // Si estás en el primer slide, no permitir movimiento hacia la derecha
-      if (currentSlide === 0 && deltaX > 0) {
-        newTransform = maxTransform;
-        return;
-      }
-      
-      // Si estás en el último slide, no permitir movimiento hacia la izquierda
-      if (currentSlide === totalSlides - 1 && deltaX < 0) {
-        newTransform = minTransform;
-        return;
-      }
-      
-      // Aplicar límites estrictos
-      newTransform = Math.max(minTransform, Math.min(maxTransform, newTransform));
-      
-      track.style.transform = `translateX(${newTransform}%)`;
     }
 
     function handleTouchEnd(e) {
       if (!isDragging || isVerticalMove) {
+        // Si era vertical, no había bloqueo
         isDragging = false;
         isVerticalMove = false;
+        hasStarted = false;
         return;
       }
       
       isDragging = false;
       track.style.transition = 'transform 0.4s ease';
       
-      const endX = e.changedTouches[0].clientX;
+      const touch = e.changedTouches[0];
+      const endX = touch.clientX;
       const deltaX = endX - startX;
+      const absX = Math.abs(deltaX);
       
-      // Umbral estilo Instagram: 30% del ancho (más sensible)
-      const threshold = track.offsetWidth * 0.3;
-      
-      // Solo cambiar slide si no estás en los extremos
-      if (deltaX > threshold && currentSlide > 0) {
-        prevSlide();
-      } else if (deltaX < -threshold && currentSlide < totalSlides - 1) {
-        nextSlide();
+      // Solo si hubo movimiento horizontal significativo
+      if (absX > 15) {
+        const threshold = track.offsetWidth * 0.3;
+        
+        if (absX > threshold) {
+          if (deltaX > 0 && currentSlide > 0) {
+            prevSlide();
+          } else if (deltaX < 0 && currentSlide < totalSlides - 1) {
+            nextSlide();
+          } else {
+            updateCarousel();
+          }
+        } else {
+          updateCarousel();
+        }
+        
+        // Desbloquear después de la animación
+        scheduleScrollUnlockSmooth(400);
       } else {
-        updateCarousel();
+        // Movimiento muy pequeño, desbloquear inmediatamente
+        scheduleScrollUnlockSmooth(50);
       }
+      
+      // Limpiar estados
+      setTimeout(() => {
+        isDragging = false;
+        isVerticalMove = false;
+        hasStarted = false;
+      }, 300);
     }
 
-    // Mouse events para desktop
+    // Mouse events para desktop (sin cambios)
     function handleMouseDown(e) {
       startX = e.clientX;
       isDragging = true;
@@ -380,7 +476,7 @@ function initializeCarousels() {
       }
     }
 
-    // Event listeners
+    // Event listeners INTELIGENTES
     if (prevBtn && nextBtn) {
       prevBtn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -393,12 +489,21 @@ function initializeCarousels() {
       });
     }
 
-    // Touch events con passive false para poder prevenir
-    track.addEventListener('touchstart', handleTouchStart, { passive: false });
-    track.addEventListener('touchmove', handleTouchMove, { passive: false });
-    track.addEventListener('touchend', handleTouchEnd, { passive: true });
+    // Touch events con detección inteligente
+    track.addEventListener('touchstart', handleTouchStart, { 
+      passive: true,  // Cambio a passive para no interferir
+      capture: false 
+    });
+    track.addEventListener('touchmove', handleTouchMove, { 
+      passive: false,  // Solo false cuando necesitamos prevenir
+      capture: false 
+    });
+    track.addEventListener('touchend', handleTouchEnd, { 
+      passive: true,
+      capture: false 
+    });
 
-    // Mouse events
+    // Mouse events (sin cambios para desktop)
     track.addEventListener('mousedown', handleMouseDown);
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
@@ -406,7 +511,6 @@ function initializeCarousels() {
     // Click en slides para abrir lightbox (solo desktop)
     slides.forEach((slide, index) => {
       slide.addEventListener('click', (e) => {
-        // Solo abrir lightbox en desktop
         if (!isDragging && window.innerWidth > 768) {
           const img = slide.querySelector('img');
           if (img && img.src) {
@@ -525,8 +629,6 @@ function updateLightboxNavigation() {
 
 // Función auxiliar para obtener instancia de carrusel
 function getCarouselInstance(carouselElement) {
-  // Esta función simula la obtención de la instancia del carrusel
-  // En una implementación real, tendrías referencias almacenadas
   return {
     goToSlide: function(index) {
       const track = carouselElement.querySelector('.carousel-track');
@@ -627,7 +729,24 @@ if (isMobileDevice()) {
   });
 }
 
-console.log('Script cargado - Radio Imaginaria v1.5');
+// Limpiar al cambiar de página o cerrar
+window.addEventListener('beforeunload', () => {
+  if (scrollLockTimeout) {
+    clearTimeout(scrollLockTimeout);
+  }
+  unlockScrollSmooth();
+});
+
+// Limpiar si hay cambio de orientación
+window.addEventListener('orientationchange', () => {
+  setTimeout(() => {
+    if (scrollLocked) {
+      unlockScrollSmooth();
+    }
+  }, 100);
+});
+
+console.log('Script cargado - Radio Imaginaria v1.8 - Detección inteligente de intención');
 console.log('Canales disponibles:', channels.length);
 console.log('Canales configurados:', channels.map(ch => ch.name));
 console.log('Web diseñada por Pignatta - Codificada con IA como copiloto');
