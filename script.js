@@ -118,6 +118,27 @@ function soundNextTrack() {
   soundSelectChannel(currentChannelIndex);
 }
 
+// ===== SCROLL - Funciones necesarias para el reproductor =====
+function lockScrollSmooth() {
+  if (scrollLocked) return;
+  scrollLocked = true;
+  document.body.style.overflow = 'hidden';
+}
+
+function unlockScrollSmooth() {
+  if (!scrollLocked) return;
+  document.body.style.overflow = '';
+  scrollLocked = false;
+}
+
+function scheduleScrollUnlockSmooth(delay = 300) {
+  if (scrollLockTimeout) clearTimeout(scrollLockTimeout);
+  scrollLockTimeout = setTimeout(() => {
+    unlockScrollSmooth();
+    scrollLockTimeout = null;
+  }, delay);
+}
+
 // ===== CARRUSEL SÚPER SIMPLE CON FIX PARA MOBILE =====
 class SimpleCarousel {
   constructor(element, index) {
@@ -474,6 +495,7 @@ document.addEventListener('keydown', (e) => {
 // Cleanup
 window.addEventListener('beforeunload', () => {
   if (scrollLockTimeout) clearTimeout(scrollLockTimeout);
+  unlockScrollSmooth();
 });
 
 console.log('Script cargado - v6.0 Mobile Fix');
