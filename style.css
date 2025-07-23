@@ -166,7 +166,7 @@ body {
 }
 
 .bio-section {
-  margin-bottom: 12px; /* Reducido de 24px a 12px para acercar más */
+  margin-bottom: 12px;
 }
 
 .bio-text {
@@ -184,7 +184,7 @@ body {
 .contact-collab {
   font-size: 14px;
   line-height: 1.1;
-  margin-bottom: 8px; /* Reducido de 8px a 4px para acercar más */
+  margin-bottom: 8px;
   margin-top: 16px;
   color: var(--black);
   font-weight: 400;
@@ -192,7 +192,7 @@ body {
 
 .contact-section {
   margin-bottom: 16px;
-  margin-top: 0; /* Reducido de 0 a -4px para acercar más */
+  margin-top: 0;
 }
 
 /* CONTACTOS EN DESKTOP - mantener original */
@@ -460,6 +460,34 @@ body {
   font-weight: 400;
 }
 
+.project-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.project-title {
+  font-size: 14px;
+  line-height: 1.15;
+  color: var(--black);
+  font-weight: 400;
+}
+
+.project-description {
+  font-size: 13px;
+  line-height: 1.15;
+  color: var(--black);
+  font-weight: 400;
+  margin-top: 8px;
+}
+
+.project-credits {
+  font-size: 14px;
+  line-height: 1.15;
+  color: var(--gray);
+  font-style: italic;
+}
+
 /* Estilos del panel de información */
 .info-section {
   margin-bottom: 40px;
@@ -498,9 +526,9 @@ body {
 /* En móvil: forzar coherencia con bio */
 @media (max-width: 768px) {
   .info-item a {
-    font-size: 12px !important; /* Mismo que bio */
-    font-weight: 400 !important; /* Mismo que bio */
-    line-height: 1.15 !important; /* Mismo que bio */
+    font-size: 12px !important;
+    font-weight: 400 !important;
+    line-height: 1.15 !important;
   }
 }
 
@@ -559,10 +587,11 @@ body {
   gap: 6px;
 }
 
+/* CORRECCIÓN: Radio Imaginaria con color de la bio */
 .sound-brand {
   font-size: 14px;
   line-height: 1.15;
-  color: #a8a29e;
+  color: var(--black); /* Mismo color que la bio */
   font-weight: 400;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -582,6 +611,7 @@ body {
   transition: all 0.2s ease;
   color: #a8a29e;
   padding: 0;
+  position: relative;
 }
 
 .sound-control-btn:hover {
@@ -601,31 +631,15 @@ body {
   margin-left: 1px;
 }
 
-.sound-control-btn.playing svg {
-  display: none;
-}
-
 .sound-control-btn.playing {
   background: var(--accent-green) !important;
   color: #000 !important;
 }
 
-.sound-control-btn.playing::before {
-  content: '';
-  position: absolute;
-  width: 2px;
-  height: 8px;
-  background: #000;
-  left: 7px;
-}
-
+/* CORRECCIÓN: Remover pseudo-elementos que conflictúan con SVG */
+.sound-control-btn.playing::before,
 .sound-control-btn.playing::after {
-  content: '';
-  position: absolute;
-  width: 2px;
-  height: 8px;
-  background: #000;
-  right: 7px;
+  display: none;
 }
 
 .sound-channel-list {
@@ -836,7 +850,7 @@ body {
 /* Responsive móvil */
 @media (max-width: 768px) {
   body {
-    font-size: 12px; /* Unificado: todas las tipografías en 12px */
+    font-size: 12px;
     line-height: 1.15;
   }
 
@@ -864,7 +878,7 @@ body {
   }
 
   .reflection-content {
-    font-size: 10px; /* Reducido 2 puntos */
+    font-size: 10px;
     line-height: 1.15;
     padding-top: 12px;
     padding-bottom: 12px;
@@ -889,7 +903,7 @@ body {
   .left-projects-panel {
     border-bottom: 1px solid #eee;
     order: 2;
-    padding-top: 8px; /* Reducido de 24px a 8px para acercar más al panel anterior */
+    padding-top: 8px;
   }
 
   .center-info-panel {
@@ -899,18 +913,18 @@ body {
 
   .right-bio-panel {
     order: 1;
-    padding-bottom: 8px; /* Reducido de 20px a 8px para acercar más al siguiente panel */
+    padding-bottom: 8px;
   }
 
   /* AJUSTES ESPECÍFICOS PARA CONTACTOS EN MÓVIL */
   .contact-collab {
-    margin-bottom: 4px; /* Reducido de 8px para acercar más en móvil */
-    margin-top: 14px; /* Aumentado 2px: de 12px a 14px */
+    margin-bottom: 4px;
+    margin-top: 14px;
   }
 
   .contact-section {
-    margin-bottom: 12px; /* Reducido de 16px */
-    margin-top: -2px; /* Negativo para acercar más */
+    margin-bottom: 12px;
+    margin-top: -2px;
   }
 
   /* Ocultar micrográficos originales en móvil del panel derecho */
@@ -918,18 +932,18 @@ body {
     display: none;
   }
 
-  /* Ocultar micrográficos originales del panel izquierdo */
-  .left-projects-panel .mobile-micros {
-    display: none;
+  /* AJUSTE ESPECÍFICO: Subir imagen del primer proyecto */
+  .project:first-child {
+    margin-top: -20px;
   }
 
   /* Mostrar micrográficos en panel central - AL FINAL */
   .mobile-micros-center {
     display: block;
     margin-top: 40px;
-    margin-bottom: 30px; /* Reducido de 60px a 30px */
+    margin-bottom: 30px;
     padding-top: 20px;
-    padding-bottom: 20px; /* Reducido de 40px a 20px */
+    padding-bottom: 20px;
     border-top: 1px solid #eee;
     display: grid;
     grid-template-columns: 1fr auto 1fr;
@@ -957,7 +971,7 @@ body {
   }
 
   .mobile-micros-center-line {
-    font-size: 11px; /* Mantener tamaño original para microdatos */
+    font-size: 10px;
     line-height: 1.45;
     color: var(--gray);
     font-weight: 400;
@@ -979,11 +993,6 @@ body {
     margin-bottom: 60px;
   }
 
-  /* AJUSTE ESPECÍFICO: Subir imagen del primer proyecto */
-  .project:first-child {
-    margin-top: -10px; /* Subir la imagen del primer proyecto */
-  }
-
   .project-left {
     flex-direction: row;
     gap: 16px;
@@ -991,17 +1000,17 @@ body {
   }
 
   .bio-text {
-    font-size: 12px; /* Reducido 2 puntos */
+    font-size: 12px;
     line-height: 1.15;
     margin-bottom: 8px;
   }
 
   .bio-section {
-    margin-bottom: 4px; /* Reducido aún más en móvil para acercar más */
+    margin-bottom: 6px;
   }
 
   .studio-name {
-    font-size: 12px; /* Reducido 2 puntos */
+    font-size: 12px;
     line-height: 1.15;
     margin-bottom: 8px;
   }
@@ -1011,40 +1020,72 @@ body {
   }
 
   .info-title {
-    font-size: 12px; /* Reducido 2 puntos */
+    font-size: 12px;
     line-height: 1.15;
     margin-bottom: 4px;
   }
 
+  /* TEXTOS DE ENLACES - Igualados exactamente a bio */
+  .info-item.compact a {
+    font-size: 12px !important;
+    font-weight: 400 !important;
+    line-height: 1.15 !important;
+    color: var(--black);
+    text-decoration: none;
+    transition: color 0.3s ease;
+  }
+
+  .info-item.compact a:hover {
+    color: var(--accent-magenta);
+  }
+
+  /* Asegurar que todos los textos de info-item sean iguales a bio */
   .info-item {
-    font-size: 12px; /* Reducido 2 puntos */
-    line-height: 1.15;
+    font-size: 12px !important;
+    font-weight: 400 !important;
+    line-height: 1.15 !important;
     margin-bottom: 4px;
   }
 
   .info-description {
-    font-size: 12px; /* Reducido 2 puntos */
+    font-size: 12px;
     line-height: 1.15;
   }
 
   .project-title {
-    font-size: 10px; /* Reducido 2 puntos: de 12px a 10px */
+    font-size: 12px;
+    line-height: 1.15;
+    font-weight: 400;
   }
 
   .project-description {
-    font-size: 9px; /* Reducido 2 puntos: de 11px a 9px */
+    font-size: 12px;
+    line-height: 1.15;
+    font-weight: 400;
   }
 
   .project-number {
-    font-size: 12px; /* Reducido 2 puntos */
+    font-size: 12px;
+    line-height: 1.15;
+    font-weight: 400;
+  }
+
+  .project-category {
+    font-size: 12px;
+    line-height: 1.15;
+    font-weight: 400;
   }
 
   .contact-link {
-    font-size: 12px; /* Reducido 2 puntos */
+    font-size: 12px;
+    margin-bottom: 0;
+    display: inline;
+    white-space: nowrap;
+    line-height: 1.15;
   }
 
   .contact-collab {
-    font-size: 12px; /* Reducido 2 puntos */
+    font-size: 12px;
   }
 
   .sound-player-full {
@@ -1052,13 +1093,15 @@ body {
   }
 
   .sound-channel-item {
-    font-size: 10px; /* Reducido de 9px a 10px */
+    font-size: 12px;
     line-height: 1.15;
     padding: 5px 6px;
   }
 
+  /* CORRECCIÓN MÓVIL: Radio Imaginaria mismo tamaño que bio */
   .sound-brand {
-    font-size: 12px; /* Reducido 2 puntos */
+    font-size: 12px;
+    color: var(--black);
   }
 
   .carousel-btn {
@@ -1071,42 +1114,14 @@ body {
     gap: 8px;
   }
 
-  /* MICROGRÁFICOS EN MÓVIL - 10px como especificado */
+  /* MICROGRÁFICOS EN MÓVIL - 10px */
   .update-date,
   .live-clock,
   .weather-info,
   .location,
   .weather-temp,
   .mobile-micros-center-line {
-    font-size: 10px; /* Micrográficos en 10px */
+    font-size: 10px;
     line-height: 1.15;
   }
-}
-
-.project-details {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.project-title {
-  font-size: 14px;
-  line-height: 1.15;
-  color: var(--black);
-  font-weight: 400;
-}
-
-.project-description {
-  font-size: 13px; /* Reducido de 14px a 13px */
-  line-height: 1.15;
-  color: var(--black);
-  font-weight: 400;
-  margin-top: 8px;
-}
-
-.project-credits {
-  font-size: 14px;
-  line-height: 1.15;
-  color: var(--gray);
-  font-style: italic;
 }

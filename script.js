@@ -40,37 +40,76 @@ function loadAudio(index) {
   if (currentAudio) {
     currentAudio.pause();
     currentAudio.removeEventListener('ended', soundNextTrack);
+    currentAudio = null;
   }
   
-  if (channels[index].status === "disponible") {
-    currentAudio = new Audio(channels[index].audio);
-    currentAudio.addEventListener('ended', soundNextTrack);
-    currentAudio.volume = 0.7;
+  if (channels[index] && channels[index].status === "disponible") {
+    try {
+      currentAudio = new Audio(channels[index].audio);
+      currentAudio.addEventListener('ended', soundNextTrack);
+      currentAudio.volume = 0.7;
+      console.log(`Audio cargado: ${channels[index].name}`);
+    } catch (error) {
+      console.error('Error cargando audio:', error);
+      currentAudio = null;
+    }
   } else {
     currentAudio = null;
+    console.log(`Canal ${index + 1}: Próximamente`);
   }
 }
 
 function soundTogglePlayPause() {
-  if (!currentAudio) loadAudio(currentChannelIndex);
-  if (!currentAudio) return;
-
   const playBtn = document.getElementById('soundPlayBtn');
   
+  // Si no hay audio cargado, intentar cargar
+  if (!currentAudio) {
+    loadAudio(currentChannelIndex);
+  }
+  
+  // Si sigue sin audio (canal no disponible), mostrar mensaje
+  if (!currentAudio) {
+    console.log('Canal no disponible aún');
+    // Simular estado "playing" para canales próximamente
+    isPlaying = !isPlaying;
+    updatePlayButtonState();
+    return;
+  }
+
+  try {
+    if (isPlaying) {
+      currentAudio.pause();
+      isPlaying = false;
+    } else {
+      currentAudio.play()
+        .then(() => {
+          isPlaying = true;
+          updatePlayButtonState();
+        })
+        .catch(error => {
+          console.error('Error reproduciendo audio:', error);
+          isPlaying = false;
+          updatePlayButtonState();
+        });
+    }
+    updatePlayButtonState();
+  } catch (error) {
+    console.error('Error en toggle play/pause:', error);
+  }
+}
+
+function updatePlayButtonState() {
+  const playBtn = document.getElementById('soundPlayBtn');
+  if (!playBtn) return;
+  
   if (isPlaying) {
-    currentAudio.pause();
-    isPlaying = false;
-    if (playBtn) {
-      playBtn.classList.remove('playing');
-      playBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 12 12"><path d="M3 0v12l9-6z" fill="currentColor"/></svg>';
-    }
+    playBtn.classList.add('playing');
+    // SVG de pause con color correcto
+    playBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 12 12"><rect x="3" y="2" width="2" height="8" fill="#000"/><rect x="7" y="2" width="2" height="8" fill="#000"/></svg>';
   } else {
-    currentAudio.play();
-    isPlaying = true;
-    if (playBtn) {
-      playBtn.classList.add('playing');
-      playBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 12 12"><rect x="2" y="2" width="3" height="8" fill="currentColor"/><rect x="7" y="2" width="3" height="8" fill="currentColor"/></svg>';
-    }
+    playBtn.classList.remove('playing');
+    // SVG de play con color de texto normal
+    playBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 12 12"><path d="M3 0v12l9-6z" fill="currentColor"/></svg>';
   }
 }
 
@@ -80,32 +119,33 @@ function soundStop() {
     currentAudio.currentTime = 0;
   }
   isPlaying = false;
-  const playBtn = document.getElementById('soundPlayBtn');
-  if (playBtn) {
-    playBtn.classList.remove('playing');
-    playBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 12 12"><path d="M3 0v12l9-6z" fill="currentColor"/></svg>';
-  }
+  updatePlayButtonState();
 }
 
 function soundSelectChannel(index) {
   if (index < 0 || index >= channels.length) return;
   
+  console.log(`Seleccionando canal ${index + 1}: ${channels[index].name}`);
+  
+  // Detener audio actual si está reproduciendo
   if (isPlaying && currentAudio) {
     currentAudio.pause();
     isPlaying = false;
   }
   
+  // Actualizar índice actual
   currentChannelIndex = index;
+  
+  // Actualizar UI de canales
   document.querySelectorAll('.sound-channel-item').forEach((item, i) => {
     item.classList.toggle('selected', i === index);
   });
   
+  // Cargar nuevo audio
   loadAudio(index);
-  const playBtn = document.getElementById('soundPlayBtn');
-  if (playBtn) {
-    playBtn.classList.remove('playing');
-    playBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 12 12"><path d="M3 0v12l9-6z" fill="currentColor"/></svg>';
-  }
+  
+  // Resetear botón de play
+  updatePlayButtonState();
 }
 
 function soundPreviousTrack() {

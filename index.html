@@ -2,7 +2,7 @@
 <html lang="en" >
 <head>
   <meta charset="UTF-8">
-  <title>hola</title>
+  <title>pignatta</title>
   <link rel="stylesheet" href="./style.css">
 
 </head>
@@ -11,14 +11,39 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Federico Pignatta — Proyecto</title>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  
+  <!-- FONTS -->
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap"></noscript>
+  
+  <!-- CSS CRÍTICO INLINE -->
+  <style>
+    .carousel-track {
+      display: flex !important;
+      transition: transform 0.3s ease !important;
+      will-change: transform !important;
+      width: 100% !important;
+    }
+    .carousel-slide {
+      min-width: 100% !important;
+      flex: 0 0 100% !important;
+    }
+    .carousel-slide img {
+      width: 100% !important;
+      height: auto !important;
+      display: block !important;
+      user-select: none !important;
+    }
+  </style>
+  
+  <!-- CSS PRINCIPAL -->
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- Barra de reflexiones inferior - MICRODOSIS DE SIGNIFICADOS -->
+  <!-- Barra de reflexiones inferior -->
   <div class="reflection-bar" id="reflectionBar">
     <div class="reflection-content" id="reflectionContent">
        • WEB DISEÑADA POR FEDERICO PIGNATTA UTILIZANDO IA COMO COPILOTO DURANTE TODO EL PROCESO • EL ENFOQUE DE CONSTRUCCIÓN FUE EXPERIMENTAL: UNA METODOLOGÍA SIMILAR AL COLLAGE, PERO APLICADA AL CÓDIGO • EL RESULTADO: UNA COMPOSICIÓN LIMPIA, CON MUCHO AIRE Y UN TOQUE DE DIVERSIÓN • PONETE EN CONTACTO Y HABLEMOS SI NECESITAS TU PROPIA WEB •
@@ -28,7 +53,7 @@
 
   <div class="main-container">
     
-    <!-- Panel Izquierdo - Proyectos - 44% -->
+    <!-- Panel Izquierdo - Proyectos -->
     <div class="left-projects-panel">
       
       <div class="project">
@@ -145,33 +170,15 @@ sensible.
         </div>
       </div>
 
-      <!-- Micrográficos para móvil -->
-      <div class="mobile-micros">
-        <div class="mobile-micros-left">
-          <div class="mobile-micros-line">
-            ÚLTIMA
-            ACTUALIZACIÓN:<br>
-            21.JUL.2025
-          </div>
-        </div>
-        <div class="mobile-micros-right">
-          <div class="mobile-micros-line">
-            MONTEVIDEO, UY<br>
-            11.4°C ☁️
-          </div>
-          <div class="mobile-micros-line" id="mobileLiveClock">[23:40:39]</div>
-        </div>
-      </div>
-
     </div>
 
-    <!-- Panel Central - Información complementaria - 28% -->
+    <!-- Panel Central - Información complementaria -->
     <div class="center-info-panel">
       
       <div class="info-section">
         <div class="info-title">→ Educación</div>
         <div class="info-item">
-          <div>Licenciatura en Artes Visuales (en tesis)</div>
+          <div>Licenciatura en Artes Visuales — en proceso de tesis</div>
           <div class="info-description">Universidad de la República, Uruguay</div>
         </div>
         <div class="info-item">
@@ -247,8 +254,6 @@ sensible.
       </div>
 
       <div class="sound-section">
-        
-        <!-- Reproductor completo Radio del Río -->
         <div class="sound-player-full">
           <div class="sound-player-controls">
             <div class="sound-controls-left">
@@ -286,7 +291,7 @@ sensible.
         </div>
       </div>
 
-      <!-- Micrográficos móviles al final del panel central -->
+      <!-- Micrográficos móviles -->
       <div class="mobile-micros-center">
         <div class="mobile-micros-center-left">
           <div class="mobile-micros-center-line">
@@ -306,7 +311,7 @@ sensible.
 
     </div>
 
-    <!-- Panel Derecho - Bio y contacto - 28% -->
+    <!-- Panel Derecho - Bio y contacto -->
     <div class="right-bio-panel">
       <h1 class="studio-name">Pignatta</h1>
       
@@ -346,7 +351,7 @@ sensible.
 
   </div>
 
-  <!-- Lightbox con navegación -->
+  <!-- Lightbox -->
   <div class="lightbox" id="lightbox">
     <div class="lightbox-content">
       <img class="lightbox-image" id="lightboxImage" src="" alt="">
@@ -356,7 +361,35 @@ sensible.
     </div>
   </div>
 
-  <script src="script.js"></script>
+  <!-- SCRIPT AL FINAL -->
+  <script defer src="script.js"></script>
+  
+  <!-- VERIFICACIÓN DE CARGA -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('🔍 Verificación de carga GitHub Pages:');
+      console.log('- CSS externo:', !!document.querySelector('link[href="style.css"]'));
+      console.log('- JS externo:', !!document.querySelector('script[src="script.js"]'));
+      
+      const track = document.querySelector('.carousel-track');
+      if (track) {
+        const styles = window.getComputedStyle(track);
+        console.log('- Display de .carousel-track:', styles.display);
+        console.log('- Transform inicial:', styles.transform);
+      }
+      
+      setTimeout(() => {
+        const links = document.querySelectorAll('link[rel="stylesheet"]');
+        links.forEach(link => {
+          if (link.sheet) {
+            console.log('✅', link.href, 'cargado');
+          } else {
+            console.error('❌', link.href, 'falló');
+          }
+        });
+      }, 100);
+    });
+  </script>
 </body>
 </html>
 <!-- partial -->
