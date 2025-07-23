@@ -12,10 +12,12 @@
   --player-button: #f7f5f3;
   --player-button-hover: #f2f0ee;
   --player-channel: #f5f3f1;
-  /* Ocultar micrográficos móviles en desktop */
-  .mobile-micros {
-    display: none;
-  }
+}
+
+/* Ocultar micrográficos móviles en desktop */
+.mobile-micros {
+  display: none;
+}
 
 /* Reset y base */
 * {
@@ -102,10 +104,10 @@ body {
   width: 100vw;
 }
 
-/* Panel izquierdo - Proyectos - 33.33% pantalla */
+/* Panel izquierdo - Proyectos - 40.74% pantalla */
 .left-projects-panel {
-  flex: 0 0 33.33%;
-  width: 33.33vw;
+  flex: 0 0 40.74%;
+  width: 40.74vw;
   height: calc(100vh - 40px);
   overflow-y: auto;
   scrollbar-width: none;
@@ -117,10 +119,10 @@ body {
   display: none;
 }
 
-/* Panel central - Información complementaria - 33.33% pantalla */
+/* Panel central - Información complementaria - 29.63% pantalla */
 .center-info-panel {
-  flex: 0 0 33.33%;
-  width: 33.33vw;
+  flex: 0 0 29.63%;
+  width: 29.63vw;
   height: calc(100vh - 40px);
   background: var(--white);
   position: relative;
@@ -134,10 +136,10 @@ body {
   display: none;
 }
 
-/* Panel derecho - Bio y contacto - 33.33% pantalla */
+/* Panel derecho - Bio y contacto - 29.63% pantalla */
 .right-bio-panel {
-  flex: 0 0 33.33%;
-  width: 33.33vw;
+  flex: 0 0 29.63%;
+  width: 29.63vw;
   height: calc(100vh - 40px);
   background: var(--white);
   position: relative;
@@ -159,12 +161,12 @@ body {
   font-weight: 400;
   text-transform: uppercase;
   letter-spacing: 2px;
-  margin-bottom: 16px; /* Reducido de 32px */
+  margin-bottom: 16px;
   color: var(--black);
 }
 
 .bio-section {
-  margin-bottom: 24px; /* Reducido de 32px */
+  margin-bottom: 12px; /* Reducido de 24px a 12px para acercar más */
 }
 
 .bio-text {
@@ -182,7 +184,7 @@ body {
 .contact-collab {
   font-size: 14px;
   line-height: 1.1;
-  margin-bottom: 8px;
+  margin-bottom: 8px; /* Reducido de 8px a 4px para acercar más */
   margin-top: 16px;
   color: var(--black);
   font-weight: 400;
@@ -190,9 +192,10 @@ body {
 
 .contact-section {
   margin-bottom: 16px;
-  margin-top: 0;
+  margin-top: 0; /* Reducido de 0 a -4px para acercar más */
 }
 
+/* CONTACTOS EN DESKTOP - mantener original */
 .contact-link {
   display: block;
   font-size: 14px;
@@ -297,7 +300,7 @@ body {
 
 /* Carrusel de imágenes - ancho ajustado a descripción */
 .project-media {
-  width: 83.33%; /* 5/6 del ancho para coincidir con la caja de texto */
+  width: 83.33%;
   margin-bottom: 24px;
   position: relative;
 }
@@ -305,7 +308,7 @@ body {
 .project-carousel {
   position: relative;
   overflow: hidden;
-  border-radius: 8px;
+  border-radius: 0;
   touch-action: pan-y pinch-zoom;
 }
 
@@ -393,37 +396,36 @@ body {
   transform: rotate(-135deg) translateX(-1.5px);
 }
 
-/* Indicadores de carrusel (pelotitas) */
+/* Indicadores de carrusel sutiles */
 .carousel-indicators {
   display: flex;
   justify-content: center;
-  gap: 6px;
-  margin-top: 12px;
+  gap: 4px;
+  margin-top: 16px;
   padding: 0;
 }
 
 .carousel-dot {
-  width: 6px;
-  height: 6px;
+  width: 4.5px;
+  height: 4.5px;
   border-radius: 50%;
   background: #d0d0d0;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: background 0.3s ease;
 }
 
 .carousel-dot.active {
   background: var(--black);
-  transform: scale(1.2);
 }
 
-.carousel-dot:hover {
+.carousel-dot:hover:not(.active) {
   background: #a0a0a0;
 }
 
 .single-image {
   width: 100%;
   cursor: pointer;
-  border-radius: 8px;
+  border-radius: 0;
 }
 
 /* Grilla de proyecto - nueva proporción */
@@ -432,7 +434,7 @@ body {
   grid-template-columns: 1fr 5fr;
   gap: 20px;
   align-items: start;
-  width: 83.33%; /* Mismo ancho que las imágenes */
+  width: 83.33%;
 }
 
 .project-left {
@@ -453,34 +455,6 @@ body {
   line-height: 1.15;
   color: var(--gray);
   font-weight: 400;
-  font-style: italic;
-}
-
-.project-details {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.project-title {
-  font-size: 14px;
-  line-height: 1.15;
-  color: var(--black);
-  font-weight: 400;
-}
-
-.project-description {
-  font-size: 14px;
-  line-height: 1.15;
-  color: var(--black);
-  font-weight: 400;
-  margin-top: 8px;
-}
-
-.project-credits {
-  font-size: 14px;
-  line-height: 1.15;
-  color: var(--gray);
   font-style: italic;
   margin-top: 4px;
   font-weight: 400;
@@ -552,7 +526,7 @@ body {
   font-weight: 400;
 }
 
-/* Reproductor Radio del Río - Estilo como imagen de referencia */
+/* Reproductor Radio del Río */
 .sound-player-full {
   width: 100%;
   background: var(--player-gray);
@@ -655,7 +629,7 @@ body {
   background: var(--player-channel);
   border-radius: 12px;
   padding: 4px 8px;
-  font-size: 10px; /* Aumentado de 9px a 10px */
+  font-size: 10px;
   font-weight: 400;
   text-transform: uppercase;
   color: #999;
@@ -676,7 +650,18 @@ body {
   color: #000;
 }
 
-/* Lightbox */
+/* CTA final */
+.cta-final {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid #eee;
+  font-size: 14px;
+  line-height: 1.15;
+  color: var(--black);
+  font-weight: 400;
+}
+
+/* Lightbox premium con navegación */
 .lightbox {
   display: none;
   position: fixed;
@@ -684,51 +669,165 @@ body {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.95);
+  background: rgba(0, 0, 0, 0);
   z-index: 1000;
   align-items: center;
   justify-content: center;
+  padding: 60px;
+  opacity: 0;
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  backdrop-filter: blur(0px);
 }
 
 .lightbox.active {
   display: flex;
+  background: rgba(0, 0, 0, 0.92);
+  opacity: 1;
+  backdrop-filter: blur(8px);
 }
 
 .lightbox-content {
   position: relative;
-  max-width: 90vw;
-  max-height: 90vh;
+  max-width: 30vw;
+  max-height: 30vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: scale(0.7) translateY(40px);
+  transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+  opacity: 0;
+}
+
+.lightbox.active .lightbox-content {
+  transform: scale(1) translateY(0);
+  opacity: 1;
+  transition-delay: 0.1s;
 }
 
 .lightbox-image {
-  width: 100%;
-  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
   object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  transition: all 0.3s ease;
+  background: #fff;
+  display: block;
+}
+
+/* Controles de navegación en lightbox */
+.lightbox-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  border-radius: 50%;
+  color: #333;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  opacity: 0;
+  transform: translateY(-50%) scale(0.8);
+}
+
+.lightbox.active .lightbox-nav {
+  opacity: 1;
+  transform: translateY(-50%) scale(1);
+  transition-delay: 0.3s;
+}
+
+.lightbox-nav:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 1);
+  transform: translateY(-50%) scale(1.1);
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3);
+}
+
+.lightbox-nav:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  transform: translateY(-50%) scale(0.8);
+}
+
+.lightbox-nav-prev {
+  left: -60px;
+}
+
+.lightbox-nav-next {
+  right: -60px;
+}
+
+.lightbox-nav::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-left: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transition: all 0.2s ease;
+}
+
+.lightbox-nav-prev::before {
+  transform: rotate(45deg);
+}
+
+.lightbox-nav-next::before {
+  transform: rotate(-135deg);
 }
 
 .lightbox-close {
   position: absolute;
-  top: 20px;
-  right: 20px;
-  width: 32px;
-  height: 32px;
-  background: rgba(255, 255, 255, 0.2);
+  top: -80px;
+  right: -60px;
+  width: 36px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.9);
   border: none;
-  color: white;
+  color: #333;
   font-size: 18px;
   cursor: pointer;
   border-radius: 50%;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  font-weight: 300;
+}
+
+.lightbox.active .lightbox-close {
+  opacity: 1;
+  transition-delay: 0.3s;
 }
 
 .lightbox-close:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 1);
+  transform: scale(1.1);
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3);
+}
+
+.lightbox-close:active {
+  transform: scale(0.95);
+}
+
+/* Micrográficos móviles en panel central */
+.mobile-micros-center {
+  display: none;
 }
 
 /* Responsive móvil */
 @media (max-width: 768px) {
   body {
-    font-size: 14px;
+    font-size: 12px; /* Reducido 2 puntos */
     line-height: 1.15;
   }
 
@@ -737,12 +836,26 @@ body {
     display: none;
   }
 
+  /* Ocultar lightbox en móvil */
+  .lightbox {
+    display: none !important;
+  }
+
+  /* Deshabilitar click en imágenes en móvil */
+  .carousel-slide {
+    cursor: default;
+  }
+
+  .single-image {
+    cursor: default;
+  }
+
   .reflection-bar {
     height: 36px;
   }
 
   .reflection-content {
-    font-size: 12px;
+    font-size: 10px; /* Reducido 2 puntos */
     line-height: 1.15;
     padding-top: 12px;
     padding-bottom: 12px;
@@ -767,6 +880,7 @@ body {
   .left-projects-panel {
     border-bottom: 1px solid #eee;
     order: 2;
+    padding-top: 8px; /* Reducido de 24px a 8px para acercar más al panel anterior */
   }
 
   .center-info-panel {
@@ -776,7 +890,18 @@ body {
 
   .right-bio-panel {
     order: 1;
-    padding-bottom: 20px;
+    padding-bottom: 8px; /* Reducido de 20px a 8px para acercar más al siguiente panel */
+  }
+
+  /* AJUSTES ESPECÍFICOS PARA CONTACTOS EN MÓVIL */
+  .contact-collab {
+    margin-bottom: 4px; /* Reducido de 8px para acercar más en móvil */
+    margin-top: 14px; /* Aumentado 2px: de 12px a 14px */
+  }
+
+  .contact-section {
+    margin-bottom: 12px; /* Reducido de 16px */
+    margin-top: -2px; /* Negativo para acercar más */
   }
 
   /* Ocultar micrográficos originales en móvil del panel derecho */
@@ -784,11 +909,18 @@ body {
     display: none;
   }
 
-  /* Micrográficos móviles después del reproductor */
-  .mobile-micros {
+  /* Ocultar micrográficos originales del panel izquierdo */
+  .left-projects-panel .mobile-micros {
+    display: none;
+  }
+
+  /* Mostrar micrográficos en panel central - AL FINAL */
+  .mobile-micros-center {
     display: block;
     margin-top: 40px;
+    margin-bottom: 30px; /* Reducido de 60px a 30px */
     padding-top: 20px;
+    padding-bottom: 20px; /* Reducido de 40px a 20px */
     border-top: 1px solid #eee;
     display: grid;
     grid-template-columns: 1fr auto 1fr;
@@ -797,7 +929,7 @@ body {
     gap: 8px;
   }
 
-  .mobile-micros-left {
+  .mobile-micros-center-left {
     grid-area: date;
     display: flex;
     flex-direction: column;
@@ -806,7 +938,7 @@ body {
     align-items: flex-start;
   }
 
-  .mobile-micros-right {
+  .mobile-micros-center-right {
     grid-area: weather;
     display: flex;
     flex-direction: column;
@@ -815,8 +947,8 @@ body {
     justify-self: end;
   }
 
-  .mobile-micros-line {
-    font-size: 11px;
+  .mobile-micros-center-line {
+    font-size: 11px; /* Mantener tamaño original para microdatos */
     line-height: 1.45;
     color: var(--gray);
     font-weight: 400;
@@ -838,6 +970,11 @@ body {
     margin-bottom: 60px;
   }
 
+  /* AJUSTE ESPECÍFICO: Subir imagen del primer proyecto */
+  .project:first-child {
+    margin-top: -10px; /* Subir la imagen del primer proyecto */
+  }
+
   .project-left {
     flex-direction: row;
     gap: 16px;
@@ -845,13 +982,17 @@ body {
   }
 
   .bio-text {
-    font-size: 14px;
+    font-size: 12px; /* Reducido 2 puntos */
     line-height: 1.15;
     margin-bottom: 8px;
   }
 
+  .bio-section {
+    margin-bottom: 4px; /* Reducido aún más en móvil para acercar más */
+  }
+
   .studio-name {
-    font-size: 14px;
+    font-size: 12px; /* Reducido 2 puntos */
     line-height: 1.15;
     margin-bottom: 8px;
   }
@@ -861,20 +1002,40 @@ body {
   }
 
   .info-title {
-    font-size: 14px;
+    font-size: 12px; /* Reducido 2 puntos */
     line-height: 1.15;
     margin-bottom: 4px;
   }
 
   .info-item {
-    font-size: 14px;
+    font-size: 12px; /* Reducido 2 puntos */
     line-height: 1.15;
     margin-bottom: 4px;
   }
 
   .info-description {
-    font-size: 14px;
+    font-size: 12px; /* Reducido 2 puntos */
     line-height: 1.15;
+  }
+
+  .project-title {
+    font-size: 12px; /* Reducido 2 puntos */
+  }
+
+  .project-description {
+    font-size: 11px; /* Reducido de 12px a 11px para móvil */
+  }
+
+  .project-number {
+    font-size: 12px; /* Reducido 2 puntos */
+  }
+
+  .contact-link {
+    font-size: 12px; /* Reducido 2 puntos */
+  }
+
+  .contact-collab {
+    font-size: 12px; /* Reducido 2 puntos */
   }
 
   .sound-player-full {
@@ -882,9 +1043,13 @@ body {
   }
 
   .sound-channel-item {
-    font-size: 11px; /* Aumentado de 10px a 11px en móvil */
+    font-size: 9px; /* Reducido 2 puntos */
     line-height: 1.15;
     padding: 5px 6px;
+  }
+
+  .sound-brand {
+    font-size: 12px; /* Reducido 2 puntos */
   }
 
   .carousel-btn {
@@ -897,13 +1062,42 @@ body {
     gap: 8px;
   }
 
-  /* MICROGRÁFICOS EN MÓVIL - Mantener 11px */
+  /* MICROGRÁFICOS EN MÓVIL - Mantener 11px como especificado */
   .update-date,
   .live-clock,
   .weather-info,
   .location,
-  .weather-temp {
+  .weather-temp,
+  .mobile-micros-center-line {
     font-size: 11px;
     line-height: 1.15;
   }
+}
+
+.project-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.project-title {
+  font-size: 14px;
+  line-height: 1.15;
+  color: var(--black);
+  font-weight: 400;
+}
+
+.project-description {
+  font-size: 14px;
+  line-height: 1.15;
+  color: var(--black);
+  font-weight: 400;
+  margin-top: 8px;
+}
+
+.project-credits {
+  font-size: 14px;
+  line-height: 1.15;
+  color: var(--gray);
+  font-style: italic;
 }

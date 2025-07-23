@@ -2,7 +2,7 @@
 <html lang="en" >
 <head>
   <meta charset="UTF-8">
-  <title>nueva actualizacion</title>
+  <title>pignatta.info</title>
   <link rel="stylesheet" href="./style.css">
 
 </head>
@@ -21,7 +21,7 @@
   <!-- Barra de reflexiones inferior - MICRODOSIS DE SIGNIFICADOS -->
   <div class="reflection-bar" id="reflectionBar">
     <div class="reflection-content" id="reflectionContent">
-       • WEB DISEÑADA POR FEDERICO PIGNATTA UTILIZANDO IA COMO COPILOTO DURANTE TODO EL PROCESO • EL ENFOQUE DE CONSTRUCCIÓN FUE EXPERIMENTAL: UNA METODOLOGÍA SIMILAR AL COLLAGE, PERO APLICADA AL CÓDIGO • EL RESULTADO: UNA COMPOSICIÓN LIMPIA, CON MUCHO AIRE Y UN TOQUE DE DIVERSIÓN • 
+       • WEB DISEÑADA POR FEDERICO PIGNATTA UTILIZANDO IA COMO COPILOTO DURANTE TODO EL PROCESO • EL ENFOQUE DE CONSTRUCCIÓN FUE EXPERIMENTAL: UNA METODOLOGÍA SIMILAR AL COLLAGE, PERO APLICADA AL CÓDIGO • EL RESULTADO: UNA COMPOSICIÓN LIMPIA, CON MUCHO AIRE Y UN TOQUE DE DIVERSIÓN • PONETE EN CONTACTO Y HABLEMOS SI NECESITAS TU PROPIA WEB •
     </div>
     <button class="reflection-close" onclick="closeReflectionBar()">×</button>
   </div>
@@ -65,7 +65,6 @@
               <button class="carousel-btn next"></button>
             </div>
             <div class="carousel-indicators"></div>
-            <div class="carousel-indicators"></div>
           </div>
         </div>
         
@@ -103,6 +102,7 @@ con experiencia digital para la creación musical colaborativa.
               <button class="carousel-btn prev"></button>
               <button class="carousel-btn next"></button>
             </div>
+            <div class="carousel-indicators"></div>
           </div>
         </div>
         
@@ -124,7 +124,7 @@ para conectarse directamente con el controlador Holomate o usarse de forma indep
 
       <div class="project">
         <div class="project-media">
-          <img src="https://i.imgur.com/rIJUdYH.jpeg" alt="Performance Ruido de la Plata" class="single-image" onclick="openLightbox('https://i.imgur.com/rIJUdYH.jpeg')">
+          <img src="https://i.imgur.com/rIJUdYH.jpeg" alt="Performance Ruido de la Plata" class="single-image" onclick="if(window.innerWidth > 768) openLightbox('https://i.imgur.com/rIJUdYH.jpeg')">
         </div>
         
         <div class="project-info-grid">
@@ -133,7 +133,7 @@ para conectarse directamente con el controlador Holomate o usarse de forma indep
             <div class="project-category"></div>
           </div>
           <div class="project-details">
-            <div class="project-title">Vicky Ismach y yo</div>
+            <div class="project-title">Junto a Vicky Ismach</div>
             <p class="project-description">
              Performance "Ruido de la Plata" en el ciclo Solar en Palacete 1111. La performance abordó las resonancias, flujos
 y texturas acústicas de este cuerpo de agua (Río de la Plata)
@@ -199,7 +199,7 @@ sensible.
       <div class="info-section">
         <div class="info-title">Enseñanza</div>
         <div class="info-item">
-          <div>2018 - 2021 Talleres de arte y comunicación visual (PAS)   </div>
+          <div>2018-2021 Talleres de arte y comunicación (PAS)  </div>
           <div class="info-description"></div>
         </div>
       </div>
@@ -270,6 +270,24 @@ sensible.
         </div>
       </div>
 
+      <!-- Micrográficos móviles al final del panel central -->
+      <div class="mobile-micros-center">
+        <div class="mobile-micros-center-left">
+          <div class="mobile-micros-center-line">
+            ÚLTIMA
+            ACTUALIZACIÓN:<br>
+            21.JUL.2025
+          </div>
+        </div>
+        <div class="mobile-micros-center-right">
+          <div class="mobile-micros-center-line">
+            MONTEVIDEO, UY<br>
+            11.4°C ☁️
+          </div>
+          <div class="mobile-micros-center-line" id="mobileLiveClock2">[23:40:39]</div>
+        </div>
+      </div>
+
     </div>
 
     <!-- Panel Derecho - Bio y contacto - 28% -->
@@ -313,10 +331,12 @@ sensible.
 
   </div>
 
-  <!-- Lightbox -->
+  <!-- Lightbox con navegación -->
   <div class="lightbox" id="lightbox">
     <div class="lightbox-content">
       <img class="lightbox-image" id="lightboxImage" src="" alt="">
+      <button class="lightbox-nav lightbox-nav-prev" id="lightboxPrev" onclick="lightboxPrevious()"></button>
+      <button class="lightbox-nav lightbox-nav-next" id="lightboxNext" onclick="lightboxNext()"></button>
       <button class="lightbox-close" onclick="closeLightbox()">×</button>
     </div>
   </div>
