@@ -118,28 +118,7 @@ function soundNextTrack() {
   soundSelectChannel(currentChannelIndex);
 }
 
-// ===== SCROLL =====
-function lockScrollSmooth() {
-  if (scrollLocked) return;
-  scrollLocked = true;
-  document.body.style.overflow = 'hidden';
-}
-
-function unlockScrollSmooth() {
-  if (!scrollLocked) return;
-  document.body.style.overflow = '';
-  scrollLocked = false;
-}
-
-function scheduleScrollUnlockSmooth(delay = 300) {
-  if (scrollLockTimeout) clearTimeout(scrollLockTimeout);
-  scrollLockTimeout = setTimeout(() => {
-    unlockScrollSmooth();
-    scrollLockTimeout = null;
-  }, delay);
-}
-
-// ===== CARRUSEL SÚPER SIMPLE =====
+// ===== CARRUSEL SÚPER SIMPLE CON FIX PARA MOBILE =====
 class SimpleCarousel {
   constructor(element, index) {
     this.carousel = element;
@@ -152,8 +131,15 @@ class SimpleCarousel {
     
     this.currentSlide = 0;
     this.totalSlides = this.slides.length;
-    this.isDragging = false;
-    this.startX = 0;
+    
+    // Variables para touch - MEJORADAS
+    this.touchStartX = 0;
+    this.touchStartY = 0;
+    this.touchEndX = 0;
+    this.touchEndY = 0;
+    this.touchStartTime = 0;
+    this.isTouchActive = false;
+    this.hasMovedHorizontally = false;
     
     if (!this.track || this.totalSlides === 0) {
       console.warn(`Carrusel ${index} incompleto`);
@@ -238,6 +224,82 @@ class SimpleCarousel {
     }
   }
   
+  // NUEVOS MÉTODOS TOUCH OPTIMIZADOS
+  handleTouchStart(e) {
+    this.touchStartX = e.touches[0].clientX;
+    this.touchStartY = e.touches[0].clientY;
+    this.touchStartTime = Date.now();
+    this.isTouchActive = true;
+    this.hasMovedHorizontally = false;
+    
+    // Pausar transición durante el touch
+    this.track.style.transition = 'none';
+  }
+  
+  handleTouchMove(e) {
+    if (!this.isTouchActive) return;
+    
+    const currentX = e.touches[0].clientX;
+    const currentY = e.touches[0].clientY;
+    const deltaX = currentX - this.touchStartX;
+    const deltaY = currentY - this.touchStartY;
+    
+    // Determinar dirección del swipe
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10) {
+      this.hasMovedHorizontally = true;
+      e.preventDefault(); // Prevenir scroll vertical
+      e.stopPropagation();
+      
+      // Feedback visual durante el drag
+      const dragProgress = deltaX / this.track.offsetWidth;
+      const currentOffset = -(this.currentSlide * (100 / this.totalSlides));
+      const newOffset = currentOffset + (dragProgress * 100);
+      
+      this.track.style.transform = `translateX(${newOffset}%)`;
+    }
+  }
+  
+  handleTouchEnd(e) {
+    if (!this.isTouchActive) return;
+    
+    this.touchEndX = e.changedTouches[0].clientX;
+    this.touchEndY = e.changedTouches[0].clientY;
+    
+    const deltaX = this.touchEndX - this.touchStartX;
+    const deltaY = this.touchEndY - this.touchStartY;
+    const deltaTime = Date.now() - this.touchStartTime;
+    
+    // Restaurar transición
+    this.track.style.transition = 'transform 0.3s ease';
+    
+    // Lógica de swipe mejorada
+    const minSwipeDistance = 50;
+    const maxSwipeTime = 300;
+    const isHorizontalSwipe = Math.abs(deltaX) > Math.abs(deltaY);
+    const isFastSwipe = deltaTime < maxSwipeTime;
+    const isLongSwipe = Math.abs(deltaX) > minSwipeDistance;
+    
+    if (isHorizontalSwipe && (isFastSwipe || isLongSwipe)) {
+      if (deltaX > 0) {
+        this.prevSlide();
+      } else {
+        this.nextSlide();
+      }
+    } else {
+      // Volver a la posición actual si no es un swipe válido
+      this.updateCarousel();
+    }
+    
+    // Reset de variables
+    this.isTouchActive = false;
+    this.hasMovedHorizontally = false;
+    
+    // Timeout para asegurar que el estado se resetee completamente
+    setTimeout(() => {
+      this.isTouchActive = false;
+    }, 50);
+  }
+  
   addEventListeners() {
     // Botones
     if (this.prevBtn) {
@@ -254,47 +316,30 @@ class SimpleCarousel {
       });
     }
     
-    // Touch events ultra-simples
+    // Touch events OPTIMIZADOS con mejor manejo
     this.track.addEventListener('touchstart', (e) => {
-      this.startX = e.touches[0].clientX;
-      this.isDragging = true;
-    }, { passive: true });
+      this.handleTouchStart(e);
+    }, { passive: false });
     
     this.track.addEventListener('touchmove', (e) => {
-      if (!this.isDragging) return;
-      
-      const currentX = e.touches[0].clientX;
-      const deltaX = currentX - this.startX;
-      
-      // Solo horizontal
-      if (Math.abs(deltaX) > 30) {
-        lockScrollSmooth();
-        e.preventDefault();
-      }
+      this.handleTouchMove(e);
     }, { passive: false });
     
     this.track.addEventListener('touchend', (e) => {
-      if (!this.isDragging) return;
-      
-      this.isDragging = false;
-      const endX = e.changedTouches[0].clientX;
-      const deltaX = endX - this.startX;
-      
-      if (Math.abs(deltaX) > 50) {
-        if (deltaX > 0) {
-          this.prevSlide();
-        } else {
-          this.nextSlide();
-        }
-      }
-      
-      scheduleScrollUnlockSmooth();
-    }, { passive: true });
+      this.handleTouchEnd(e);
+    }, { passive: false });
     
-    // Lightbox
+    // Prevenir comportamientos indeseados
+    this.track.addEventListener('touchcancel', (e) => {
+      this.isTouchActive = false;
+      this.track.style.transition = 'transform 0.3s ease';
+      this.updateCarousel();
+    }, { passive: false });
+    
+    // Lightbox solo en desktop
     this.slides.forEach(slide => {
       slide.addEventListener('click', (e) => {
-        if (!this.isDragging && window.innerWidth > 768) {
+        if (!this.hasMovedHorizontally && window.innerWidth > 768) {
           const img = slide.querySelector('img');
           if (img?.src) {
             openLightbox(img.src, this.carousel);
@@ -390,7 +435,7 @@ function initCarousels() {
   });
 }
 
-// DOM Ready
+// DOM Ready con múltiples estrategias
 document.addEventListener('DOMContentLoaded', () => {
   console.log('DOM listo');
   
@@ -401,7 +446,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }, 100);
 });
 
-// Backup
+// Backup con delay mayor
 window.addEventListener('load', () => {
   setTimeout(() => {
     const carousels = document.querySelectorAll('.project-carousel');
@@ -409,7 +454,7 @@ window.addEventListener('load', () => {
       console.log('🔄 Backup init');
       initCarousels();
     }
-  }, 200);
+  }, 300);
 });
 
 // Event listeners globales
@@ -429,8 +474,7 @@ document.addEventListener('keydown', (e) => {
 // Cleanup
 window.addEventListener('beforeunload', () => {
   if (scrollLockTimeout) clearTimeout(scrollLockTimeout);
-  unlockScrollSmooth();
 });
 
-console.log('Script cargado - v5.0 Súper Simple');
+console.log('Script cargado - v6.0 Mobile Fix');
 console.log('Web diseñada por Pignatta - Codificada con IA como copiloto');
