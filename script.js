@@ -1,12 +1,67 @@
-// Variables globales
+// Mouse events actualizados para nuevas referencias
+    function handleMouseDown(e) {
+      const state = carouselState;
+      state.startX = e.clientX;
+      state.isDragging = true;
+      state.startTransform = -state.currentSlide * 100;
+      newTrack.style.transition = 'none';
+      e.preventDefault();
+    }
+
+    function handleMouseMove(e) {
+      const state = carouselState;
+      if (!state.isDragging) return;
+      
+      const currentX = e.clientX;
+      const deltaX = currentX - state.startX;
+      const percentage = (deltaX / newTrack.offsetWidth) * 100;
+      
+      newTrack.style.transform = `translateX(${state.startTransform + percentage}%)`;
+    }
+
+    function handleMouseUp(e) {
+      const state = carouselState;
+      if (!state.isDragging) return;
+      
+      state.isDragging = false;
+      newTrack.style.transition = 'transform 0.4s ease';
+      
+      const endX = e.clientX;
+      const deltaX = endX - state.startX;
+      const threshold = newTrack.offsetWidth * 0.2;
+      
+      if (deltaX > threshold) {
+        prevSlide();
+      } else if (deltaX < -threshold) {
+        nextSlide();
+      } else {
+        updateCarousel();
+      }
+    }// Variables globales
 let isPlaying = false;
 let isMuted = false;
 let currentChannelIndex =0;
 let currentAudio = null;
 
-// Variables para control de scroll temporal
+// Variables para control de scroll temporal - GLOBALES
 let scrollLocked = false;
 let scrollLockTimeout = null;
+let activeCarousels = new Map(); // Tracking de carruseles activos
+
+// Función para reset completo de estados
+function resetAllCarouselStates() {
+  activeCarousels.forEach((carouselData, carousel) => {
+    carouselData.isDragging = false;
+    carouselData.isVerticalMove = false;
+    carouselData.hasStarted = false;
+  });
+  
+  if (scrollLocked) {
+    unlockScrollSmooth();
+  }
+  
+  console.log('🔄 Reset completo de estados de carruseles');
+}
 
 // Función para bloquear scroll SIN saltar posición
 function lockScrollSmooth() {
@@ -227,13 +282,18 @@ function soundNextTrack() {
   soundSelectChannel(currentChannelIndex);
 }
 
-// ===== FUNCIONES DE CARRUSELES MEJORADAS =====
+// ===== FUNCIONES DE CARRUSELES ULTRA-ROBUSTAS =====
 function initializeCarousels() {
+  // Limpiar carruseles existentes primero
+  activeCarousels.clear();
+  
   document.querySelectorAll('.project-carousel').forEach((carousel, carouselIndex) => {
-    // Marcar como inicializado para evitar doble inicialización
+    // Verificar si ya está inicializado
     if (carousel.hasAttribute('data-initialized')) {
+      console.log(`⚠️ Carrusel ${carouselIndex} ya inicializado, saltando...`);
       return;
     }
+    
     carousel.setAttribute('data-initialized', 'true');
     
     const track = carousel.querySelector('.carousel-track');
@@ -243,27 +303,34 @@ function initializeCarousels() {
     const indicatorsContainer = carousel.querySelector('.carousel-indicators');
     
     if (!track || !slides.length) {
-      console.warn(`Carrusel ${carouselIndex} incompleto`);
+      console.warn(`❌ Carrusel ${carouselIndex} incompleto`);
       return;
     }
     
-    let currentSlide = 0;
-    const totalSlides = slides.length;
-    let startX = 0;
-    let startY = 0;
-    let isDragging = false;
-    let isVerticalMove = false;
-    let startTransform = 0;
-    let hasStarted = false;
+    // Crear objeto de estado para este carrusel
+    const carouselState = {
+      currentSlide: 0,
+      totalSlides: slides.length,
+      isDragging: false,
+      isVerticalMove: false,
+      hasStarted: false,
+      startX: 0,
+      startY: 0,
+      startTransform: 0,
+      carouselIndex: carouselIndex
+    };
+    
+    // Registrar en el Map global
+    activeCarousels.set(carousel, carouselState);
+    
+    console.log(`✅ Inicializando carrusel ${carouselIndex} con ${carouselState.totalSlides} slides`);
 
-    console.log(`✅ Inicializando carrusel ${carouselIndex} con ${totalSlides} slides`);
-
-    // Crear indicadores mejorados
+    // Crear indicadores
     function createIndicators() {
       if (!indicatorsContainer) return;
       
       indicatorsContainer.innerHTML = '';
-      for (let i = 0; i < totalSlides; i++) {
+      for (let i = 0; i < carouselState.totalSlides; i++) {
         const dot = document.createElement('div');
         dot.classList.add('carousel-dot');
         if (i === 0) dot.classList.add('active');
@@ -278,114 +345,130 @@ function initializeCarousels() {
       
       const dots = indicatorsContainer.querySelectorAll('.carousel-dot');
       dots.forEach((dot, index) => {
-        dot.classList.toggle('active', index === currentSlide);
+        dot.classList.toggle('active', index === carouselState.currentSlide);
       });
     }
 
     function updateCarousel() {
-      const offset = -currentSlide * 100;
+      const offset = -carouselState.currentSlide * 100;
       track.style.transform = `translateX(${offset}%)`;
       updateIndicators();
     }
 
     function goToSlide(index) {
-      if (index >= 0 && index < totalSlides) {
-        currentSlide = index;
+      if (index >= 0 && index < carouselState.totalSlides) {
+        carouselState.currentSlide = index;
         updateCarousel();
       }
     }
 
     function nextSlide() {
-      if (currentSlide < totalSlides - 1) {
-        currentSlide++;
+      if (carouselState.currentSlide < carouselState.totalSlides - 1) {
+        carouselState.currentSlide++;
         updateCarousel();
       }
     }
 
     function prevSlide() {
-      if (currentSlide > 0) {
-        currentSlide--;
+      if (carouselState.currentSlide > 0) {
+        carouselState.currentSlide--;
         updateCarousel();
       }
     }
 
-    // Touch events MEJORADOS - más robustos para diferentes entornos
+    // Touch events ULTRA-ROBUSTOS con cleanup automático
     function handleTouchStart(e) {
-      // Logging para debugging
-      console.log(`🔸 TouchStart en carrusel ${carouselIndex}`);
+      const state = carouselState; // Referencia local
       
-      // NO bloquear inmediatamente, solo preparar
-      if (hasStarted) return;
-      hasStarted = true;
+      console.log(`🔸 TouchStart carrusel ${state.carouselIndex} - Estado: dragging=${state.isDragging}, hasStarted=${state.hasStarted}`);
+      
+      // RESET forzado si hay estado inconsistente
+      if (state.hasStarted || state.isDragging) {
+        console.log(`⚠️ Estado inconsistente detectado, reseteando carrusel ${state.carouselIndex}`);
+        state.hasStarted = false;
+        state.isDragging = false;
+        state.isVerticalMove = false;
+      }
+      
+      state.hasStarted = true;
       
       const touch = e.touches[0];
-      startX = touch.clientX;
-      startY = touch.clientY;
-      isDragging = true;
-      isVerticalMove = false;
-      startTransform = -currentSlide * 100;
-      track.style.transition = 'none';
+      state.startX = touch.clientX;
+      state.startY = touch.clientY;
+      state.isDragging = true;
+      state.isVerticalMove = false;
+      state.startTransform = -state.currentSlide * 100;
+      newTrack.style.transition = 'none';
       
-      // Reset con timeout más largo para GitHub Pages
-      setTimeout(() => { hasStarted = false; }, 50);
+      // Reset con timeout de seguridad
+      setTimeout(() => { 
+        if (state.hasStarted) {
+          state.hasStarted = false;
+        }
+      }, 100);
     }
 
     function handleTouchMove(e) {
-      if (!isDragging) return;
+      const state = carouselState; // Referencia local
+      
+      if (!state.isDragging) {
+        console.log(`⚠️ TouchMove sin dragging activo en carrusel ${state.carouselIndex}`);
+        return;
+      }
       
       const touch = e.touches[0];
       const currentX = touch.clientX;
       const currentY = touch.clientY;
-      const deltaX = currentX - startX;
-      const deltaY = currentY - startY;
+      const deltaX = currentX - state.startX;
+      const deltaY = currentY - state.startY;
       
       const absX = Math.abs(deltaX);
       const absY = Math.abs(deltaY);
       
-      // Umbrales más permisivos para GitHub Pages
+      // Umbrales más permisivos
       if (absX < 6 && absY < 6) return;
       
-      // DETECCIÓN DE INTENCIÓN con logging
-      if (!isVerticalMove && (absX > 12 || absY > 12)) {
+      // DETECCIÓN DE INTENCIÓN
+      if (!state.isVerticalMove && (absX > 12 || absY > 12)) {
         
-        // CASO 1: Claramente VERTICAL - permitir scroll
+        // CASO 1: VERTICAL
         if (absY > absX && absY > 18) {
-          console.log(`📱 Scroll vertical detectado en carrusel ${carouselIndex}`);
-          isVerticalMove = true;
-          isDragging = false;
+          console.log(`📱 Scroll vertical en carrusel ${state.carouselIndex}`);
+          state.isVerticalMove = true;
+          state.isDragging = false;
           track.style.transition = 'transform 0.4s ease';
           updateCarousel();
           return;
         }
         
-        // CASO 2: Claramente HORIZONTAL - bloquear scroll
+        // CASO 2: HORIZONTAL
         if (absX > absY && absX > 18) {
-          console.log(`🔄 Carrusel horizontal activado ${carouselIndex}`);
-          isVerticalMove = false;
+          console.log(`🔄 Carrusel horizontal ${state.carouselIndex}`);
+          state.isVerticalMove = false;
           lockScrollSmooth();
           e.preventDefault();
           e.stopPropagation();
         }
       }
       
-      // Si ya se determinó que es vertical, salir completamente
-      if (isVerticalMove) return;
+      // Si es vertical, salir
+      if (state.isVerticalMove) return;
       
-      // Solo actuar si ya se confirmó que es horizontal
-      if (!isVerticalMove && absX > absY && absX > 15) {
+      // Solo actuar si es horizontal confirmado
+      if (!state.isVerticalMove && absX > absY && absX > 15) {
         e.preventDefault();
         e.stopPropagation();
         
         // BOUNDED NAVIGATION
         const percentage = (deltaX / track.offsetWidth) * 100;
-        let newTransform = startTransform + percentage;
+        let newTransform = state.startTransform + percentage;
         
-        const minTransform = -(totalSlides - 1) * 100;
+        const minTransform = -(state.totalSlides - 1) * 100;
         const maxTransform = 0;
         
-        if (currentSlide === 0 && deltaX > 0) {
+        if (state.currentSlide === 0 && deltaX > 0) {
           newTransform = Math.min(maxTransform, percentage * 0.25);
-        } else if (currentSlide === totalSlides - 1 && deltaX < 0) {
+        } else if (state.currentSlide === state.totalSlides - 1 && deltaX < 0) {
           newTransform = Math.max(minTransform, minTransform + (percentage * 0.25));
         } else {
           newTransform = Math.max(minTransform, Math.min(maxTransform, newTransform));
@@ -396,31 +479,34 @@ function initializeCarousels() {
     }
 
     function handleTouchEnd(e) {
-      console.log(`🔹 TouchEnd en carrusel ${carouselIndex}`);
+      const state = carouselState; // Referencia local
       
-      if (!isDragging || isVerticalMove) {
-        isDragging = false;
-        isVerticalMove = false;
-        hasStarted = false;
+      console.log(`🔹 TouchEnd carrusel ${state.carouselIndex} - Estado: dragging=${state.isDragging}, vertical=${state.isVerticalMove}`);
+      
+      if (!state.isDragging || state.isVerticalMove) {
+        // Limpiar estados siempre
+        state.isDragging = false;
+        state.isVerticalMove = false;
+        state.hasStarted = false;
         return;
       }
       
-      isDragging = false;
+      state.isDragging = false;
       track.style.transition = 'transform 0.4s ease';
       
       const touch = e.changedTouches[0];
       const endX = touch.clientX;
-      const deltaX = endX - startX;
+      const deltaX = endX - state.startX;
       const absX = Math.abs(deltaX);
       
-      // Solo si hubo movimiento horizontal significativo
+      // Solo si hubo movimiento significativo
       if (absX > 12) {
-        const threshold = track.offsetWidth * 0.28; // Más sensible para GitHub
+        const threshold = track.offsetWidth * 0.28;
         
         if (absX > threshold) {
-          if (deltaX > 0 && currentSlide > 0) {
+          if (deltaX > 0 && state.currentSlide > 0) {
             prevSlide();
-          } else if (deltaX < 0 && currentSlide < totalSlides - 1) {
+          } else if (deltaX < 0 && state.currentSlide < state.totalSlides - 1) {
             nextSlide();
           } else {
             updateCarousel();
@@ -429,16 +515,17 @@ function initializeCarousels() {
           updateCarousel();
         }
         
-        scheduleScrollUnlockSmooth(350); // Más rápido para GitHub
+        scheduleScrollUnlockSmooth(350);
       } else {
         scheduleScrollUnlockSmooth(50);
       }
       
-      // Limpiar estados
+      // LIMPIEZA FORZADA
       setTimeout(() => {
-        isDragging = false;
-        isVerticalMove = false;
-        hasStarted = false;
+        state.isDragging = false;
+        state.isVerticalMove = false;
+        state.hasStarted = false;
+        console.log(`🧹 Estados limpiados para carrusel ${state.carouselIndex}`);
       }, 250);
     }
 
@@ -480,7 +567,7 @@ function initializeCarousels() {
       }
     }
 
-    // Event listeners INTELIGENTES
+    // Event listeners con cleanup mejorado
     if (prevBtn && nextBtn) {
       prevBtn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -493,29 +580,186 @@ function initializeCarousels() {
       });
     }
 
-    // Touch events con detección inteligente
-    track.addEventListener('touchstart', handleTouchStart, { 
-      passive: true,  // Cambio a passive para no interferir
+    // REMOVER event listeners existentes para evitar duplicados
+    const clonedTrack = track.cloneNode(true);
+    track.parentNode.replaceChild(clonedTrack, track);
+    
+    // ACTUALIZAR TODAS LAS REFERENCIAS después del clonado
+    const newTrack = carousel.querySelector('.carousel-track');
+    const newSlides = carousel.querySelectorAll('.carousel-slide');
+    
+    // Actualizar funciones para usar las nuevas referencias
+    function updateCarousel() {
+      const offset = -carouselState.currentSlide * 100;
+      newTrack.style.transform = `translateX(${offset}%)`;
+      updateIndicators();
+    }
+
+    // Actualizar todas las funciones que usan track
+    function handleTouchStart(e) {
+      const state = carouselState;
+      
+      console.log(`🔸 TouchStart carrusel ${state.carouselIndex} - Estado: dragging=${state.isDragging}, hasStarted=${state.hasStarted}`);
+      
+      if (state.hasStarted || state.isDragging) {
+        console.log(`⚠️ Estado inconsistente detectado, reseteando carrusel ${state.carouselIndex}`);
+        state.hasStarted = false;
+        state.isDragging = false;
+        state.isVerticalMove = false;
+      }
+      
+      state.hasStarted = true;
+      
+      const touch = e.touches[0];
+      state.startX = touch.clientX;
+      state.startY = touch.clientY;
+      state.isDragging = true;
+      state.isVerticalMove = false;
+      state.startTransform = -state.currentSlide * 100;
+      newTrack.style.transition = 'none';
+      
+      setTimeout(() => { 
+        if (state.hasStarted) {
+          state.hasStarted = false;
+        }
+      }, 100);
+    }
+
+    function handleTouchMove(e) {
+      const state = carouselState;
+      
+      if (!state.isDragging) {
+        console.log(`⚠️ TouchMove sin dragging activo en carrusel ${state.carouselIndex}`);
+        return;
+      }
+      
+      const touch = e.touches[0];
+      const currentX = touch.clientX;
+      const currentY = touch.clientY;
+      const deltaX = currentX - state.startX;
+      const deltaY = currentY - state.startY;
+      
+      const absX = Math.abs(deltaX);
+      const absY = Math.abs(deltaY);
+      
+      if (absX < 6 && absY < 6) return;
+      
+      if (!state.isVerticalMove && (absX > 12 || absY > 12)) {
+        
+        if (absY > absX && absY > 18) {
+          console.log(`📱 Scroll vertical en carrusel ${state.carouselIndex}`);
+          state.isVerticalMove = true;
+          state.isDragging = false;
+          newTrack.style.transition = 'transform 0.4s ease';
+          updateCarousel();
+          return;
+        }
+        
+        if (absX > absY && absX > 18) {
+          console.log(`🔄 Carrusel horizontal ${state.carouselIndex}`);
+          state.isVerticalMove = false;
+          lockScrollSmooth();
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      }
+      
+      if (state.isVerticalMove) return;
+      
+      if (!state.isVerticalMove && absX > absY && absX > 15) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const percentage = (deltaX / newTrack.offsetWidth) * 100;
+        let newTransform = state.startTransform + percentage;
+        
+        const minTransform = -(state.totalSlides - 1) * 100;
+        const maxTransform = 0;
+        
+        if (state.currentSlide === 0 && deltaX > 0) {
+          newTransform = Math.min(maxTransform, percentage * 0.25);
+        } else if (state.currentSlide === state.totalSlides - 1 && deltaX < 0) {
+          newTransform = Math.max(minTransform, minTransform + (percentage * 0.25));
+        } else {
+          newTransform = Math.max(minTransform, Math.min(maxTransform, newTransform));
+        }
+        
+        newTrack.style.transform = `translateX(${newTransform}%)`;
+      }
+    }
+
+    function handleTouchEnd(e) {
+      const state = carouselState;
+      
+      console.log(`🔹 TouchEnd carrusel ${state.carouselIndex} - Estado: dragging=${state.isDragging}, vertical=${state.isVerticalMove}`);
+      
+      if (!state.isDragging || state.isVerticalMove) {
+        state.isDragging = false;
+        state.isVerticalMove = false;
+        state.hasStarted = false;
+        return;
+      }
+      
+      state.isDragging = false;
+      newTrack.style.transition = 'transform 0.4s ease';
+      
+      const touch = e.changedTouches[0];
+      const endX = touch.clientX;
+      const deltaX = endX - state.startX;
+      const absX = Math.abs(deltaX);
+      
+      if (absX > 12) {
+        const threshold = newTrack.offsetWidth * 0.28;
+        
+        if (absX > threshold) {
+          if (deltaX > 0 && state.currentSlide > 0) {
+            prevSlide();
+          } else if (deltaX < 0 && state.currentSlide < state.totalSlides - 1) {
+            nextSlide();
+          } else {
+            updateCarousel();
+          }
+        } else {
+          updateCarousel();
+        }
+        
+        scheduleScrollUnlockSmooth(350);
+      } else {
+        scheduleScrollUnlockSmooth(50);
+      }
+      
+      setTimeout(() => {
+        state.isDragging = false;
+        state.isVerticalMove = false;
+        state.hasStarted = false;
+        console.log(`🧹 Estados limpiados para carrusel ${state.carouselIndex}`);
+      }, 250);
+    }
+
+    // Touch events con cleanup automático
+    newTrack.addEventListener('touchstart', handleTouchStart, { 
+      passive: true,
       capture: false 
     });
-    track.addEventListener('touchmove', handleTouchMove, { 
-      passive: false,  // Solo false cuando necesitamos prevenir
+    newTrack.addEventListener('touchmove', handleTouchMove, { 
+      passive: false,
       capture: false 
     });
-    track.addEventListener('touchend', handleTouchEnd, { 
+    newTrack.addEventListener('touchend', handleTouchEnd, { 
       passive: true,
       capture: false 
     });
 
-    // Mouse events (sin cambios para desktop)
-    track.addEventListener('mousedown', handleMouseDown);
+    // Mouse events con referencias actualizadas
+    newTrack.addEventListener('mousedown', handleMouseDown);
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
 
-    // Click en slides para abrir lightbox (solo desktop)
-    slides.forEach((slide, index) => {
+    // Click en slides para lightbox con nuevas referencias
+    newSlides.forEach((slide, index) => {
       slide.addEventListener('click', (e) => {
-        if (!isDragging && window.innerWidth > 768) {
+        const state = carouselState;
+        if (!state.isDragging && window.innerWidth > 768) {
           const img = slide.querySelector('img');
           if (img && img.src) {
             openLightbox(img.src, carousel);
@@ -527,6 +771,8 @@ function initializeCarousels() {
     // Inicializar
     createIndicators();
     updateCarousel();
+    
+    console.log(`🎯 Carrusel ${carouselIndex} completamente inicializado`);
   });
 }
 
@@ -769,24 +1015,45 @@ if (isMobileDevice()) {
   });
 }
 
+// Reset de emergencia cada 30 segundos para GitHub Pages
+setInterval(() => {
+  let foundProblems = false;
+  activeCarousels.forEach((state, carousel) => {
+    if (state.isDragging || state.hasStarted) {
+      foundProblems = true;
+      console.log(`🚨 Estado inconsistente detectado en carrusel ${state.carouselIndex}`);
+    }
+  });
+  
+  if (foundProblems) {
+    resetAllCarouselStates();
+  }
+}, 30000);
+
 // Limpiar al cambiar de página o cerrar
 window.addEventListener('beforeunload', () => {
   if (scrollLockTimeout) {
     clearTimeout(scrollLockTimeout);
   }
+  resetAllCarouselStates();
   unlockScrollSmooth();
 });
 
 // Limpiar si hay cambio de orientación
 window.addEventListener('orientationchange', () => {
   setTimeout(() => {
+    resetAllCarouselStates();
     if (scrollLocked) {
       unlockScrollSmooth();
     }
   }, 100);
 });
 
-console.log('Script cargado - Radio Imaginaria v1.8 - Detección inteligente de intención');
+// Reset manual para debugging
+window.resetCarousels = resetAllCarouselStates;
+
+console.log('Script cargado - Radio Imaginaria v1.9 - Ultra-robusto para GitHub Pages');
 console.log('Canales disponibles:', channels.length);
 console.log('Canales configurados:', channels.map(ch => ch.name));
+console.log('💡 Usa resetCarousels() en consola si hay problemas');
 console.log('Web diseñada por Pignatta - Codificada con IA como copiloto');
