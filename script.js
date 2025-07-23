@@ -1057,5 +1057,3 @@ console.log('Canales disponibles:', channels.length);
 console.log('Canales configurados:', channels.map(ch => ch.name));
 console.log('💡 Usa resetCarousels() en consola si hay problemas');
 console.log('Web diseñada por Pignatta - Codificada con IA como copiloto');
-
-
