@@ -827,7 +827,7 @@ body {
 /* Responsive móvil */
 @media (max-width: 768px) {
   body {
-    font-size: 12px; /* Reducido 2 puntos */
+    font-size: 12px; /* Unificado: todas las tipografías en 12px */
     line-height: 1.15;
   }
 
@@ -1019,11 +1019,11 @@ body {
   }
 
   .project-title {
-    font-size: 12px; /* Reducido 2 puntos */
+    font-size: 10px; /* Reducido 2 puntos: de 12px a 10px */
   }
 
   .project-description {
-    font-size: 11px; /* Reducido de 12px a 11px para móvil */
+    font-size: 9px; /* Reducido 2 puntos: de 11px a 9px */
   }
 
   .project-number {
@@ -1043,7 +1043,7 @@ body {
   }
 
   .sound-channel-item {
-    font-size: 9px; /* Reducido 2 puntos */
+    font-size: 10px; /* Reducido de 9px a 10px */
     line-height: 1.15;
     padding: 5px 6px;
   }
@@ -1062,14 +1062,14 @@ body {
     gap: 8px;
   }
 
-  /* MICROGRÁFICOS EN MÓVIL - Mantener 11px como especificado */
+  /* MICROGRÁFICOS EN MÓVIL - 10px como especificado */
   .update-date,
   .live-clock,
   .weather-info,
   .location,
   .weather-temp,
   .mobile-micros-center-line {
-    font-size: 11px;
+    font-size: 10px; /* Micrográficos en 10px */
     line-height: 1.15;
   }
 }
@@ -1088,7 +1088,7 @@ body {
 }
 
 .project-description {
-  font-size: 14px;
+  font-size: 13px; /* Reducido de 14px a 13px */
   line-height: 1.15;
   color: var(--black);
   font-weight: 400;
