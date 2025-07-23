@@ -1,14 +1,104 @@
-// Variables globales
+// Mouse events actualizados para nuevas referencias
+    function handleMouseDown(e) {
+      const state = carouselState;
+      state.startX = e.clientX;
+      state.isDragging = true;
+      state.startTransform = -state.currentSlide * 100;
+      newTrack.style.transition = 'none';
+      e.preventDefault();
+    }
+
+    function handleMouseMove(e) {
+      const state = carouselState;
+      if (!state.isDragging) return;
+      
+      const currentX = e.clientX;
+      const deltaX = currentX - state.startX;
+      const percentage = (deltaX / newTrack.offsetWidth) * 100;
+      
+      newTrack.style.transform = `translateX(${state.startTransform + percentage}%)`;
+    }
+
+    function handleMouseUp(e) {
+      const state = carouselState;
+      if (!state.isDragging) return;
+      
+      state.isDragging = false;
+      newTrack.style.transition = 'transform 0.4s ease';
+      
+      const endX = e.clientX;
+      const deltaX = endX - state.startX;
+      const threshold = newTrack.offsetWidth * 0.2;
+      
+      if (deltaX > threshold) {
+        prevSlide();
+      } else if (deltaX < -threshold) {
+        nextSlide();
+      } else {
+        updateCarousel();
+      }
+    }// Variables globales
 let isPlaying = false;
 let isMuted = false;
-let currentChannelIndex = 0;
+let currentChannelIndex =0;
 let currentAudio = null;
 
-// Variables para control de scroll
+// Variables para control de scroll temporal - GLOBALES
 let scrollLocked = false;
 let scrollLockTimeout = null;
+let activeCarousels = new Map(); // Tracking de carruseles activos
 
-// Configuración de canales
+// Función para reset completo de estados
+function resetAllCarouselStates() {
+  activeCarousels.forEach((carouselData, carousel) => {
+    carouselData.isDragging = false;
+    carouselData.isVerticalMove = false;
+    carouselData.hasStarted = false;
+  });
+  
+  if (scrollLocked) {
+    unlockScrollSmooth();
+  }
+  
+  console.log('🔄 Reset completo de estados de carruseles');
+}
+
+// Función para bloquear scroll SIN saltar posición
+function lockScrollSmooth() {
+  if (scrollLocked) return;
+  
+  scrollLocked = true;
+  // Solo prevenir scroll, NO cambiar posición
+  document.body.style.overflow = 'hidden';
+  // NO usar position fixed para evitar salto
+  
+  console.log('🔒 Scroll bloqueado suavemente');
+}
+
+// Función para desbloquear scroll suavemente
+function unlockScrollSmooth() {
+  if (!scrollLocked) return;
+  
+  document.body.style.overflow = '';
+  scrollLocked = false;
+  console.log('🔓 Scroll desbloqueado suavemente');
+}
+
+// Función para programar desbloqueo suave
+function scheduleScrollUnlockSmooth(delay = 500) {
+  // Limpiar timeout anterior si existe
+  if (scrollLockTimeout) {
+    clearTimeout(scrollLockTimeout);
+  }
+  
+  // Programar desbloqueo
+  scrollLockTimeout = setTimeout(() => {
+    unlockScrollSmooth();
+    scrollLockTimeout = null;
+  }, delay);
+}
+
+// Configuración de canales con archivos de audio demo
 const channels = [
   { 
     name: "CH 13: CH FRA: YEKI LATEX / DJ SET", 
@@ -192,302 +282,497 @@ function soundNextTrack() {
   soundSelectChannel(currentChannelIndex);
 }
 
-// ===== FUNCIONES SCROLL =====
-function lockScrollSmooth() {
-  if (scrollLocked) return;
-  scrollLocked = true;
-  document.body.style.overflow = 'hidden';
-  console.log('🔒 Scroll bloqueado');
-}
-
-function unlockScrollSmooth() {
-  if (!scrollLocked) return;
-  document.body.style.overflow = '';
-  scrollLocked = false;
-  console.log('🔓 Scroll desbloqueado');
-}
-
-function scheduleScrollUnlockSmooth(delay = 500) {
-  if (scrollLockTimeout) {
-    clearTimeout(scrollLockTimeout);
-  }
-  scrollLockTimeout = setTimeout(() => {
-    unlockScrollSmooth();
-    scrollLockTimeout = null;
-  }, delay);
-}
-
-// ===== INICIALIZACIÓN ESPECÍFICA PARA GITHUB PAGES =====
-function initializeForGitHub() {
-  console.log('🔧 Inicialización específica para GitHub Pages');
-  
-  // Verificar que el CSS esté cargado correctamente
-  const testElement = document.createElement('div');
-  testElement.className = 'carousel-track';
-  testElement.style.position = 'absolute';
-  testElement.style.left = '-9999px';
-  document.body.appendChild(testElement);
-  
-  const computedStyle = window.getComputedStyle(testElement);
-  const hasFlexDisplay = computedStyle.display === 'flex';
-  
-  document.body.removeChild(testElement);
-  
-  if (!hasFlexDisplay) {
-    console.warn('⚠️ CSS no cargado correctamente, aplicando estilos inline');
-    applyInlineStyles();
-  }
-  
-  // Verificar y corregir estructura DOM
-  document.querySelectorAll('.project-carousel').forEach((carousel, index) => {
-    const track = carousel.querySelector('.carousel-track');
-    const slides = carousel.querySelectorAll('.carousel-slide');
-    
-    if (track && slides.length > 0) {
-      // Forzar estilos inline para GitHub Pages
-      track.style.display = 'flex';
-      track.style.transition = 'transform 0.3s ease';
-      track.style.width = `${slides.length * 100}%`;
-      
-      slides.forEach((slide, slideIndex) => {
-        slide.style.minWidth = `${100 / slides.length}%`;
-        slide.style.flex = '0 0 auto';
-      });
-      
-      console.log(`✅ Carrusel ${index} corregido para GitHub: ${slides.length} slides`);
-    }
-  });
-}
-
-function applyInlineStyles() {
-  const style = document.createElement('style');
-  style.textContent = `
-    .carousel-track {
-      display: flex !important;
-      transition: transform 0.3s ease !important;
-      will-change: transform !important;
-    }
-    .carousel-slide {
-      min-width: 100% !important;
-      flex: 0 0 auto !important;
-    }
-    .carousel-slide img {
-      width: 100% !important;
-      height: auto !important;
-      display: block !important;
-    }
-  `;
-  document.head.appendChild(style);
-  console.log('🎨 Estilos inline aplicados para GitHub Pages');
-}
-
-// ===== CARRUSELES CON CORRECCIÓN PARA GITHUB =====
+// ===== FUNCIONES DE CARRUSELES ULTRA-ROBUSTAS =====
 function initializeCarousels() {
-  console.log('🚀 Inicializando carruseles...');
+  // Limpiar carruseles existentes primero
+  activeCarousels.clear();
   
-  // Aplicar correcciones específicas para GitHub Pages
-  if (window.location.hostname.includes('github.io') || window.location.hostname.includes('pignatta.info')) {
-    initializeForGitHub();
-  }
-  
-  document.querySelectorAll('.project-carousel').forEach((carousel, index) => {
-    console.log(`Carrusel ${index} encontrado`);
-    
-    const track = carousel.querySelector('.carousel-track');
-    const slides = carousel.querySelectorAll('.carousel-slide');
-    const prevBtn = carousel.querySelector('.carousel-btn.prev');
-    const nextBtn = carousel.querySelector('.carousel-btn.next');
-    const indicatorsContainer = carousel.querySelector('.carousel-indicators');
-    
-    if (!track || slides.length === 0) {
-      console.log(`❌ Carrusel ${index} sin elementos - track: ${!!track}, slides: ${slides.length}`);
+  document.querySelectorAll('.project-carousel').forEach((carousel, carouselIndex) => {
+    // Verificar si ya está inicializado
+    if (carousel.hasAttribute('data-initialized')) {
+      console.log(`⚠️ Carrusel ${carouselIndex} ya inicializado, saltando...`);
       return;
     }
     
-    console.log(`✅ Carrusel ${index}: ${slides.length} slides`);
+    carousel.setAttribute('data-initialized', 'true');
     
-    // FORZAR configuración para GitHub Pages
-    track.style.display = 'flex';
-    track.style.width = '100%';
-    track.style.transform = 'translateX(0%)';
+    const track = carousel.querySelector('.carousel-track');
+    const slides = carousel.querySelectorAll('.carousel-slide');
+    const prevBtn = carousel.querySelector('.prev');
+    const nextBtn = carousel.querySelector('.next');
+    const indicatorsContainer = carousel.querySelector('.carousel-indicators');
     
-    slides.forEach(slide => {
-      slide.style.minWidth = '100%';
-      slide.style.flex = '0 0 100%';
-    });
+    if (!track || !slides.length) {
+      console.warn(`❌ Carrusel ${carouselIndex} incompleto`);
+      return;
+    }
     
-    let currentSlide = 0;
-    let isDragging = false;
-    let startX = 0;
-    let startY = 0;
+    // Crear objeto de estado para este carrusel
+    const carouselState = {
+      currentSlide: 0,
+      totalSlides: slides.length,
+      isDragging: false,
+      isVerticalMove: false,
+      hasStarted: false,
+      startX: 0,
+      startY: 0,
+      startTransform: 0,
+      carouselIndex: carouselIndex
+    };
     
+    // Registrar en el Map global
+    activeCarousels.set(carousel, carouselState);
+    
+    console.log(`✅ Inicializando carrusel ${carouselIndex} con ${carouselState.totalSlides} slides`);
+
     // Crear indicadores
-    if (indicatorsContainer && slides.length > 1) {
+    function createIndicators() {
+      if (!indicatorsContainer) return;
+      
       indicatorsContainer.innerHTML = '';
-      for (let i = 0; i < slides.length; i++) {
+      for (let i = 0; i < carouselState.totalSlides; i++) {
         const dot = document.createElement('div');
         dot.classList.add('carousel-dot');
         if (i === 0) dot.classList.add('active');
         dot.addEventListener('click', () => goToSlide(i));
         indicatorsContainer.appendChild(dot);
       }
+      updateIndicators();
     }
-    
-    // Actualizar carrusel con forzado para GitHub
+
+    function updateIndicators() {
+      if (!indicatorsContainer) return;
+      
+      const dots = indicatorsContainer.querySelectorAll('.carousel-dot');
+      dots.forEach((dot, index) => {
+        dot.classList.toggle('active', index === carouselState.currentSlide);
+      });
+    }
+
     function updateCarousel() {
-      const offset = -currentSlide * 100;
+      const offset = -carouselState.currentSlide * 100;
       track.style.transform = `translateX(${offset}%)`;
-      track.style.transition = 'transform 0.3s ease';
-      
-      // Forzar repaint para GitHub Pages
-      track.offsetHeight;
-      
-      // Actualizar indicadores
-      const dots = indicatorsContainer?.querySelectorAll('.carousel-dot');
-      if (dots) {
-        dots.forEach((dot, i) => {
-          dot.classList.toggle('active', i === currentSlide);
-        });
-      }
-      
-      console.log(`📍 Carrusel ${index} -> slide ${currentSlide} (${offset}%)`);
-      
-      // Verificación adicional para GitHub Pages
-      setTimeout(() => {
-        const currentTransform = track.style.transform;
-        if (currentTransform !== `translateX(${offset}%)`) {
-          console.warn(`⚠️ Transform no aplicado correctamente, forzando...`);
-          track.style.transform = `translateX(${offset}%)`;
-        }
-      }, 50);
+      updateIndicators();
     }
-    
-    function goToSlide(slideIndex) {
-      if (slideIndex >= 0 && slideIndex < slides.length) {
-        currentSlide = slideIndex;
+
+    function goToSlide(index) {
+      if (index >= 0 && index < carouselState.totalSlides) {
+        carouselState.currentSlide = index;
         updateCarousel();
       }
     }
-    
+
     function nextSlide() {
-      if (currentSlide < slides.length - 1) {
-        currentSlide++;
+      if (carouselState.currentSlide < carouselState.totalSlides - 1) {
+        carouselState.currentSlide++;
         updateCarousel();
       }
     }
-    
+
     function prevSlide() {
-      if (currentSlide > 0) {
-        currentSlide--;
+      if (carouselState.currentSlide > 0) {
+        carouselState.currentSlide--;
         updateCarousel();
       }
     }
-    
-    // Touch events simples pero robustos
+
+    // Touch events ULTRA-ROBUSTOS con cleanup automático
     function handleTouchStart(e) {
+      const state = carouselState; // Referencia local
+      
+      console.log(`🔸 TouchStart carrusel ${state.carouselIndex} - Estado: dragging=${state.isDragging}, hasStarted=${state.hasStarted}`);
+      
+      // RESET forzado si hay estado inconsistente
+      if (state.hasStarted || state.isDragging) {
+        console.log(`⚠️ Estado inconsistente detectado, reseteando carrusel ${state.carouselIndex}`);
+        state.hasStarted = false;
+        state.isDragging = false;
+        state.isVerticalMove = false;
+      }
+      
+      state.hasStarted = true;
+      
       const touch = e.touches[0];
-      startX = touch.clientX;
-      startY = touch.clientY;
-      isDragging = true;
-      track.style.transition = 'none';
+      state.startX = touch.clientX;
+      state.startY = touch.clientY;
+      state.isDragging = true;
+      state.isVerticalMove = false;
+      state.startTransform = -state.currentSlide * 100;
+      newTrack.style.transition = 'none';
+      
+      // Reset con timeout de seguridad
+      setTimeout(() => { 
+        if (state.hasStarted) {
+          state.hasStarted = false;
+        }
+      }, 100);
     }
-    
+
     function handleTouchMove(e) {
-      if (!isDragging) return;
+      const state = carouselState; // Referencia local
       
-      const touch = e.touches[0];
-      const deltaX = touch.clientX - startX;
-      const deltaY = touch.clientY - startY;
-      
-      // Si es más vertical que horizontal, permitir scroll
-      if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > 20) {
-        isDragging = false;
-        track.style.transition = 'transform 0.3s ease';
-        updateCarousel();
+      if (!state.isDragging) {
+        console.log(`⚠️ TouchMove sin dragging activo en carrusel ${state.carouselIndex}`);
         return;
       }
       
-      // Si es horizontal, bloquear scroll y mover carrusel
-      if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 20) {
-        lockScrollSmooth();
-        e.preventDefault();
+      const touch = e.touches[0];
+      const currentX = touch.clientX;
+      const currentY = touch.clientY;
+      const deltaX = currentX - state.startX;
+      const deltaY = currentY - state.startY;
+      
+      const absX = Math.abs(deltaX);
+      const absY = Math.abs(deltaY);
+      
+      // Umbrales más permisivos
+      if (absX < 6 && absY < 6) return;
+      
+      // DETECCIÓN DE INTENCIÓN
+      if (!state.isVerticalMove && (absX > 12 || absY > 12)) {
         
+        // CASO 1: VERTICAL
+        if (absY > absX && absY > 18) {
+          console.log(`📱 Scroll vertical en carrusel ${state.carouselIndex}`);
+          state.isVerticalMove = true;
+          state.isDragging = false;
+          track.style.transition = 'transform 0.4s ease';
+          updateCarousel();
+          return;
+        }
+        
+        // CASO 2: HORIZONTAL
+        if (absX > absY && absX > 18) {
+          console.log(`🔄 Carrusel horizontal ${state.carouselIndex}`);
+          state.isVerticalMove = false;
+          lockScrollSmooth();
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      }
+      
+      // Si es vertical, salir
+      if (state.isVerticalMove) return;
+      
+      // Solo actuar si es horizontal confirmado
+      if (!state.isVerticalMove && absX > absY && absX > 15) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // BOUNDED NAVIGATION
         const percentage = (deltaX / track.offsetWidth) * 100;
-        const offset = -currentSlide * 100 + percentage;
-        track.style.transform = `translateX(${offset}%)`;
+        let newTransform = state.startTransform + percentage;
+        
+        const minTransform = -(state.totalSlides - 1) * 100;
+        const maxTransform = 0;
+        
+        if (state.currentSlide === 0 && deltaX > 0) {
+          newTransform = Math.min(maxTransform, percentage * 0.25);
+        } else if (state.currentSlide === state.totalSlides - 1 && deltaX < 0) {
+          newTransform = Math.max(minTransform, minTransform + (percentage * 0.25));
+        } else {
+          newTransform = Math.max(minTransform, Math.min(maxTransform, newTransform));
+        }
+        
+        track.style.transform = `translateX(${newTransform}%)`;
       }
     }
-    
+
     function handleTouchEnd(e) {
+      const state = carouselState; // Referencia local
+      
+      console.log(`🔹 TouchEnd carrusel ${state.carouselIndex} - Estado: dragging=${state.isDragging}, vertical=${state.isVerticalMove}`);
+      
+      if (!state.isDragging || state.isVerticalMove) {
+        // Limpiar estados siempre
+        state.isDragging = false;
+        state.isVerticalMove = false;
+        state.hasStarted = false;
+        return;
+      }
+      
+      state.isDragging = false;
+      track.style.transition = 'transform 0.4s ease';
+      
+      const touch = e.changedTouches[0];
+      const endX = touch.clientX;
+      const deltaX = endX - state.startX;
+      const absX = Math.abs(deltaX);
+      
+      // Solo si hubo movimiento significativo
+      if (absX > 12) {
+        const threshold = track.offsetWidth * 0.28;
+        
+        if (absX > threshold) {
+          if (deltaX > 0 && state.currentSlide > 0) {
+            prevSlide();
+          } else if (deltaX < 0 && state.currentSlide < state.totalSlides - 1) {
+            nextSlide();
+          } else {
+            updateCarousel();
+          }
+        } else {
+          updateCarousel();
+        }
+        
+        scheduleScrollUnlockSmooth(350);
+      } else {
+        scheduleScrollUnlockSmooth(50);
+      }
+      
+      // LIMPIEZA FORZADA
+      setTimeout(() => {
+        state.isDragging = false;
+        state.isVerticalMove = false;
+        state.hasStarted = false;
+        console.log(`🧹 Estados limpiados para carrusel ${state.carouselIndex}`);
+      }, 250);
+    }
+
+    // Mouse events para desktop (sin cambios)
+    function handleMouseDown(e) {
+      startX = e.clientX;
+      isDragging = true;
+      startTransform = -currentSlide * 100;
+      track.style.transition = 'none';
+      e.preventDefault();
+    }
+
+    function handleMouseMove(e) {
+      if (!isDragging) return;
+      
+      const currentX = e.clientX;
+      const deltaX = currentX - startX;
+      const percentage = (deltaX / track.offsetWidth) * 100;
+      
+      track.style.transform = `translateX(${startTransform + percentage}%)`;
+    }
+
+    function handleMouseUp(e) {
       if (!isDragging) return;
       
       isDragging = false;
-      track.style.transition = 'transform 0.3s ease';
+      track.style.transition = 'transform 0.4s ease';
       
-      const touch = e.changedTouches[0];
-      const deltaX = touch.clientX - startX;
-      const threshold = track.offsetWidth * 0.25; // Más sensible para GitHub
+      const endX = e.clientX;
+      const deltaX = endX - startX;
+      const threshold = track.offsetWidth * 0.2;
       
-      if (Math.abs(deltaX) > threshold) {
-        if (deltaX > 0) {
-          prevSlide();
-        } else {
-          nextSlide();
-        }
+      if (deltaX > threshold) {
+        prevSlide();
+      } else if (deltaX < -threshold) {
+        nextSlide();
       } else {
         updateCarousel();
       }
-      
-      scheduleScrollUnlockSmooth(200);
     }
-    
-    // Event listeners
-    if (prevBtn) {
+
+    // Event listeners con cleanup mejorado
+    if (prevBtn && nextBtn) {
       prevBtn.addEventListener('click', (e) => {
-        e.preventDefault();
         e.stopPropagation();
         prevSlide();
       });
-    }
-    
-    if (nextBtn) {
+
       nextBtn.addEventListener('click', (e) => {
-        e.preventDefault();
         e.stopPropagation();
         nextSlide();
       });
     }
+
+    // REMOVER event listeners existentes para evitar duplicados
+    const clonedTrack = track.cloneNode(true);
+    track.parentNode.replaceChild(clonedTrack, track);
     
-    track.addEventListener('touchstart', handleTouchStart, { passive: true });
-    track.addEventListener('touchmove', handleTouchMove, { passive: false });
-    track.addEventListener('touchend', handleTouchEnd, { passive: true });
+    // ACTUALIZAR TODAS LAS REFERENCIAS después del clonado
+    const newTrack = carousel.querySelector('.carousel-track');
+    const newSlides = carousel.querySelectorAll('.carousel-slide');
     
-    // Lightbox para desktop
-    slides.forEach(slide => {
+    // Actualizar funciones para usar las nuevas referencias
+    function updateCarousel() {
+      const offset = -carouselState.currentSlide * 100;
+      newTrack.style.transform = `translateX(${offset}%)`;
+      updateIndicators();
+    }
+
+    // Actualizar todas las funciones que usan track
+    function handleTouchStart(e) {
+      const state = carouselState;
+      
+      console.log(`🔸 TouchStart carrusel ${state.carouselIndex} - Estado: dragging=${state.isDragging}, hasStarted=${state.hasStarted}`);
+      
+      if (state.hasStarted || state.isDragging) {
+        console.log(`⚠️ Estado inconsistente detectado, reseteando carrusel ${state.carouselIndex}`);
+        state.hasStarted = false;
+        state.isDragging = false;
+        state.isVerticalMove = false;
+      }
+      
+      state.hasStarted = true;
+      
+      const touch = e.touches[0];
+      state.startX = touch.clientX;
+      state.startY = touch.clientY;
+      state.isDragging = true;
+      state.isVerticalMove = false;
+      state.startTransform = -state.currentSlide * 100;
+      newTrack.style.transition = 'none';
+      
+      setTimeout(() => { 
+        if (state.hasStarted) {
+          state.hasStarted = false;
+        }
+      }, 100);
+    }
+
+    function handleTouchMove(e) {
+      const state = carouselState;
+      
+      if (!state.isDragging) {
+        console.log(`⚠️ TouchMove sin dragging activo en carrusel ${state.carouselIndex}`);
+        return;
+      }
+      
+      const touch = e.touches[0];
+      const currentX = touch.clientX;
+      const currentY = touch.clientY;
+      const deltaX = currentX - state.startX;
+      const deltaY = currentY - state.startY;
+      
+      const absX = Math.abs(deltaX);
+      const absY = Math.abs(deltaY);
+      
+      if (absX < 6 && absY < 6) return;
+      
+      if (!state.isVerticalMove && (absX > 12 || absY > 12)) {
+        
+        if (absY > absX && absY > 18) {
+          console.log(`📱 Scroll vertical en carrusel ${state.carouselIndex}`);
+          state.isVerticalMove = true;
+          state.isDragging = false;
+          newTrack.style.transition = 'transform 0.4s ease';
+          updateCarousel();
+          return;
+        }
+        
+        if (absX > absY && absX > 18) {
+          console.log(`🔄 Carrusel horizontal ${state.carouselIndex}`);
+          state.isVerticalMove = false;
+          lockScrollSmooth();
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      }
+      
+      if (state.isVerticalMove) return;
+      
+      if (!state.isVerticalMove && absX > absY && absX > 15) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const percentage = (deltaX / newTrack.offsetWidth) * 100;
+        let newTransform = state.startTransform + percentage;
+        
+        const minTransform = -(state.totalSlides - 1) * 100;
+        const maxTransform = 0;
+        
+        if (state.currentSlide === 0 && deltaX > 0) {
+          newTransform = Math.min(maxTransform, percentage * 0.25);
+        } else if (state.currentSlide === state.totalSlides - 1 && deltaX < 0) {
+          newTransform = Math.max(minTransform, minTransform + (percentage * 0.25));
+        } else {
+          newTransform = Math.max(minTransform, Math.min(maxTransform, newTransform));
+        }
+        
+        newTrack.style.transform = `translateX(${newTransform}%)`;
+      }
+    }
+
+    function handleTouchEnd(e) {
+      const state = carouselState;
+      
+      console.log(`🔹 TouchEnd carrusel ${state.carouselIndex} - Estado: dragging=${state.isDragging}, vertical=${state.isVerticalMove}`);
+      
+      if (!state.isDragging || state.isVerticalMove) {
+        state.isDragging = false;
+        state.isVerticalMove = false;
+        state.hasStarted = false;
+        return;
+      }
+      
+      state.isDragging = false;
+      newTrack.style.transition = 'transform 0.4s ease';
+      
+      const touch = e.changedTouches[0];
+      const endX = touch.clientX;
+      const deltaX = endX - state.startX;
+      const absX = Math.abs(deltaX);
+      
+      if (absX > 12) {
+        const threshold = newTrack.offsetWidth * 0.28;
+        
+        if (absX > threshold) {
+          if (deltaX > 0 && state.currentSlide > 0) {
+            prevSlide();
+          } else if (deltaX < 0 && state.currentSlide < state.totalSlides - 1) {
+            nextSlide();
+          } else {
+            updateCarousel();
+          }
+        } else {
+          updateCarousel();
+        }
+        
+        scheduleScrollUnlockSmooth(350);
+      } else {
+        scheduleScrollUnlockSmooth(50);
+      }
+      
+      setTimeout(() => {
+        state.isDragging = false;
+        state.isVerticalMove = false;
+        state.hasStarted = false;
+        console.log(`🧹 Estados limpiados para carrusel ${state.carouselIndex}`);
+      }, 250);
+    }
+
+    // Touch events con cleanup automático
+    newTrack.addEventListener('touchstart', handleTouchStart, { 
+      passive: true,
+      capture: false 
+    });
+    newTrack.addEventListener('touchmove', handleTouchMove, { 
+      passive: false,
+      capture: false 
+    });
+    newTrack.addEventListener('touchend', handleTouchEnd, { 
+      passive: true,
+      capture: false 
+    });
+
+    // Mouse events con referencias actualizadas
+    newTrack.addEventListener('mousedown', handleMouseDown);
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    // Click en slides para lightbox con nuevas referencias
+    newSlides.forEach((slide, index) => {
       slide.addEventListener('click', (e) => {
-        if (!isDragging && window.innerWidth > 768) {
+        const state = carouselState;
+        if (!state.isDragging && window.innerWidth > 768) {
           const img = slide.querySelector('img');
-          if (img?.src) {
+          if (img && img.src) {
             openLightbox(img.src, carousel);
           }
         }
       });
     });
-    
-    // Inicializar con verificación
+
+    // Inicializar
+    createIndicators();
     updateCarousel();
     
-    // Verificación final para GitHub Pages
-    setTimeout(() => {
-      const finalTransform = track.style.transform;
-      console.log(`🔍 Verificación final carrusel ${index}: ${finalTransform}`);
-      if (!finalTransform.includes('translateX')) {
-        console.warn(`⚠️ Aplicando transform de emergencia carrusel ${index}`);
-        track.style.transform = 'translateX(0%)';
-      }
-    }, 100);
-    
-    console.log(`✅ Carrusel ${index} completamente listo`);
+    console.log(`🎯 Carrusel ${carouselIndex} completamente inicializado`);
   });
 }
 
@@ -496,7 +781,7 @@ let currentLightboxCarousel = null;
 let currentLightboxSlide = 0;
 let lightboxSlides = [];
 
-// ===== FUNCIONES DE LIGHTBOX =====
+// ===== FUNCIONES DE LIGHTBOX PREMIUM CON NAVEGACIÓN =====
 function openLightbox(imageSrc, carouselElement = null) {
   if (!imageSrc || window.innerWidth <= 768) return;
   
@@ -504,24 +789,29 @@ function openLightbox(imageSrc, carouselElement = null) {
   const lightboxImage = document.getElementById('lightboxImage');
   
   if (lightbox && lightboxImage) {
+    // Configurar carrusel activo para navegación
     if (carouselElement) {
       currentLightboxCarousel = carouselElement;
       lightboxSlides = Array.from(carouselElement.querySelectorAll('.carousel-slide img')).map(img => img.src);
       currentLightboxSlide = lightboxSlides.indexOf(imageSrc);
     } else {
+      // Para imágenes individuales
       currentLightboxCarousel = null;
       lightboxSlides = [imageSrc];
       currentLightboxSlide = 0;
     }
     
+    // Mostrar lightbox inmediatamente pero invisible
     lightbox.style.display = 'flex';
     
+    // Precargar imagen para evitar problemas de carga
     const img = new Image();
     img.onload = function() {
       lightboxImage.src = imageSrc;
       document.body.style.overflow = 'hidden';
       updateLightboxNavigation();
       
+      // Trigger de animación después de un frame
       requestAnimationFrame(() => {
         lightbox.classList.add('active');
       });
@@ -540,6 +830,14 @@ function lightboxPrevious() {
   if (currentLightboxSlide > 0) {
     currentLightboxSlide--;
     updateLightboxImage();
+    
+    // Sincronizar con el carrusel original
+    if (currentLightboxCarousel) {
+      const carouselInstance = getCarouselInstance(currentLightboxCarousel);
+      if (carouselInstance) {
+        carouselInstance.goToSlide(currentLightboxSlide);
+      }
+    }
   }
 }
 
@@ -547,6 +845,14 @@ function lightboxNext() {
   if (currentLightboxSlide < lightboxSlides.length - 1) {
     currentLightboxSlide++;
     updateLightboxImage();
+    
+    // Sincronizar con el carrusel original
+    if (currentLightboxCarousel) {
+      const carouselInstance = getCarouselInstance(currentLightboxCarousel);
+      if (carouselInstance) {
+        carouselInstance.goToSlide(currentLightboxSlide);
+      }
+    }
   }
 }
 
@@ -571,11 +877,31 @@ function updateLightboxNavigation() {
   }
 }
 
+// Función auxiliar para obtener instancia de carrusel
+function getCarouselInstance(carouselElement) {
+  return {
+    goToSlide: function(index) {
+      const track = carouselElement.querySelector('.carousel-track');
+      const indicators = carouselElement.querySelectorAll('.carousel-dot');
+      
+      if (track) {
+        const offset = -index * 100;
+        track.style.transform = `translateX(${offset}%)`;
+      }
+      
+      indicators.forEach((dot, i) => {
+        dot.classList.toggle('active', i === index);
+      });
+    }
+  };
+}
+
 function closeLightbox() {
   const lightbox = document.getElementById('lightbox');
   if (lightbox) {
     lightbox.classList.remove('active');
     
+    // Esperar a que termine la animación antes de ocultar
     setTimeout(() => {
       if (!lightbox.classList.contains('active')) {
         lightbox.style.display = 'none';
@@ -585,35 +911,59 @@ function closeLightbox() {
   }
 }
 
-// ===== INICIALIZACIÓN =====
-document.addEventListener('DOMContentLoaded', function() {
-  console.log('🚀 DOM listo, inicializando...');
+// ===== EVENT LISTENERS GLOBALES CON MÚLTIPLES VERIFICACIONES =====
+function initializePortfolio() {
+  // Verificar que todo esté listo
+  if (document.readyState === 'loading') {
+    // DOM aún cargando, esperar
+    document.addEventListener('DOMContentLoaded', initializePortfolio);
+    return;
+  }
   
-  setTimeout(() => {
-    initializeCarousels();
-    soundSelectChannel(0);
-    console.log('✅ Portfolio inicializado');
-  }, 100);
-});
+  // Verificar que los elementos existan
+  const carousels = document.querySelectorAll('.project-carousel');
+  if (carousels.length === 0) {
+    // Los carruseles no están listos, reintentar
+    setTimeout(initializePortfolio, 100);
+    return;
+  }
+  
+  // Inicializar todo
+  initializeCarousels();
+  soundSelectChannel(0);
+  
+  console.log('Portfolio inicializado correctamente');
+  console.log('Diseño: Federico Pignatta | Desarrollo: IA como copiloto');
+}
 
-// Backup
+// Múltiples puntos de entrada para asegurar inicialización
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializePortfolio);
+} else {
+  // DOM ya está listo
+  initializePortfolio();
+}
+
+// Backup por si acaso
 window.addEventListener('load', () => {
-  setTimeout(() => {
-    const carousels = document.querySelectorAll('.project-carousel');
-    if (carousels.length > 0) {
-      console.log('🔄 Backup initialization');
-      initializeCarousels();
-    }
-  }, 200);
+  // Verificar si ya se inicializó
+  const carousels = document.querySelectorAll('.project-carousel');
+  const firstCarousel = carousels[0];
+  
+  if (firstCarousel && !firstCarousel.hasAttribute('data-initialized')) {
+    console.log('🔄 Reinicializando carruseles...');
+    initializePortfolio();
+  }
 });
 
-// Event listeners globales
+// Cerrar lightbox al hacer click fuera de la imagen, con ESC, o con navegación de carrusel
 document.addEventListener('click', (e) => {
   if (e.target && e.target.id === 'lightbox') {
     closeLightbox();
   }
 });
 
+// Navegación con teclado en lightbox
 document.addEventListener('keydown', (e) => {
   const lightbox = document.getElementById('lightbox');
   if (lightbox && lightbox.classList.contains('active')) {
@@ -626,16 +976,84 @@ document.addEventListener('keydown', (e) => {
       e.preventDefault();
       lightboxNext();
     }
+  } else if (e.key === 'Escape') {
+    closeLightbox();
   }
 });
 
-// Cleanup
+// ===== FUNCIONES DE UTILIDAD =====
+function debounce(func, wait) {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
+
+window.addEventListener('resize', debounce(() => {
+  console.log('Ventana redimensionada');
+}, 250));
+
+document.addEventListener('dragstart', (e) => {
+  if (e.target.tagName === 'IMG') {
+    e.preventDefault();
+  }
+});
+
+function isMobileDevice() {
+  return window.innerWidth <= 768 || 
+         /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
+
+if (isMobileDevice()) {
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('Dispositivo móvil detectado. La barra de reflexiones permanecerá visible.');
+  });
+}
+
+// Reset de emergencia cada 30 segundos para GitHub Pages
+setInterval(() => {
+  let foundProblems = false;
+  activeCarousels.forEach((state, carousel) => {
+    if (state.isDragging || state.hasStarted) {
+      foundProblems = true;
+      console.log(`🚨 Estado inconsistente detectado en carrusel ${state.carouselIndex}`);
+    }
+  });
+  
+  if (foundProblems) {
+    resetAllCarouselStates();
+  }
+}, 30000);
+
+// Limpiar al cambiar de página o cerrar
 window.addEventListener('beforeunload', () => {
   if (scrollLockTimeout) {
     clearTimeout(scrollLockTimeout);
   }
+  resetAllCarouselStates();
   unlockScrollSmooth();
 });
 
-console.log('Script cargado - Radio Imaginaria v3.0 - Ultra-simple');
+// Limpiar si hay cambio de orientación
+window.addEventListener('orientationchange', () => {
+  setTimeout(() => {
+    resetAllCarouselStates();
+    if (scrollLocked) {
+      unlockScrollSmooth();
+    }
+  }, 100);
+});
+
+// Reset manual para debugging
+window.resetCarousels = resetAllCarouselStates;
+
+console.log('Script cargado - Radio Imaginaria v1.9 - Ultra-robusto para GitHub Pages');
+console.log('Canales disponibles:', channels.length);
+console.log('Canales configurados:', channels.map(ch => ch.name));
+console.log('💡 Usa resetCarousels() en consola si hay problemas');
 console.log('Web diseñada por Pignatta - Codificada con IA como copiloto');
