@@ -229,14 +229,23 @@ function soundNextTrack() {
 
 // ===== FUNCIONES DE CARRUSELES MEJORADAS =====
 function initializeCarousels() {
-  document.querySelectorAll('.project-carousel').forEach(carousel => {
+  document.querySelectorAll('.project-carousel').forEach((carousel, carouselIndex) => {
+    // Marcar como inicializado para evitar doble inicialización
+    if (carousel.hasAttribute('data-initialized')) {
+      return;
+    }
+    carousel.setAttribute('data-initialized', 'true');
+    
     const track = carousel.querySelector('.carousel-track');
     const slides = carousel.querySelectorAll('.carousel-slide');
     const prevBtn = carousel.querySelector('.prev');
     const nextBtn = carousel.querySelector('.next');
     const indicatorsContainer = carousel.querySelector('.carousel-indicators');
     
-    if (!track || !slides.length) return;
+    if (!track || !slides.length) {
+      console.warn(`Carrusel ${carouselIndex} incompleto`);
+      return;
+    }
     
     let currentSlide = 0;
     const totalSlides = slides.length;
@@ -245,7 +254,9 @@ function initializeCarousels() {
     let isDragging = false;
     let isVerticalMove = false;
     let startTransform = 0;
-    let hasStarted = false; // Bandera para evitar dobles eventos
+    let hasStarted = false;
+
+    console.log(`✅ Inicializando carrusel ${carouselIndex} con ${totalSlides} slides`);
 
     // Crear indicadores mejorados
     function createIndicators() {
@@ -298,8 +309,11 @@ function initializeCarousels() {
       }
     }
 
-    // Touch events INTELIGENTES - detección de intención real
+    // Touch events MEJORADOS - más robustos para diferentes entornos
     function handleTouchStart(e) {
+      // Logging para debugging
+      console.log(`🔸 TouchStart en carrusel ${carouselIndex}`);
+      
       // NO bloquear inmediatamente, solo preparar
       if (hasStarted) return;
       hasStarted = true;
@@ -312,8 +326,8 @@ function initializeCarousels() {
       startTransform = -currentSlide * 100;
       track.style.transition = 'none';
       
-      // NO prevenir nada aún, solo observar
-      setTimeout(() => { hasStarted = false; }, 30);
+      // Reset con timeout más largo para GitHub Pages
+      setTimeout(() => { hasStarted = false; }, 50);
     }
 
     function handleTouchMove(e) {
@@ -328,46 +342,37 @@ function initializeCarousels() {
       const absX = Math.abs(deltaX);
       const absY = Math.abs(deltaY);
       
-      // Esperar movimiento mínimo para determinar intención
-      if (absX < 8 && absY < 8) return;
+      // Umbrales más permisivos para GitHub Pages
+      if (absX < 6 && absY < 6) return;
       
-      // DETECCIÓN DE INTENCIÓN después de 15px de movimiento
-      if (!isVerticalMove && (absX > 15 || absY > 15)) {
+      // DETECCIÓN DE INTENCIÓN con logging
+      if (!isVerticalMove && (absX > 12 || absY > 12)) {
         
         // CASO 1: Claramente VERTICAL - permitir scroll
-        if (absY > absX && absY > 20) {
+        if (absY > absX && absY > 18) {
+          console.log(`📱 Scroll vertical detectado en carrusel ${carouselIndex}`);
           isVerticalMove = true;
           isDragging = false;
           track.style.transition = 'transform 0.4s ease';
           updateCarousel();
-          
-          // 🔓 MANTENER SCROLL LIBRE para vertical
-          console.log('📱 Scroll vertical detectado - carrusel bloqueado');
-          return; // Salir sin prevenir nada
+          return;
         }
         
         // CASO 2: Claramente HORIZONTAL - bloquear scroll
-        if (absX > absY && absX > 20) {
+        if (absX > absY && absX > 18) {
+          console.log(`🔄 Carrusel horizontal activado ${carouselIndex}`);
           isVerticalMove = false;
-          
-          // 🔒 BLOQUEAR SCROLL solo ahora que sabemos que es horizontal
           lockScrollSmooth();
-          console.log('🔄 Carrusel horizontal activado - scroll bloqueado');
-          
-          // Ahora sí prevenir eventos
           e.preventDefault();
           e.stopPropagation();
         }
-        
-        // CASO 3: Diagonal - esperar más movimiento
-        // No hacer nada, seguir observando
       }
       
       // Si ya se determinó que es vertical, salir completamente
       if (isVerticalMove) return;
       
       // Solo actuar si ya se confirmó que es horizontal
-      if (!isVerticalMove && absX > absY && absX > 20) {
+      if (!isVerticalMove && absX > absY && absX > 15) {
         e.preventDefault();
         e.stopPropagation();
         
@@ -379,9 +384,9 @@ function initializeCarousels() {
         const maxTransform = 0;
         
         if (currentSlide === 0 && deltaX > 0) {
-          newTransform = Math.min(maxTransform, percentage * 0.2);
+          newTransform = Math.min(maxTransform, percentage * 0.25);
         } else if (currentSlide === totalSlides - 1 && deltaX < 0) {
-          newTransform = Math.max(minTransform, minTransform + (percentage * 0.2));
+          newTransform = Math.max(minTransform, minTransform + (percentage * 0.25));
         } else {
           newTransform = Math.max(minTransform, Math.min(maxTransform, newTransform));
         }
@@ -391,8 +396,9 @@ function initializeCarousels() {
     }
 
     function handleTouchEnd(e) {
+      console.log(`🔹 TouchEnd en carrusel ${carouselIndex}`);
+      
       if (!isDragging || isVerticalMove) {
-        // Si era vertical, no había bloqueo
         isDragging = false;
         isVerticalMove = false;
         hasStarted = false;
@@ -408,8 +414,8 @@ function initializeCarousels() {
       const absX = Math.abs(deltaX);
       
       // Solo si hubo movimiento horizontal significativo
-      if (absX > 15) {
-        const threshold = track.offsetWidth * 0.3;
+      if (absX > 12) {
+        const threshold = track.offsetWidth * 0.28; // Más sensible para GitHub
         
         if (absX > threshold) {
           if (deltaX > 0 && currentSlide > 0) {
@@ -423,10 +429,8 @@ function initializeCarousels() {
           updateCarousel();
         }
         
-        // Desbloquear después de la animación
-        scheduleScrollUnlockSmooth(400);
+        scheduleScrollUnlockSmooth(350); // Más rápido para GitHub
       } else {
-        // Movimiento muy pequeño, desbloquear inmediatamente
         scheduleScrollUnlockSmooth(50);
       }
       
@@ -435,7 +439,7 @@ function initializeCarousels() {
         isDragging = false;
         isVerticalMove = false;
         hasStarted = false;
-      }, 300);
+      }, 250);
     }
 
     // Mouse events para desktop (sin cambios)
@@ -661,13 +665,49 @@ function closeLightbox() {
   }
 }
 
-// ===== EVENT LISTENERS GLOBALES =====
-document.addEventListener('DOMContentLoaded', function() {
+// ===== EVENT LISTENERS GLOBALES CON MÚLTIPLES VERIFICACIONES =====
+function initializePortfolio() {
+  // Verificar que todo esté listo
+  if (document.readyState === 'loading') {
+    // DOM aún cargando, esperar
+    document.addEventListener('DOMContentLoaded', initializePortfolio);
+    return;
+  }
+  
+  // Verificar que los elementos existan
+  const carousels = document.querySelectorAll('.project-carousel');
+  if (carousels.length === 0) {
+    // Los carruseles no están listos, reintentar
+    setTimeout(initializePortfolio, 100);
+    return;
+  }
+  
+  // Inicializar todo
   initializeCarousels();
   soundSelectChannel(0);
   
   console.log('Portfolio inicializado correctamente');
   console.log('Diseño: Federico Pignatta | Desarrollo: IA como copiloto');
+}
+
+// Múltiples puntos de entrada para asegurar inicialización
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializePortfolio);
+} else {
+  // DOM ya está listo
+  initializePortfolio();
+}
+
+// Backup por si acaso
+window.addEventListener('load', () => {
+  // Verificar si ya se inicializó
+  const carousels = document.querySelectorAll('.project-carousel');
+  const firstCarousel = carousels[0];
+  
+  if (firstCarousel && !firstCarousel.hasAttribute('data-initialized')) {
+    console.log('🔄 Reinicializando carruseles...');
+    initializePortfolio();
+  }
 });
 
 // Cerrar lightbox al hacer click fuera de la imagen, con ESC, o con navegación de carrusel
