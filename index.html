@@ -1,14 +1,4 @@
 <!DOCTYPE html>
-<html lang="en" >
-<head>
-  <meta charset="UTF-8">
-  <title>pignatta</title>
-  <link rel="stylesheet" href="./style.css">
-
-</head>
-<body>
-<!-- partial:index.partial.html -->
-<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -46,7 +36,7 @@
   <!-- Barra de reflexiones inferior -->
   <div class="reflection-bar" id="reflectionBar">
     <div class="reflection-content" id="reflectionContent">
-       • WEB DISEÑADA POR FEDERICO PIGNATTA UTILIZANDO IA COMO COPILOTO DURANTE TODO EL PROCESO • EL ENFOQUE DE CONSTRUCCIÓN FUE EXPERIMENTAL: UNA METODOLOGÍA SIMILAR AL COLLAGE, PERO APLICADA AL CÓDIGO • EL RESULTADO: UNA COMPOSICIÓN LIMPIA, CON MUCHO AIRE Y UN TOQUE DE DIVERSIÓN • PONETE EN CONTACTO Y HABLEMOS SI NECESITAS TU PROPIA WEB •
+       • DISEÑO UX/UI Y BRANDING CENTRADO EN LAS PERSONAS, COMBINANDO ESTRATEGIA Y UNA FUERTE IMPRONTA ESTÉTICA. •
     </div>
     <button class="reflection-close" onclick="closeReflectionBar()">×</button>
   </div>
@@ -148,8 +138,11 @@ para conectarse directamente con el controlador Holomate o usarse de forma indep
       </div>
 
       <div class="project">
-        <div class="project-media">
-          <img src="https://i.imgur.com/rIJUdYH.jpeg" alt="Performance Ruido de la Plata" class="single-image" onclick="if(window.innerWidth > 768) openLightbox('https://i.imgur.com/rIJUdYH.jpeg')">
+        <div class="project-media square-video-container">
+          <video class="square-video" autoplay loop muted playsinline onclick="if(window.innerWidth > 768) openLightboxVideo(this.src)">
+            <source src="https://i.imgur.com/lM5fRyp.mp4" type="video/mp4">
+            Tu navegador no soporta el elemento de video.
+          </video>
         </div>
         
         <div class="project-info-grid">
@@ -158,13 +151,84 @@ para conectarse directamente con el controlador Holomate o usarse de forma indep
             <div class="project-category"></div>
           </div>
           <div class="project-details">
-            <div class="project-title">Junto a Vicky Ismach</div>
+            <div class="project-title">Re diseño Isologotipo Dirección Nacional de Educación de Uruguay</div>
             <p class="project-description">
-             Performance "Ruido de la Plata" en el ciclo Solar en Palacete 1111. La performance abordó las resonancias, flujos
-y texturas acústicas de este cuerpo de agua (Río de la Plata)
-integrando registros de campo, sintetizadores analógicos y elementos improvisados, para 
-construir un espacio de escucha inmersivo y
-sensible.
+              Una nueva identidad para una nueva etapa de la Dirección Nacional de Educación. El rediseño parte de dos conceptos simples y claros: preservar y evolucionar. La letra "E" se mantiene como símbolo central que representa Educación, Estudiantes y Educadores. A su lado se integran un círculo y una línea, formas que sugieren el componente humano del sistema, los vínculos y una trayectoria educativa. Una segunda línea, en la base, actúa como estructura visual y como símbolo de aquello que sostiene al sistema educativo, aunque no siempre se vea: la vocación, el territorio y la historia compartida. El nuevo diseño plasma el diálogo entre la institución y las personas, una identidad renovada e inclusiva.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="project">
+        <div class="project-media">
+          <div class="project-carousel">
+            <div class="carousel-track">
+              <div class="carousel-slide">
+                <img src="https://i.imgur.com/AFZpR1x.jpeg" alt="Ferias Departamentales de Clubes de Ciencia 1">
+              </div>
+              <div class="carousel-slide">
+                <img src="https://i.imgur.com/R7UgqsB.jpeg" alt="Ferias Departamentales de Clubes de Ciencia 2">
+              </div>
+              <div class="carousel-slide">
+                <img src="https://i.imgur.com/U1MSxeo.jpeg" alt="Ferias Departamentales de Clubes de Ciencia 3">
+              </div>
+              <div class="carousel-slide">
+                <img src="https://i.imgur.com/mlezC47.jpeg" alt="Ferias Departamentales de Clubes de Ciencia 4">
+              </div>
+            </div>
+            <div class="carousel-controls">
+              <button class="carousel-btn prev"></button>
+              <button class="carousel-btn next"></button>
+            </div>
+            <div class="carousel-indicators"></div>
+          </div>
+        </div>
+        
+        <div class="project-info-grid">
+          <div class="project-left">
+            <div class="project-number">[04]</div>
+            <div class="project-category"></div>
+          </div>
+          <div class="project-details">
+            <div class="project-title">Ferias Departamentales de Clubes de Ciencia</div>
+            <p class="project-description">
+              Identidad visual para las Ferias Departamentales de Clubes de Ciencia del programa Cultura Científica del MEC, un ciclo de 19 encuentros que impulsa la participación de cientos de clubes en todos los departamentos de Uruguay.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="project">
+        <div class="project-media">
+          <div class="project-carousel">
+            <div class="carousel-track">
+              <div class="carousel-slide">
+                <img src="https://i.imgur.com/zDWUWPv.jpeg" alt="Feria Nacional de Clubes de Ciencia 2025 - 1">
+              </div>
+              <div class="carousel-slide">
+                <img src="https://i.imgur.com/wmsURUi.jpeg" alt="Feria Nacional de Clubes de Ciencia 2025 - 2">
+              </div>
+              <div class="carousel-slide">
+                <img src="https://i.imgur.com/cy2b25m.jpeg" alt="Feria Nacional de Clubes de Ciencia 2025 - 3">
+              </div>
+            </div>
+            <div class="carousel-controls">
+              <button class="carousel-btn prev"></button>
+              <button class="carousel-btn next"></button>
+            </div>
+            <div class="carousel-indicators"></div>
+          </div>
+        </div>
+        
+        <div class="project-info-grid">
+          <div class="project-left">
+            <div class="project-number">[05]</div>
+            <div class="project-category"></div>
+          </div>
+          <div class="project-details">
+            <div class="project-title">Feria Nacional de Clubes de Ciencia 2025</div>
+            <p class="project-description">
+              Para la Feria Nacional de Clubes de Ciencia desarrollé una evolución de la identidad visual creada para las ferias departamentales, adaptándola a un escenario de mayor alcance y proyección. Esta instancia reúne los proyectos con mayor potencial de todo el Uruguay.
             </p>
           </div>
         </div>
@@ -336,7 +400,7 @@ sensible.
           <div class="update-date">
             ÚLTIMA
             ACTUALIZACIÓN:<br>
-            23.JUL.2025
+            17.NOV.2025
           </div>
         </div>
         <div class="time-right">
@@ -355,6 +419,9 @@ sensible.
   <div class="lightbox" id="lightbox">
     <div class="lightbox-content">
       <img class="lightbox-image" id="lightboxImage" src="" alt="">
+      <video class="lightbox-video" id="lightboxVideo" controls style="display: none;">
+        <source src="" type="video/mp4">
+      </video>
       <button class="lightbox-nav lightbox-nav-prev" id="lightboxPrev" onclick="lightboxPrevious()"></button>
       <button class="lightbox-nav lightbox-nav-next" id="lightboxNext" onclick="lightboxNext()"></button>
       <button class="lightbox-close" onclick="closeLightbox()">×</button>
@@ -390,10 +457,5 @@ sensible.
       }, 100);
     });
   </script>
-</body>
-</html>
-<!-- partial -->
-  <script  src="./script.js"></script>
-
 </body>
 </html>
