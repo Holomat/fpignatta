@@ -540,3 +540,56 @@ window.addEventListener('beforeunload', () => {
 
 console.log('Script cargado - v6.0 Mobile Fix');
 console.log('Web diseñada por Pignatta - Codificada con IA como copiloto');
+
+// ===== LIGHTBOX VIDEO =====
+function openLightboxVideo(videoSrc) {
+  if (!videoSrc || window.innerWidth <= 768) return;
+  
+  const lightbox = document.getElementById('lightbox');
+  const lightboxImage = document.getElementById('lightboxImage');
+  const lightboxVideo = document.getElementById('lightboxVideo');
+  
+  if (lightbox && lightboxVideo) {
+    // Ocultar imagen, mostrar video
+    lightboxImage.style.display = 'none';
+    lightboxVideo.style.display = 'block';
+    
+    // Configurar video
+    lightboxVideo.querySelector('source').src = videoSrc;
+    lightboxVideo.load();
+    
+    lightbox.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    
+    // Ocultar navegación para video único
+    const prevBtn = document.getElementById('lightboxPrev');
+    const nextBtn = document.getElementById('lightboxNext');
+    if (prevBtn) prevBtn.style.display = 'none';
+    if (nextBtn) nextBtn.style.display = 'none';
+    
+    requestAnimationFrame(() => lightbox.classList.add('active'));
+  }
+}
+
+// Modificar closeLightbox para manejar video
+const originalCloseLightbox = closeLightbox;
+closeLightbox = function() {
+  const lightboxVideo = document.getElementById('lightboxVideo');
+  const lightboxImage = document.getElementById('lightboxImage');
+  
+  if (lightboxVideo) {
+    lightboxVideo.pause();
+    lightboxVideo.style.display = 'none';
+  }
+  if (lightboxImage) {
+    lightboxImage.style.display = 'block';
+  }
+  
+  // Mostrar navegación de nuevo
+  const prevBtn = document.getElementById('lightboxPrev');
+  const nextBtn = document.getElementById('lightboxNext');
+  if (prevBtn) prevBtn.style.display = '';
+  if (nextBtn) nextBtn.style.display = '';
+  
+  originalCloseLightbox();
+};
