@@ -50,6 +50,14 @@ const YoutubeFormatManager = (() => {
         }
     };
 
+    /* En pantallas chicas (ej. MacBook Pro 13", ≤1440px) reducir el preview de la
+       miniatura un 20%. El export se mantiene en Full HD porque el pixelRatio se
+       calcula como format.width / displayWidth (se compensa solo). */
+    if (typeof window !== 'undefined' && window.innerWidth <= 1440) {
+        FORMATS.youtube.displayWidth  = Math.round(FORMATS.youtube.displayWidth  * 0.8); // 1237 → 990
+        FORMATS.youtube.displayHeight = Math.round(FORMATS.youtube.displayHeight * 0.8); // 695 → 556
+    }
+
     /* ── State ── */
     let activeFormats = ['youtube']; // Miniatura YouTube activa por defecto
 
