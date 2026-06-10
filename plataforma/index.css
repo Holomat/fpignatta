@@ -2189,6 +2189,13 @@ body.dark .feedback-ok   { background: rgba(52,199,89,0.15);  color: #5ddb7e; }
     --sidenav-closed: 70px;
 }
 
+/* El menú lateral conserva el MISMO tamaño que en YouTube en todas las pestañas:
+   en YouTube lo achica el zoom del body; fuera de YouTube se aplica --menu-zoom. */
+body:not(.tab-youtube) #sideNav,
+body:not(.tab-youtube) #navMenuToggle {
+    zoom: var(--menu-zoom, 0.8);
+}
+
 .side-nav {
     position: absolute;
     top: 0;

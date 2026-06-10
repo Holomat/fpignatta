@@ -2350,6 +2350,9 @@ a certificar (curso, taller o programa)</div>
         }
 
         function init() {
+            // El menú lateral mantiene el MISMO tamaño que en YouTube en todas las
+            // pestañas (en YouTube lo achica el zoom del body; en el resto, --menu-zoom).
+            document.documentElement.style.setProperty('--menu-zoom', IS_SAFARI ? 0.7 : 0.8);
             document.getElementById('zoomInBtn') ?.addEventListener('click', () => step(10));
             document.getElementById('zoomOutBtn')?.addEventListener('click', () => step(-10));
             document.getElementById('zoomFitBtn')?.addEventListener('click', () => {
