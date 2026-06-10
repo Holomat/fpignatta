@@ -23,6 +23,63 @@
 
 <body>
 
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- ACCESO RESTRINGIDO (barrera blanda, client-side) -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div id="authGate" class="auth-gate">
+        <div class="auth-card">
+            <h1 class="auth-title">Acceso restringido</h1>
+            <p class="auth-sub">Ingresá el código para continuar.</p>
+            <form id="authForm" class="auth-form" autocomplete="off">
+                <input type="password" id="authInput" class="auth-input" placeholder="Código" aria-label="Código de acceso" autocomplete="off" spellcheck="false">
+                <button type="submit" class="auth-btn">Ingresar</button>
+            </form>
+            <p id="authError" class="auth-error" role="alert" hidden>Código incorrecto.</p>
+        </div>
+    </div>
+    <script>
+    /* Barrera de acceso (client-side). No es seguridad fuerte: el código se compara
+       contra un hash SHA-256, así no aparece en texto plano en el fuente. */
+    (function authGate() {
+        const KEY  = 'plataforma_auth_v1';
+        const HASH = '65e66946d55e0b68d70252f66d6a72fcaa0a71e29a5e1d94781c04d93f74fd71';
+        const gate = document.getElementById('authGate');
+        if (!gate) return;
+        const form  = document.getElementById('authForm');
+        const input = document.getElementById('authInput');
+        const err   = document.getElementById('authError');
+        const card  = gate.querySelector('.auth-card');
+
+        // Ya autenticado en esta sesión
+        if (sessionStorage.getItem(KEY) === '1') { gate.remove(); return; }
+
+        document.documentElement.classList.add('auth-locked');  // bloquea scroll detrás
+        const norm = s => (s || '').trim().toLowerCase().normalize('NFC')
+            .replace(/á/g, 'a').replace(/é/g, 'e').replace(/í/g, 'i')
+            .replace(/ó/g, 'o').replace(/ú/g, 'u').replace(/ü/g, 'u').replace(/ñ/g, 'n');
+        async function sha256(str) {
+            const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+            return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+        function unlock() {
+            sessionStorage.setItem(KEY, '1');
+            document.documentElement.classList.remove('auth-locked');
+            gate.classList.add('auth-hidden');
+            setTimeout(() => gate.remove(), 360);
+        }
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const ok = (await sha256(norm(input.value))) === HASH;
+            if (ok) { unlock(); return; }
+            err.hidden = false;
+            input.value = '';
+            input.focus();
+            card.classList.remove('auth-shake'); void card.offsetWidth; card.classList.add('auth-shake');
+        });
+        input.focus();
+    })();
+    </script>
+
     <!-- Aurora background -->
     <div class="aurora-bg" aria-hidden="true">
         <div class="aurora-orb aurora-orb--1"></div>
