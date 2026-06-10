@@ -3563,7 +3563,8 @@ body.tab-propuesta .propuesta-wrap {
 }
 
 /* ═══ 5b · Múltiples pantallas (demo interactiva) — composición invertida ═══ */
-.pp-screens { margin-bottom: 192px; }
+/* Oculta (se puede reactivar quitando este display:none). */
+.pp-screens { display: none; margin-bottom: 192px; }
 .pp-screens-grid {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.02fr);  /* demo izq · texto der */
