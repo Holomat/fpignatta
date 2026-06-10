@@ -1704,7 +1704,7 @@ a certificar (curso, taller o programa)</div>
         /* ── Tab Switching ── */
         function switchTab(tabName) {
             APP.currentTab = tabName;
-            if (typeof ZoomController !== 'undefined') ZoomController.apply(tabName === 'poster' ? 140 : (tabName === 'youtube' ? 80 : 100));
+            if (typeof ZoomController !== 'undefined') ZoomController.fit();
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
             const activeItem = document.querySelector(`.nav-item[data-tab="${tabName}"]`);
             if (activeItem) { activeItem.classList.add('active'); moveSlider(activeItem); }
@@ -2326,7 +2326,10 @@ a certificar (curso, taller o programa)</div>
     /* ── Zoom ── */
     const ZoomController = (() => {
         let current = 140;
-        const DEFAULT = { poster: 140, youtube: 80, cert: 100, ave: 100, badge: 100 };
+        // Safari (no Chrome/Chromium/Edge): la miniatura se ve más grande → arranca
+        // un clic más alejado (70% en vez de 80%).
+        const IS_SAFARI = /^((?!chrome|chromium|crios|android|edg).)*safari/i.test(navigator.userAgent || '');
+        const DEFAULT = { poster: 140, youtube: IS_SAFARI ? 70 : 80, cert: 100, ave: 100, badge: 100 };
 
         function apply(value) {
             current = Math.max(30, Math.min(180, value));
