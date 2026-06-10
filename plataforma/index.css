@@ -3156,6 +3156,8 @@ body.tab-propuesta .propuesta-wrap {
 .propuesta-doc {
     width: 100%;
     max-width: 1140px;
+    /* Zoom por defecto al 80% (−20%) de toda la plataforma de Propuesta. */
+    zoom: 0.8;
 }
 
 /* Reveal al hacer scroll */

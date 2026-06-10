@@ -2708,6 +2708,11 @@ a certificar (curso, taller o programa)</div>
             wrap = document.getElementById('propuestaWrap');
             if (!wrap || active) return;
             if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+            // En Apple (Mac/iOS) el scroll nativo ya tiene inercia; el smooth custom
+            // se siente pesado y se pasa. Lo dejamos sólo para mouse-wheel (Windows).
+            const isApple = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || '') ||
+                            /Macintosh|Mac OS X/i.test(navigator.userAgent || '');
+            if (isApple) return;
             current = target = wrap.scrollTop;
             wrap.addEventListener('wheel', onWheel, { passive: false });
             active = true;
