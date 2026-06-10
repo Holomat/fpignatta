@@ -2326,10 +2326,7 @@ a certificar (curso, taller o programa)</div>
     /* ── Zoom ── */
     const ZoomController = (() => {
         let current = 140;
-        // Safari (no Chrome/Chromium/Edge): la miniatura se ve más grande → arranca
-        // un clic más alejado (70% en vez de 80%).
-        const IS_SAFARI = /^((?!chrome|chromium|crios|android|edg).)*safari/i.test(navigator.userAgent || '');
-        const DEFAULT = { poster: 140, youtube: IS_SAFARI ? 70 : 80, cert: 100, ave: 100, badge: 100 };
+        const DEFAULT = { poster: 140, youtube: 100, cert: 100, ave: 100, badge: 100 };
 
         function apply(value) {
             current = Math.max(30, Math.min(180, value));
@@ -2350,9 +2347,6 @@ a certificar (curso, taller o programa)</div>
         }
 
         function init() {
-            // El menú lateral mantiene el MISMO tamaño que en YouTube en todas las
-            // pestañas (en YouTube lo achica el zoom del body; en el resto, --menu-zoom).
-            document.documentElement.style.setProperty('--menu-zoom', IS_SAFARI ? 0.7 : 0.8);
             document.getElementById('zoomInBtn') ?.addEventListener('click', () => step(10));
             document.getElementById('zoomOutBtn')?.addEventListener('click', () => step(-10));
             document.getElementById('zoomFitBtn')?.addEventListener('click', () => {

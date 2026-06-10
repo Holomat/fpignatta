@@ -1358,7 +1358,7 @@ body.dark .poster {
    por ese factor, así se conserva la relación exacta entre versiones.
    Ajustá solo --yt-scale para agrandar/achicar todo proporcionalmente. */
 #ytFormatsContainer {
-    --yt-scale: 0.507;   /* +15% +5% respecto a 0.42 (acompaña el tamaño de pantalla) */
+    --yt-scale: 0.41;   /* acompaña displayWidth 1000 (miniatura a tamaño cómodo) */
 }
 
 .poster[data-format="youtube"] .title {
@@ -1382,7 +1382,7 @@ body.dark .poster {
 
 /* Versión: Tres palabras clave — SemiBold, arriba-izquierda (diseño: 185 / 180) */
 #ytFormatsContainer.yt-ver-clave .poster[data-format="youtube"] .text-container {
-    left: 40px; right: 40px; top: 57px; bottom: auto;
+    left: 33px; right: 33px; top: 47px; bottom: auto;
     justify-content: flex-start;
     align-items: flex-start;
 }
@@ -1395,7 +1395,7 @@ body.dark .poster {
 
 /* Versión: Conferencia de prensa — Bold, abajo-izquierda (diseño: 200 / 207) */
 #ytFormatsContainer.yt-ver-conferencia .poster[data-format="youtube"] .text-container {
-    left: 43px; right: 43px; top: auto; bottom: 41px;
+    left: 36px; right: 36px; top: auto; bottom: 34px;
     justify-content: flex-end;
     align-items: flex-start;
 }
@@ -2187,13 +2187,6 @@ body.dark .feedback-ok   { background: rgba(52,199,89,0.15);  color: #5ddb7e; }
 :root {
     --sidenav-open: 290px;
     --sidenav-closed: 70px;
-}
-
-/* El menú lateral conserva el MISMO tamaño que en YouTube en todas las pestañas:
-   en YouTube lo achica el zoom del body; fuera de YouTube se aplica --menu-zoom. */
-body:not(.tab-youtube) #sideNav,
-body:not(.tab-youtube) #navMenuToggle {
-    zoom: var(--menu-zoom, 0.8);
 }
 
 .side-nav {
@@ -5004,13 +4997,6 @@ body.tab-youtube .yt-screens-nav {
 
 /* En YouTube, centrar la miniatura en la franja libre entre el navegador
    (arriba) y la barra de controles (abajo), sin solaparse con ninguno. */
-/* Zoom uniforme de la vista de YouTube (estilo "navegador al 80%"): escala todo
-   junto y re-acomoda el layout, manteniendo proporciones miniatura↔barra.
-   --yt-zoom lo setea el control de zoom (default 0.8, o 0.7 en Safari). */
-body.tab-youtube {
-    zoom: var(--yt-zoom, 0.8);
-}
-
 body.tab-youtube .canvas-area {
     padding-top: 64px;
     padding-bottom: 178px;

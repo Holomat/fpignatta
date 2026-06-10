@@ -118,11 +118,6 @@ const ExportEngine = (() => {
                     clipPath: posterElement.style.clipPath
                 };
 
-                // Neutralizar el zoom de preview (body.tab-youtube) para capturar a
-                // tamaño real → el export queda en Full HD aunque la vista esté con zoom.
-                const prevBodyZoom = document.body.style.zoom;
-                document.body.style.zoom = '1';
-
                 // FORZAR bordes completamente rectos (0px) para exportación
                 posterElement.style.setProperty('border', 'none', 'important');
                 posterElement.style.setProperty('box-shadow', 'none', 'important');
@@ -170,7 +165,6 @@ const ExportEngine = (() => {
                 posterElement.style.borderRadius = originalStyles.borderRadius;
                 posterElement.style.overflow = originalStyles.overflow;
                 posterElement.style.clipPath = originalStyles.clipPath;
-                document.body.style.zoom = prevBodyZoom;   // restaurar zoom de preview
 
                 // Restore label overlay
                 if (labelOverlay) labelOverlay.style.display = originalLabelDisplay;

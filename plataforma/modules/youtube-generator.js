@@ -648,17 +648,12 @@ const YoutubeGenerator = (() => {
         console.log('🎬 YoutubeGenerator initialized (multi-format)');
     }
 
-    /* ── Zoom ── */
+    /* ── Zoom ── (solo la miniatura; transform → no afecta la exportación) */
     function setZoom(factor) {
-        // Zoom tipo "navegador": escala uniforme de TODA la vista de YouTube vía CSS
-        // zoom (preserva proporciones entre miniatura y barra, y re-acomoda el layout).
-        // El export lo neutraliza para mantener Full HD.
-        document.documentElement.style.setProperty('--yt-zoom', factor);
-        // Limpiar transforms del enfoque anterior para no encimar.
         const container = document.getElementById('ytStackFrame') || document.getElementById('ytFormatsContainer');
-        if (container) { container.style.transform = ''; container.style.transformOrigin = ''; }
-        const bar = document.getElementById('youtubeBarsStack');
-        if (bar) { bar.style.transform = ''; bar.style.transformOrigin = ''; }
+        if (!container) return;
+        container.style.transform = `scale(${factor})`;
+        container.style.transformOrigin = 'center center';
     }
 
     function getFullState() {

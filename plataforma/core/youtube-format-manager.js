@@ -18,8 +18,8 @@ const YoutubeFormatManager = (() => {
             ratio: '16:9',
             width: 1920,         // Full HD
             height: 1080,
-            displayWidth: 1237,  // 16:9 horizontal (preview, +15% +5%)
-            displayHeight: 695
+            displayWidth: 1000,  // 16:9 horizontal (preview a tamaño cómodo; export 1920 vía pixelRatio)
+            displayHeight: 562
         },
         posteo: {
             id: 'posteo',
