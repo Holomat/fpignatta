@@ -1360,11 +1360,6 @@ body.dark .poster {
 #ytFormatsContainer {
     --yt-scale: 0.507;   /* +15% +5% respecto a 0.42 (acompaña el tamaño de pantalla) */
 }
-/* Pantallas chicas (MacBook Pro 13" y similares): miniatura 20% más chica.
-   Acompaña la reducción del displayWidth en youtube-format-manager.js. */
-@media (max-width: 1440px) {
-    #ytFormatsContainer { --yt-scale: 0.406; }
-}
 
 .poster[data-format="youtube"] .title {
     font-family: 'Sora', sans-serif;
