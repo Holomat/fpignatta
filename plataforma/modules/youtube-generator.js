@@ -651,9 +651,16 @@ const YoutubeGenerator = (() => {
     /* ── Zoom ── */
     function setZoom(factor) {
         const container = document.getElementById('ytStackFrame') || document.getElementById('ytFormatsContainer');
-        if (!container) return;
-        container.style.transform = `scale(${factor})`;
-        container.style.transformOrigin = 'center center';
+        if (container) {
+            container.style.transform = `scale(${factor})`;
+            container.style.transformOrigin = 'center center';
+        }
+        // La barra de controles acompaña el zoom (queda proporcional a la miniatura).
+        const bar = document.getElementById('youtubeBarsStack');
+        if (bar) {
+            bar.style.transform = `translateX(-50%) scale(${factor})`;
+            bar.style.transformOrigin = 'bottom center';
+        }
     }
 
     function getFullState() {
