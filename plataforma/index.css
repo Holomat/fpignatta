@@ -5672,6 +5672,12 @@ body.tab-badge .badge-bars-stack {
     gap: 2px;
     padding: 0 4px;
 }
+/* En pantallas angostas (ej. MacBook) la fila de controles de YouTube no entra:
+   en vez de desbordar (colores/Descargar afuera), envuelve a una 2ª línea. */
+.youtube-bars-stack .prompt-row--bottom {
+    flex-wrap: wrap;
+    row-gap: 10px;
+}
 
 /* Fila variaciones */
 .prompt-row--variation {
