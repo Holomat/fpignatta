@@ -3447,10 +3447,12 @@ body.tab-propuesta .propuesta-wrap {
     justify-content: flex-start;
     padding: clamp(56px, 7vw, 108px) 0 clamp(56px, 7vw, 108px) clamp(22px, 2.4vw, 34px);
     border-radius: 28px;
-    /* Recorta la barra horizontalmente (Descargar off-frame) pero deja salir el
-       desplegable hacia arriba en el eje vertical. */
-    overflow-x: clip;
-    overflow-y: visible;
+    /* Recorta la barra SOLO en el borde derecho (Descargar off-frame) y deja libre
+       el desplegable hacia arriba. clip-path es consistente en Safari/Chrome
+       (overflow-x:clip + overflow-y:visible se renderiza distinto en Safari/Mac). */
+    overflow: visible;
+    -webkit-clip-path: inset(-500px 0 -500px -500px);
+    clip-path: inset(-500px 0 -500px -500px);
     background:
         radial-gradient(72% 80% at 20% 16%, rgba(96, 132, 255, 0.50), transparent 62%),
         radial-gradient(66% 76% at 84% 82%, rgba(150, 176, 255, 0.45), transparent 62%),
