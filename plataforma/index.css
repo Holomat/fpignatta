@@ -3445,6 +3445,10 @@ body.tab-propuesta .propuesta-wrap {
     display: flex;
     align-items: center;
     justify-content: flex-start;
+    /* min-width:0 evita que el stage se agrande al ancho de la barra (820px) en
+       Safari; así queda del ancho de la columna y overflow:hidden recorta de verdad. */
+    min-width: 0;
+    max-width: 100%;
     padding: clamp(72px, 7.5vw, 118px) 0 clamp(72px, 7.5vw, 118px) clamp(22px, 2.4vw, 34px);
     border-radius: 28px;
     /* Recorta la barra (Descargar off-frame) respetando las esquinas redondeadas.
