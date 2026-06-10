@@ -4964,6 +4964,21 @@ body.tab-youtube .youtube-bars-stack {
     display: flex;
 }
 
+/* Laptops (MacBook Pro y similares): la barra no entra en una sola línea de
+   controles al 100% → la mostramos al 80%. El zoom ensancha su layout (su ancho
+   es % del viewport) para que los controles entren en UNA línea, y la deja más
+   compacta. La barra no se exporta, así que no afecta el Full HD.
+   Centrado por margin-auto (más predecible con zoom que left:50%+translate). */
+@media (max-width: 1680px) {
+    .youtube-bars-stack {
+        zoom: 0.8;
+        left: 0;
+        right: 0;
+        transform: none;
+        margin-inline: auto;
+    }
+}
+
 /* ═══════════════════════════════════════════════
    YOUTUBE SCREENS NAVIGATOR — múltiples miniaturas
    Estilo glass, flotante arriba-centro (solo tab YouTube)
