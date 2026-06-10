@@ -3440,7 +3440,10 @@ body.tab-propuesta .propuesta-wrap {
 }
 
 /* Demo aislada del toolbar — réplica 1:1 de la barra real */
-.mm-demo { width: 100%; }
+/* min-width:0 en toda la cadena del grid item para que Safari NO agrande la
+   columna al ancho de la barra (820px). Así la barra desborda y se recorta. */
+.pp-mm-right { min-width: 0; max-width: 100%; }
+.mm-demo { width: 100%; min-width: 0; max-width: 100%; }
 .mm-stage {
     display: flex;
     align-items: center;
