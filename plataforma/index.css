@@ -3445,27 +3445,28 @@ body.tab-propuesta .propuesta-wrap {
 .pp-mm-right { min-width: 0; max-width: 100%; }
 .mm-demo { width: 100%; min-width: 0; max-width: 100%; }
 .mm-stage {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    /* min-width:0 evita que el stage se agrande al ancho de la barra (820px) en
-       Safari; así queda del ancho de la columna y overflow:hidden recorta de verdad. */
-    min-width: 0;
+    /* La barra va en position:absolute (regla de abajo), por eso NO afecta el
+       ancho de la columna. El stage queda de su ancho normal y overflow:hidden
+       recorta la barra de verdad — también en Safari/Mac. */
+    position: relative;
+    width: 100%;
     max-width: 100%;
-    padding: clamp(72px, 7.5vw, 118px) 0 clamp(72px, 7.5vw, 118px) clamp(22px, 2.4vw, 34px);
+    min-height: clamp(280px, 30vw, 330px);
     border-radius: 28px;
-    /* Recorta la barra (Descargar off-frame) respetando las esquinas redondeadas.
-       overflow:hidden es robusto en TODOS los navegadores (Safari/Mac incluido). */
     overflow: hidden;
     background:
         radial-gradient(72% 80% at 20% 16%, rgba(96, 132, 255, 0.50), transparent 62%),
         radial-gradient(66% 76% at 84% 82%, rgba(150, 176, 255, 0.45), transparent 62%),
         radial-gradient(140% 140% at 50% 50%, #eef2ff 0%, #e3e9ff 100%);
 }
-/* Barra a tamaño real: sangra fuera del rectángulo (vista parcial, "Descargar" off-frame). */
+/* Barra a tamaño real, posicionada absoluta: sangra fuera del rectángulo
+   (vista parcial, "Descargar" off-frame) sin afectar el tamaño de la columna. */
 .mm-realbar {
+    position: absolute;
+    top: 50%;
+    left: clamp(22px, 2.4vw, 34px);
+    transform: translateY(-50%);
     width: 820px;
-    flex-shrink: 0;
 }
 .mm-realbar .poster-prompt-bar { width: 100%; }
 .mm-realbar .prompt-row--bottom { flex-wrap: nowrap; }
