@@ -2326,7 +2326,10 @@ a certificar (curso, taller o programa)</div>
     /* ── Zoom ── */
     const ZoomController = (() => {
         let current = 140;
-        const DEFAULT = { poster: 140, youtube: 100, cert: 100, ave: 100, badge: 100 };
+        // En Chrome sobre macOS (ej. MacBook Pro) la visualización se ve grande →
+        // la pantalla de diseño de YouTube arranca al 80%. En PC/otros, 100%.
+        const isChromeMac = /Macintosh/.test(navigator.userAgent) && /Chrome/.test(navigator.userAgent) && !/Edg|OPR/.test(navigator.userAgent);
+        const DEFAULT = { poster: 140, youtube: isChromeMac ? 80 : 100, cert: 100, ave: 100, badge: 100 };
 
         function apply(value) {
             current = Math.max(30, Math.min(180, value));
