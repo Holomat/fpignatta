@@ -650,17 +650,15 @@ const YoutubeGenerator = (() => {
 
     /* ── Zoom ── */
     function setZoom(factor) {
+        // Zoom tipo "navegador": escala uniforme de TODA la vista de YouTube vía CSS
+        // zoom (preserva proporciones entre miniatura y barra, y re-acomoda el layout).
+        // El export lo neutraliza para mantener Full HD.
+        document.documentElement.style.setProperty('--yt-zoom', factor);
+        // Limpiar transforms del enfoque anterior para no encimar.
         const container = document.getElementById('ytStackFrame') || document.getElementById('ytFormatsContainer');
-        if (container) {
-            container.style.transform = `scale(${factor})`;
-            container.style.transformOrigin = 'center center';
-        }
-        // La barra de controles acompaña el zoom (queda proporcional a la miniatura).
+        if (container) { container.style.transform = ''; container.style.transformOrigin = ''; }
         const bar = document.getElementById('youtubeBarsStack');
-        if (bar) {
-            bar.style.transform = `translateX(-50%) scale(${factor})`;
-            bar.style.transformOrigin = 'bottom center';
-        }
+        if (bar) { bar.style.transform = ''; bar.style.transformOrigin = ''; }
     }
 
     function getFullState() {

@@ -4997,6 +4997,13 @@ body.tab-youtube .yt-screens-nav {
 
 /* En YouTube, centrar la miniatura en la franja libre entre el navegador
    (arriba) y la barra de controles (abajo), sin solaparse con ninguno. */
+/* Zoom uniforme de la vista de YouTube (estilo "navegador al 80%"): escala todo
+   junto y re-acomoda el layout, manteniendo proporciones miniatura↔barra.
+   --yt-zoom lo setea el control de zoom (default 0.8, o 0.7 en Safari). */
+body.tab-youtube {
+    zoom: var(--yt-zoom, 0.8);
+}
+
 body.tab-youtube .canvas-area {
     padding-top: 64px;
     padding-bottom: 178px;
