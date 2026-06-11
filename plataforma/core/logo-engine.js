@@ -11,8 +11,6 @@
  * - Root/assets/logos/logo-dne-iso-mono.svg (DNE Isotipo)
  * - Root/assets/logos/logo-dne-color.svg (MEC - DNE)
  * - Root/assets/logos/logo-dne-mono.svg (MEC - DNE)
- * - Root/assets/logos/logo-dne-solo-color.svg (DNE Isologotipo)
- * - Root/assets/logos/logo-dne-solo-mono.svg (DNE Isologotipo)
  * - Root/assets/logos/logo-cc-color.svg (Cultura Científica)
  * - Root/assets/logos/logo-cc-mono.svg (Cultura Científica)
  * - Root/assets/logos/logo-cc-anep-color.svg (Cultura Científica ANEP)

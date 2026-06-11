@@ -2712,8 +2712,12 @@ body.dark .toast {
         display: none;
     }
 
+    /* Tablet/iPad: el menú lateral se comporta como "collapsed"
+       (íconos centrados, sin labels) para que no se corten. */
     .side-nav {
         width: var(--sidenav-closed);
+        padding: 12px 3px;
+        align-items: center;
     }
 
     .side-nav-title,
@@ -2723,8 +2727,51 @@ body.dark .toast {
         overflow: hidden;
     }
 
+    .side-nav-section {
+        align-items: center;
+        width: 54px;
+        padding: 0;
+    }
+
+    .side-nav .nav-item,
+    .side-nav .nav-toggle-btn {
+        width: 54px;
+        height: 54px;
+        justify-content: center;
+        padding: 0;
+    }
+
+    .side-nav-header {
+        width: 54px;
+        padding: 5px;
+        justify-content: center;
+        gap: 0;
+    }
+
+    .side-nav-logo {
+        display: none;
+    }
+
+    .side-nav-toggle {
+        margin-left: 0;
+    }
+
+    /* Botón de menú alineado con los círculos del nav: mismo tamaño (54px)
+       y mismo eje vertical (centro x=35px del riel colapsado de 70px). */
+    .nav-menu-toggle {
+        width: 54px;
+        height: 54px;
+        left: 8px;
+        top: 20px;
+        border-radius: 16px;
+    }
+
+    /* Padding SIMÉTRICO (antes solo se cambiaba el izquierdo y el derecho
+       quedaba en 290px → todo el contenido se corría a la izquierda y se
+       angostaba). Con ambos en el ancho cerrado, el contenido se centra. */
     body {
         padding-left: var(--sidenav-closed);
+        padding-right: var(--sidenav-closed);
     }
 }
 
@@ -3051,7 +3098,6 @@ html.auth-locked, html.auth-locked body { overflow: hidden; }
     letter-spacing: -0.02em;
     color: #0a0a0a;
 }
-.auth-sub { margin: 0 0 22px; font-size: 14px; color: #6b6b70; }
 .auth-form { display: flex; flex-direction: column; gap: 10px; }
 .auth-input {
     width: 100%;
@@ -6094,6 +6140,13 @@ body.tab-badge .badge-bars-stack {
     flex-shrink: 0;
 }
 
+/* Ícono representativo del trigger — oculto en desktop, visible al colapsar
+   (≤1024px) cuando el trigger pasa a modo solo-ícono. */
+.prompt-format-icon {
+    display: none;
+    flex-shrink: 0;
+}
+
 .prompt-format-dropdown.open .prompt-format-chevron {
     transform: rotate(180deg);
 }
@@ -6239,6 +6292,90 @@ body.tab-badge .badge-bars-stack {
     transform: scale(0.97);
 }
 
+/* ═══════════════════════════════════════════════
+   BARRA DE EDICIÓN COMPACTA (≤1360px)
+   La fila completa de controles (labels + paleta + Descargar) necesita
+   ~1045px CSS; con el zoom 0.8 y la reserva del sidenav solo entra en una
+   línea desde ~1360px de viewport (verificado empíricamente). Debajo de eso la barra se reorganiza
+   tipo "bottom-nav" de app: Composición y Categoría colapsan a un ícono
+   (se oculta la palabra) y la paleta de color se esconde (cada categoría
+   ya aplica su propio color). Una sola línea SIEMPRE — Foto, Composición,
+   Categoría y Descargar nunca se desalinean.
+   Aplica SOLO a la barra real de YouTube; el demo de Propuesta
+   (.mm-realbar) conserva su diseño original sangrante a todo ancho.
+   ═══════════════════════════════════════════════ */
+@media (max-width: 1360px) {
+    /* La barra real recupera su tamaño natural (sin zoom) y se ensancha. */
+    .youtube-bars-stack {
+        zoom: 1;
+        width: calc(100% - 28px);
+        max-width: 620px;
+    }
+
+    /* Composición / Categoría → solo ícono (cuadrado).
+       NOTA: el demo de Propuesta (.mm-realbar) queda EXCLUIDO a propósito:
+       conserva su diseño original a todo ancho — barra a tamaño real (820px)
+       sangrando "por la mitad" del stage, con labels completos para que los
+       chips de la izquierda reflejen el cambio en la barra. */
+    .youtube-bars-stack .prompt-format-trigger {
+        padding: 13px;
+        gap: 0;
+    }
+    /* Los labels se ocultan POR ID: la regla base #ytVersionTriggerLabel
+       {display:inline-block; min-width} usa selector de ID (mayor
+       especificidad) y le ganaría a una regla por clase. Acá igualamos esa
+       especificidad (ID) y, al estar más abajo en el archivo, gana. */
+    #ytVersionTriggerLabel,
+    #ytCategoryTriggerLabel,
+    .youtube-bars-stack .prompt-format-chevron {
+        display: none;
+    }
+    .youtube-bars-stack .prompt-format-icon {
+        display: block;
+    }
+
+    /* Paleta de color oculta + su divisor inmediato previo. */
+    .youtube-bars-stack .prompt-color-group {
+        display: none;
+    }
+    .youtube-bars-stack .prompt-divider:has(+ .prompt-color-group) {
+        display: none;
+    }
+
+    /* La fila de controles entra en una sola línea (sin wrap). */
+    .youtube-bars-stack .prompt-row--bottom {
+        flex-wrap: nowrap;
+    }
+
+    /* ── Miniatura de YouTube: SIEMPRE 16:9 (no heredar el 4:5 social) ──
+       La regla genérica .poster{max-width:400px} de ≤1024px recortaba el
+       ancho (inline 1000px) dejando un 4:5 vertical. La liberamos y dejamos
+       la miniatura a su tamaño nativo 16:9, escalada con zoom responsive
+       (var seteada por JS) para que entre completa sin romper proporciones
+       del texto (que usa px absolutos calibrados a 1000px). */
+    body.tab-youtube .poster {
+        max-width: none;
+    }
+}
+
+/* El panel de zoom (deshacer/rehacer/ajustar/zoom) se solapaba con el
+   borde izquierdo de la barra (que se centra en el viewport) en tablet.
+   Oculto a ≤1024 igual que a ≤640; la barra y el auto-fit cubren lo esencial. */
+@media (max-width: 1024px) {
+    body.tab-youtube .zoom-panel { display: none; }
+}
+
+/* El zoom responsive por var solo en tablet (641–1024). A ≤640 la miniatura
+   la ajusta YoutubeGenerator.updateScale() (transform), así que NO debemos
+   pisarlo acá (si no, el zoom por defecto desbordaba en mobile). */
+@media (min-width: 641px) and (max-width: 1024px) {
+    body.tab-youtube #ytStackFrame {
+        transform: none !important;
+        zoom: var(--yt-tablet-zoom, 0.58);
+        transform-origin: center center;
+    }
+}
+
 /* ═══════════════════════════════════════════════════════
    AURORA BACKGROUND
    ═══════════════════════════════════════════════════════ */
@@ -6305,1072 +6442,6 @@ body.tab-badge .badge-bars-stack {
     100% { transform: translate(-7vw, -6vh) scale(0.96); }
 }
 
-/* ═══════════════════════════════════════════════════════
-   MOBILE POSTER UI — ≤640px
-   Cabina guiada: editor + preview + grilla + AI bar
-   ═══════════════════════════════════════════════════════ */
+/* La UI mobile fue eliminada: la app es desktop-only en esta etapa.
+ El bloqueo para dispositivos moviles vive inline en index.html (#mobileBlock). */
 
-/* Siempre oculto en desktop */
-.mob-header,
-.mob-sheet,
-.mob-ai-bar,
-.mob-export-backdrop,
-.mob-export-sheet,
-.mob-style-backdrop,
-.mob-style-sheet,
-.mob-desktop-only,
-.mob-design-ctrl,
-.mob-dots,
-.mob-ghost,
-.mob-scard {
-    display: none;
-}
-
-@media (max-width: 640px) {
-
-    /* ── Reset body ── */
-    /* Mobile: panel sólido y consistente (sin translucidez ni aurora) */
-    html { background: #efedef; }
-
-    body {
-        --bg-global: #efedef;          /* override sólido en mobile */
-        margin: 0 !important;
-        border-radius: 0 !important;
-        height: 100dvh;
-        overflow: hidden;
-        display: block !important;
-        padding: 0 !important;
-        position: relative;
-        background: #efedef !important;
-    }
-
-    /* Mobile no muestra el aurora: evita translucidez inconsistente bajo paneles */
-    .aurora-bg { display: none !important; }
-
-    body.dark { background: #0b0b0d !important; }
-    html:has(body.dark) { background: #0b0b0d; }
-
-    /* ── Ocultar chrome desktop ── */
-    .side-nav, .nav-menu-toggle, .side-column--right,
-    .zoom-panel, .poster-bars-stack, .youtube-bars-stack, .ave-bars-stack, .cert-bars-stack, .badge-bars-stack,
-    .yt-screens-nav, #aiKeyPanel, #exportProgress {
-        display: none !important;
-    }
-
-    /* ── Canvas: full-bleed en preview, compacto en edición ── */
-    .canvas-area {
-        position: absolute !important;
-        top: 0;
-        bottom: calc(56px + env(safe-area-inset-bottom, 0px));  /* handle del sheet (56) */
-        left: 0; right: 0;
-        width: auto !important;
-        padding: 0 !important;          /* full-bleed en preview */
-        background: #efedef;            /* mismo gris que paneles → sin banding */
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;               /* clean poster edges in full preview */
-        transition: top    0.36s cubic-bezier(0.32, 0, 0.67, 0),
-                    bottom 0.36s cubic-bezier(0.32, 0, 0.67, 0),
-                    padding 0.36s cubic-bezier(0.32, 0, 0.67, 0);
-    }
-    body.mob-mini .canvas-area { overflow: visible; }  /* side cards peek at edges */
-    body.mob-mini .poster-wrap,
-    body.mob-mini .poster-stack-frame { overflow: visible; }
-
-    /* En modo edición: baja debajo del header, agrega padding */
-    body.mob-edit .canvas-area {
-        top: calc(52px + env(safe-area-inset-top, 0px));
-        bottom: calc(340px + env(safe-area-inset-bottom, 0px));  /* sheet (340) */
-        padding: 8px 10px !important;
-    }
-
-    body.tab-cert  .canvas-area,
-    body.tab-badge .canvas-area,
-    body.tab-ave   .canvas-area,
-    body.tab-logos .canvas-area { display: none !important; }
-
-    /* ════════════════════════════
-       HEADER (solo en edit mode)
-       ════════════════════════════ */
-    .mob-header {
-        display: flex;
-        position: absolute;
-        top: 0; left: 0; right: 0;
-        height: calc(52px + env(safe-area-inset-top, 0px));
-        z-index: 250;
-        align-items: flex-end;
-        justify-content: space-between;
-        padding: 0 16px 10px;
-        padding-top: env(safe-area-inset-top, 0px);
-        background: var(--bg-global);
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.28s ease;
-    }
-
-    body.dark .mob-header { background: #0b0b0d; }
-
-    body.mob-edit .mob-header {
-        opacity: 1;
-        pointer-events: auto;
-    }
-
-    body.tab-cert  .mob-header,
-    body.tab-badge .mob-header,
-    body.tab-ave   .mob-header,
-    body.tab-logos .mob-header { display: none !important; }
-
-    .mob-header-title {
-        font-family: 'Inter', sans-serif;
-        font-size: 14px;
-        font-weight: 600;
-        color: var(--text-main);
-        letter-spacing: -0.01em;
-    }
-
-    .mob-export-btn {
-        background: #D9FF5E;
-        color: #111111;
-        border: none;
-        border-radius: 99px;
-        padding: 8px 16px;
-        font-family: 'Inter', sans-serif;
-        font-size: 13px;
-        font-weight: 700;
-        letter-spacing: -0.01em;
-        cursor: pointer;
-        -webkit-tap-highlight-color: transparent;
-        transition: opacity 0.12s ease, transform 0.12s ease;
-    }
-
-    .mob-export-btn:active { opacity: 0.8; transform: scale(0.96); }
-
-    /* ════════════════════════════
-       AI BAR — siempre visible en el fondo
-       ════════════════════════════ */
-    .mob-ai-bar {
-        display: flex;
-        align-items: center;
-        position: absolute;
-        bottom: 0; left: 0; right: 0;
-        height: calc(92px + env(safe-area-inset-bottom, 0px));
-        padding: 0 14px calc(12px + env(safe-area-inset-bottom, 0px));
-        background: transparent;
-        z-index: 210;
-    }
-
-    body.dark .mob-ai-bar { background: transparent; }
-
-    /* Gradiente de fundido — solo en dark mode */
-    body.dark .mob-ai-bar::before {
-        content: '';
-        position: absolute;
-        left: 0; right: 0;
-        bottom: 100%;
-        height: 56px;
-        background: linear-gradient(to bottom, transparent, rgba(10,10,14,0.55));
-        pointer-events: none;
-    }
-
-
-    body.tab-cert  .mob-ai-bar,
-    body.tab-badge .mob-ai-bar,
-    body.tab-ave   .mob-ai-bar,
-    body.tab-logos .mob-ai-bar { display: none !important; }
-
-    /* ════════════════════════════
-       BOTTOM SHEET (dos estados)
-       ════════════════════════════ */
-
-    .mob-sheet {
-        display: flex;
-        flex-direction: column;
-        position: absolute;
-        bottom: env(safe-area-inset-bottom, 0px);
-        left: 0; right: 0;
-        height: 340px;
-        background: transparent;
-        border-radius: 24px 24px 0 0;
-        transform: translateY(284px);   /* 340 - 56 = el handle asoma sobre el borde inferior */
-        transition: transform 0.36s cubic-bezier(0.32, 0, 0.67, 0);
-        z-index: 200;
-        overflow: hidden;
-    }
-
-    body.mob-edit .mob-sheet { transform: translateY(0); }
-
-    body.tab-cert  .mob-sheet,
-    body.tab-badge .mob-sheet,
-    body.tab-ave   .mob-sheet,
-    body.tab-logos .mob-sheet { display: none; }
-
-    /* Handle visible cuando colapsado */
-    .mob-sheet-top {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 10px 20px 8px;
-        gap: 5px;
-        cursor: grab;
-        flex-shrink: 0;
-        height: 56px;
-        box-sizing: border-box;
-        -webkit-tap-highlight-color: transparent;
-        touch-action: none;   /* drag JS toma control total */
-        user-select: none;
-        background: var(--bg-global);
-        border-radius: 24px 24px 0 0;
-    }
-
-    .mob-sheet-bar {
-        width: 40px; height: 5px;
-        background: rgba(0,0,0,0.14);
-        border-radius: 99px;
-        flex-shrink: 0;
-    }
-
-    .mob-sheet-peek-row {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-    }
-
-    .mob-peek-chevron {
-        color: var(--text-mute);
-        flex-shrink: 0;
-        transition: transform 0.36s cubic-bezier(0.32, 0, 0.67, 0);
-    }
-
-    /* En edición la flecha apunta hacia abajo */
-    body.mob-edit .mob-peek-chevron { transform: rotate(180deg); }
-
-    .mob-sheet-peek-row span {
-        font-family: 'Inter', sans-serif;
-        font-size: 13px;
-        font-weight: 500;
-        color: var(--text-mute);
-    }
-
-    /* Cuerpo del sheet — fondo sólido solo aquí, invisible cuando colapsado */
-    .mob-sheet-body {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        padding: 0 14px 28px;
-        min-height: 0;
-        gap: 8px;
-        background: var(--bg-global);
-        box-shadow: 0 -4px 24px rgba(0,0,0,0.06);
-    }
-
-    .mob-editor-head {
-        display: flex;
-        align-items: baseline;
-        justify-content: space-between;
-        flex-shrink: 0;
-    }
-
-    .mob-editor-meta {
-        display: flex;
-        align-items: baseline;
-        gap: 8px;
-    }
-
-    .mob-editor-label {
-        font-family: 'Inter', sans-serif;
-        font-size: 11px;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.07em;
-        color: var(--text-mute);
-    }
-
-    .mob-editor-hint {
-        font-family: 'Inter', sans-serif;
-        font-size: 11px;
-        font-weight: 400;
-        color: var(--text-mute);
-        opacity: 0.6;
-    }
-
-    .mob-editor-combined {
-        font-family: 'Inter', sans-serif;
-        font-size: 11px;
-        color: var(--text-mute);
-        opacity: 0.6;
-    }
-
-    .mob-hint--warn {
-        color: #e74c3c !important;
-        opacity: 1 !important;
-        font-weight: 500;
-    }
-
-    .mob-editor-textarea {
-        flex: 1 1 auto;
-        min-height: 88px;
-        background: transparent;
-        border: none;
-        outline: none;
-        resize: none;
-        font-family: 'Sora', sans-serif;
-        font-size: 22px;
-        font-weight: 400;
-        color: var(--text-main);
-        line-height: 1.35;
-        caret-color: var(--accent-primary, #0097b5);
-        padding: 0;
-        overflow-y: auto;
-    }
-
-    .mob-editor-textarea::placeholder {
-        color: var(--text-mute);
-        opacity: 0.35;
-    }
-
-    /* ── Squircles sueltos en scroll horizontal (sin bandeja) ── */
-    .mob-grid {
-        display: flex;
-        flex-wrap: nowrap;
-        gap: 6px;                       /* distancia entre botones */
-        flex: 0 0 auto;
-        min-height: 0;
-        overflow-x: auto;
-        overflow-y: hidden;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;          /* Firefox */
-        margin: 0 -14px;                /* full-bleed ambos lados → recorta contra el borde de pantalla */
-        padding: 2px 0;
-    }
-    .mob-grid::-webkit-scrollbar { display: none; }  /* Chrome/Safari */
-
-    /* Primer botón alineado al borde del campo de chat, recorta limpio al deslizar */
-    .mob-grid-btn:first-child { margin-left: 18px; }
-
-    /* Squircle 108×108, radio 36. Icono 18px + label centrados →
-       baseline de texto ~32px sobre el borde inferior, 28px entre baselines */
-    .mob-grid-btn {
-        flex: 0 0 108px;
-        width: 108px;
-        height: 108px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 16px;                      /* separación icono↔label */
-        background: #ffffff;
-        border: 1.5px solid transparent;
-        border-radius: 36px;
-        padding: 0;
-        cursor: pointer;
-        -webkit-tap-highlight-color: transparent;
-        transition: transform 0.12s ease, opacity 0.12s ease;
-        overflow: hidden;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    }
-
-    .mob-grid-btn:active { transform: scale(0.93); opacity: 0.8; }
-
-    .mob-grid-btn svg {
-        color: rgba(0,0,0,0.6);
-        flex-shrink: 0;
-        width: 18px;
-        height: 18px;
-    }
-
-    .mob-grid-btn span {
-        font-family: 'Inter', sans-serif;
-        font-size: 16px;                /* mayúsculas ≈ 12px de alto (Inter) */
-        font-weight: 500;
-        color: rgba(0,0,0,0.62);
-        line-height: 1;
-        text-align: center;
-        max-width: 92px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    /* Bloque activo: borde sutil negro, sin colores */
-    .mob-grid-btn--sel {
-        border: 1.5px solid rgba(0,0,0,0.18);
-        background: #f6f5f3;
-        box-shadow: none;
-    }
-
-    .mob-grid-btn--sel svg  { color: rgba(0,0,0,0.78); }
-    .mob-grid-btn--sel span { color: rgba(0,0,0,0.85); font-weight: 600; }
-
-    /* Sub-label en tarjetas con estado (Formato) — compacto: solo label */
-    .mob-card-foot {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 1px;
-    }
-
-    /* Estado oculto en layout compacto de 6 botones */
-    .mob-card-state { display: none; }
-
-    /* Descargar: invertido */
-    .mob-grid-btn--dl {
-        background: #1a1a1a;
-        border-color: transparent;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.18);
-    }
-
-    .mob-grid-btn--dl svg  { color: rgba(255,255,255,0.85); }
-    .mob-grid-btn--dl span { color: rgba(255,255,255,0.8); }
-
-    .mob-ai-pill {
-        display: flex;
-        align-items: center;
-        flex: 1;
-        background: rgba(255, 255, 255, 0.78);
-        backdrop-filter: blur(28px) saturate(1.8);
-        -webkit-backdrop-filter: blur(28px) saturate(1.8);
-        border-radius: 99px;
-        padding: 0 14px 0 18px;
-        height: 68px;
-        gap: 8px;
-        border: 1px solid rgba(0,0,0,0.07);
-        box-shadow:
-            0 4px 24px rgba(0,0,0,0.08),
-            0 1px 4px rgba(0,0,0,0.05),
-            inset 0 1px 0 rgba(255,255,255,0.95);
-    }
-
-    .mob-ai-input {
-        flex: 1;
-        background: transparent;
-        border: none;
-        outline: none;
-        font-family: 'Inter', sans-serif;
-        font-size: 15px;
-        font-weight: 400;
-        letter-spacing: -0.01em;
-        color: rgba(0,0,0,0.82);
-        caret-color: var(--accent-primary, #0097b5);
-        padding: 0;
-    }
-
-    .mob-ai-input::placeholder {
-        color: rgba(0,0,0,0.32);
-        font-weight: 400;
-    }
-
-    .mob-ai-send {
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        background: rgba(0,0,0,0.82);
-        border: none;
-        color: rgba(255,255,255,0.95);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        flex-shrink: 0;
-        -webkit-tap-highlight-color: transparent;
-        transition: transform 0.12s ease, opacity 0.12s ease, background 0.12s ease;
-    }
-
-    .mob-ai-send:active {
-        transform: scale(0.88);
-        opacity: 0.80;
-    }
-
-    body.dark .mob-ai-pill {
-        background: rgba(18, 18, 24, 0.90);
-        border-color: rgba(255,255,255,0.11);
-        box-shadow:
-            0 8px 32px rgba(0,0,0,0.22),
-            0 2px 8px rgba(0,0,0,0.12),
-            inset 0 1px 0 rgba(255,255,255,0.07);
-    }
-
-    body.dark .mob-ai-input {
-        color: rgba(255,255,255,0.90);
-        caret-color: rgba(255,255,255,0.90);
-    }
-
-    body.dark .mob-ai-input::placeholder {
-        color: rgba(255,255,255,0.38);
-    }
-
-    body.dark .mob-ai-send {
-        background: rgba(255,255,255,0.92);
-        color: rgba(0,0,0,0.82);
-    }
-
-    /* ════════════════════════════
-       DARK MODE — overrides mobile
-       ════════════════════════════ */
-    body.dark .mob-sheet-bar {
-        background: rgba(255,255,255,0.14);
-    }
-
-    body.dark .mob-grid-btn {
-        background: rgba(255,255,255,0.08);
-        border-color: transparent;
-        box-shadow: none;
-    }
-
-    body.dark .mob-grid-btn svg  { color: rgba(255,255,255,0.5); }
-    body.dark .mob-grid-btn span { color: rgba(255,255,255,0.55); }
-
-    body.dark .mob-grid-btn--sel {
-        background: rgba(255,255,255,0.1);
-        border-color: rgba(255,255,255,0.2);
-    }
-
-    body.dark .mob-grid-btn--sel svg  { color: rgba(255,255,255,0.9); }
-    body.dark .mob-grid-btn--sel span { color: rgba(255,255,255,0.95); font-weight: 600; }
-
-    body.dark .mob-card-state { color: rgba(255,255,255,0.3); }
-
-    body.dark .mob-editor-textarea {
-        color: rgba(255,255,255,0.88);
-    }
-
-    body.dark .mob-editor-textarea::placeholder {
-        color: rgba(255,255,255,0.2);
-    }
-
-    /* ════════════════════════════
-       STYLE BOTTOM SHEET
-       ════════════════════════════ */
-    .mob-style-backdrop {
-        display: block;
-        position: fixed;
-        inset: 0;
-        background: transparent;
-        z-index: 799;
-        pointer-events: none;
-        transition: background 0.28s ease;
-    }
-
-    .mob-style-backdrop.mob-sheet--open {
-        background: rgba(0,0,0,0.28);
-        pointer-events: auto;
-    }
-
-    .mob-style-sheet {
-        display: flex;
-        flex-direction: column;
-        position: fixed;
-        bottom: 0; left: 0; right: 0;
-        background: var(--bg-global);
-        border-radius: 24px 24px 0 0;
-        padding: 12px 20px calc(24px + env(safe-area-inset-bottom, 0px));
-        z-index: 800;
-        transform: translateY(100%);
-        transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
-        gap: 20px;
-    }
-
-    .mob-style-sheet.mob-sheet--open { transform: translateY(0); }
-
-    .mob-sheet-handle {
-        width: 36px; height: 4px;
-        background: rgba(0,0,0,0.12);
-        border-radius: 99px;
-        align-self: center;
-        margin-bottom: 4px;
-    }
-
-    .mob-sheet-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 16px;
-    }
-
-    .mob-sheet-label {
-        font-family: 'Inter', sans-serif;
-        font-size: 14px;
-        font-weight: 500;
-        color: var(--text-mute);
-        min-width: 80px;
-        flex-shrink: 0;
-    }
-
-    .mob-color-row {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-    }
-
-    .mob-color-dot {
-        width: 30px; height: 30px;
-        border-radius: 50%;
-        border: 2.5px solid transparent;
-        cursor: pointer;
-        padding: 0;
-        transition: border-color 0.15s ease, transform 0.1s ease;
-        flex-shrink: 0;
-    }
-
-    .mob-color-dot.active {
-        border-color: rgba(0,0,0,0.5);
-        transform: scale(1.12);
-    }
-
-    .mob-program-sel {
-        flex: 1;
-        background: #f2f1ef;
-        border: none;
-        border-radius: 10px;
-        padding: 10px 12px;
-        font-family: 'Inter', sans-serif;
-        font-size: 14px;
-        color: var(--text-main);
-        -webkit-appearance: none;
-        appearance: none;
-        cursor: pointer;
-    }
-
-    .mob-format-row { display: flex; gap: 8px; }
-
-    .mob-format-btn {
-        flex: 1;
-        padding: 10px 0;
-        border-radius: 12px;
-        border: 1px solid rgba(0,0,0,0.1);
-        background: transparent;
-        font-family: 'Inter', sans-serif;
-        font-size: 13px;
-        font-weight: 500;
-        color: var(--text-mute);
-        cursor: pointer;
-        transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
-        text-align: center;
-    }
-
-    .mob-format-btn.active {
-        background: #1a1a1a;
-        color: #fff;
-        border-color: transparent;
-    }
-
-    .mob-sheet-done {
-        background: #1a1a1a;
-        color: #fff;
-        border: none;
-        border-radius: 14px;
-        padding: 15px;
-        font-family: 'Inter', sans-serif;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: pointer;
-        letter-spacing: -0.01em;
-        transition: opacity 0.15s ease;
-    }
-
-    .mob-sheet-done:active { opacity: 0.75; }
-
-    /* ════════════════════════════
-       EXPORT BOTTOM SHEET
-       ════════════════════════════ */
-    .mob-export-backdrop {
-        display: block;
-        position: fixed;
-        inset: 0;
-        background: transparent;
-        z-index: 799;
-        pointer-events: none;
-        transition: background 0.28s ease;
-    }
-
-    .mob-export-backdrop.mob-export--open {
-        background: rgba(0,0,0,0.28);
-        pointer-events: auto;
-    }
-
-    .mob-export-sheet {
-        display: flex;
-        flex-direction: column;
-        position: fixed;
-        bottom: 0; left: 0; right: 0;
-        background: var(--bg-global);
-        border-radius: 24px 24px 0 0;
-        padding: 12px 20px calc(24px + env(safe-area-inset-bottom, 0px));
-        z-index: 800;
-        transform: translateY(100%);
-        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .mob-export-sheet.mob-export--open { transform: translateY(0); }
-
-    .mob-export-handle {
-        width: 36px; height: 4px;
-        background: rgba(0,0,0,0.12);
-        border-radius: 99px;
-        align-self: center;
-        margin-bottom: 20px;
-    }
-
-    .mob-export-head { margin-bottom: 20px; }
-
-    .mob-export-title {
-        display: block;
-        font-family: 'Inter', sans-serif;
-        font-size: 18px;
-        font-weight: 600;
-        color: #0d0d0d;
-        letter-spacing: -0.02em;
-        margin-bottom: 4px;
-    }
-
-    .mob-export-desc {
-        font-family: 'Inter', sans-serif;
-        font-size: 14px;
-        font-weight: 400;
-        color: rgba(0,0,0,0.45);
-        margin: 0;
-        line-height: 1.4;
-    }
-
-    .mob-export-options {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        margin-bottom: 20px;
-    }
-
-    .mob-export-option {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        background: #f7f6f4;
-        border: 1.5px solid transparent;
-        border-radius: 16px;
-        padding: 14px 16px;
-        cursor: pointer;
-        -webkit-tap-highlight-color: transparent;
-        transition: background 0.15s ease, border-color 0.15s ease;
-        width: 100%;
-        text-align: left;
-    }
-
-    .mob-export-option--on {
-        background: #f0efec;
-        border-color: rgba(0,0,0,0.12);
-    }
-
-    .mob-export-option:active { opacity: 0.75; }
-
-    .mob-export-opt-info {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-    }
-
-    .mob-export-opt-name {
-        font-family: 'Inter', sans-serif;
-        font-size: 15px;
-        font-weight: 500;
-        color: #0d0d0d;
-        letter-spacing: -0.01em;
-    }
-
-    .mob-export-opt-ratio {
-        font-family: 'Inter', sans-serif;
-        font-size: 12px;
-        font-weight: 400;
-        color: rgba(0,0,0,0.4);
-    }
-
-    .mob-export-check {
-        width: 22px; height: 22px;
-        border-radius: 50%;
-        border: 1.5px solid rgba(0,0,0,0.15);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: transparent;
-        transition: background 0.15s ease, border-color 0.15s ease;
-        flex-shrink: 0;
-        color: transparent;
-    }
-
-    .mob-export-option--on .mob-export-check {
-        background: #0d0d0d;
-        border-color: #0d0d0d;
-        color: #ffffff;
-    }
-
-    .mob-export-confirm {
-        background: #0d0d0d;
-        color: #ffffff;
-        border: none;
-        border-radius: 14px;
-        padding: 15px;
-        font-family: 'Inter', sans-serif;
-        font-size: 16px;
-        font-weight: 600;
-        letter-spacing: -0.01em;
-        cursor: pointer;
-        -webkit-tap-highlight-color: transparent;
-        transition: opacity 0.12s ease;
-        width: 100%;
-        margin-bottom: 8px;
-    }
-
-    .mob-export-confirm:active { opacity: 0.75; }
-
-    .mob-export-cancel {
-        background: transparent;
-        color: rgba(0,0,0,0.5);
-        border: none;
-        padding: 12px;
-        font-family: 'Inter', sans-serif;
-        font-size: 15px;
-        font-weight: 400;
-        cursor: pointer;
-        -webkit-tap-highlight-color: transparent;
-        transition: opacity 0.12s ease;
-        width: 100%;
-        text-align: center;
-    }
-
-    .mob-export-cancel:active { opacity: 0.5; }
-
-    /* ════════════════════════════
-       DESKTOP-ONLY MESSAGE
-       ════════════════════════════ */
-    .mob-desktop-only {
-        position: absolute;
-        inset: 0;
-        display: none;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        background: var(--bg-global);
-        z-index: 200;
-        padding: 40px;
-        text-align: center;
-        gap: 0;
-    }
-
-    .mob-desktop-only p {
-        font-family: 'Inter', sans-serif;
-        font-size: 15px;
-        font-weight: 400;
-        color: var(--text-mute);
-        line-height: 1.5;
-    }
-
-    body.tab-cert  .mob-desktop-only,
-    body.tab-badge .mob-desktop-only,
-    body.tab-ave   .mob-desktop-only,
-    body.tab-logos .mob-desktop-only { display: flex; }
-
-    /* ════════════════════════════
-       POSTER STACK FRAME + GHOSTS
-       ════════════════════════════ */
-    .poster-stack-frame {
-        position: relative;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    /* Mobile poster: larger radius to match the reference stack style */
-    .poster { border-radius: 24px !important; }
-
-    .mob-ghost {
-        position: absolute;
-        inset: 0;
-        border-radius: 24px;
-        pointer-events: none;
-        background: rgba(155,150,150,0.32);
-        box-shadow: 0 8px 24px rgba(0,0,0,0.18);
-        transition: opacity 0.3s ease;
-    }
-
-    body.mob-mini .mob-ghost.visible {
-        display: block !important;
-    }
-
-    #mobGhost1 {
-        transform: translateY(-22px) scale(0.92);
-        z-index: -1;
-        background: rgba(135,130,130,0.28);
-    }
-
-    #mobGhost2 {
-        transform: translateY(-44px) scale(0.84);
-        z-index: -2;
-        background: rgba(100,96,96,0.20);
-    }
-
-    body.dark .mob-ghost  { background: rgba(75,72,85,0.55); box-shadow: 0 8px 24px rgba(0,0,0,0.35); }
-    body.dark #mobGhost1  { background: rgba(58,55,68,0.46); }
-    body.dark #mobGhost2  { background: rgba(42,39,52,0.34); }
-
-    /* ════════════════════════════
-       SIDE CARDS — adjacent design thumbnails (mini carousel)
-       ════════════════════════════ */
-    .mob-scard {
-        display: block !important;  /* override desktop-hide */
-        position: absolute;
-        left: 50%;
-        top: 0;
-        z-index: 5;
-        box-sizing: border-box;
-        border-radius: 20px;
-        overflow: hidden;
-        background: #f5f4f2;
-        box-shadow: 0 8px 28px rgba(0,0,0,0.16), 0 2px 6px rgba(0,0,0,0.08);
-        transition: transform 0.42s cubic-bezier(0.34, 1.20, 0.64, 1),
-                    opacity   0.38s ease;
-        will-change: transform, opacity;
-        cursor: pointer;
-        -webkit-tap-highlight-color: transparent;
-        opacity: 0;
-        pointer-events: none;
-    }
-
-    body.dark .mob-scard {
-        background: #1c1c1f;
-        box-shadow: 0 8px 28px rgba(0,0,0,0.42);
-    }
-
-    .mob-sc-bg {
-        position: absolute;
-        inset: 0;
-        background-size: cover;
-        background-position: center;
-    }
-
-    .mob-sc-overlay {
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(to top,
-            rgba(0,0,0,0.55) 0%,
-            rgba(0,0,0,0.10) 40%,
-            transparent 65%);
-        pointer-events: none;
-    }
-
-    .mob-sc-text {
-        position: absolute;
-        bottom: 10px;
-        left: 10px;
-        right: 10px;
-        pointer-events: none;
-    }
-
-    .mob-sc-title {
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-        font-family: 'Inter', sans-serif;
-        font-size: 10px;
-        font-weight: 600;
-        color: #ffffff;
-        line-height: 1.35;
-        text-shadow: 0 1px 4px rgba(0,0,0,0.5);
-    }
-
-    /* ════════════════════════════
-       DESIGN CONTROLS — floating circle buttons
-       ════════════════════════════ */
-    .mob-design-ctrl {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 10px;
-        position: absolute;
-        bottom: 54px;
-        right: 15px;
-        z-index: 50;
-        background: none;
-        border: none;
-        padding: 0;
-    }
-
-    body.tab-cert  .mob-design-ctrl,
-    body.tab-badge .mob-design-ctrl,
-    body.tab-ave   .mob-design-ctrl,
-    body.tab-logos .mob-design-ctrl,
-    body.mob-ai-focus .mob-design-ctrl { display: none !important; }
-
-    body.mob-ai-focus .mob-dots   { display: none !important; }
-    body.mob-ai-focus .mob-sheet  { opacity: 0; pointer-events: none; }
-
-    .mob-dcbtn {
-        width: 48px;
-        height: 48px;
-        border-radius: 50%;
-        background: rgba(255,255,255,0.10);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border: 2px solid rgba(255,255,255,0.30);
-        box-shadow: 0 2px 12px rgba(0,0,0,0.18);
-        color: rgba(255,255,255,0.92);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        flex-shrink: 0;
-        -webkit-tap-highlight-color: transparent;
-        transition: background 0.12s ease, transform 0.12s ease, border-color 0.12s ease;
-    }
-
-    .mob-dcbtn:active {
-        background: rgba(255,255,255,0.22);
-        border-color: rgba(255,255,255,0.55);
-        transform: scale(0.88);
-    }
-
-    .mob-dc-count {
-        font-family: 'Inter', sans-serif;
-        font-size: 11px;
-        font-weight: 600;
-        color: rgba(255,255,255,0.85);
-        text-shadow: 0 1px 4px rgba(0,0,0,0.40);
-        letter-spacing: 0.03em;
-        line-height: 1;
-        user-select: none;
-        min-width: 26px;
-        text-align: center;
-    }
-
-    /* ── Carousel dots ── */
-    .mob-dots {
-        display: none;
-        flex-direction: row;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-        position: absolute;
-        bottom: 18px;   /* 18px del borde del poster en preview 100% */
-        left: 0;
-        right: 0;
-        z-index: 49;
-        pointer-events: none;
-    }
-
-    /* En edit el canvas tiene padding: 8px → poster bottom a 8px del canvas → 18+8=26 para misma distancia visual */
-    body.mob-edit .mob-dots {
-        bottom: 26px;
-    }
-
-    .mob-dot {
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        background: rgba(255,255,255,0.40);
-        transition: background 0.2s ease, transform 0.2s ease;
-    }
-
-    .mob-dot--active {
-        background: rgba(255,255,255,0.92);
-        transform: scale(1.25);
-    }
-
-} /* end @media ≤640px */
