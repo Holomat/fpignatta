@@ -77,9 +77,8 @@
     /* WORK: carrusel en ventana flotante (100% opacidad) */
     .carousel { width: min(42vw, 360px); }
     .carousel.inline { width: 100%; margin: 10px 0 4px; touch-action: pan-y; }   /* mobile: inline + swipe */
-    .carousel-stage { width: 100%; line-height: 0; cursor: pointer; }
-    .carousel-stage img   { display: block; width: 100%; height: auto; border-radius: 24px; }
-    .carousel-stage video { display: block; width: 100%; aspect-ratio: 4 / 5; object-fit: cover; border-radius: 24px; }
+    .carousel-stage { width: 100%; line-height: 0; cursor: pointer; overflow: hidden; border-radius: 24px; aspect-ratio: 1 / 1; }
+    .carousel-stage img, .carousel-stage video { display: block; width: 100%; height: 100%; object-fit: cover; }
     .carousel-meta { color: var(--muted); margin-top: 6px; line-height: 1.45; }
     .carousel-dots { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-top: 8px; }
     .cdot { width: 5px; height: 5px; border-radius: 50%; background: var(--text); opacity: 0.22; cursor: pointer; transition: opacity 0.15s ease, background 0.15s ease; }
@@ -1350,9 +1349,11 @@
   }
 
   // construye el carrusel (sin presentación): stage + meta, auto-avance, click y swipe
-  function buildCarousel(category, files, fmt) {
+  function buildCarousel(category, files, fmt, ratio) {
     var wrap = document.createElement('div'); wrap.className = 'carousel' + (fmt ? ' fmt-' + fmt : '');
     var stage = document.createElement('div'); stage.className = 'carousel-stage';
+    // frame de alto fijo (no colapsa entre imágenes); video siempre 4/5
+    stage.style.aspectRatio = String(/\.mp4$/i.test(files[0]) ? 0.8 : (ratio || 1));
     var meta = document.createElement('div'); meta.className = 'carousel-meta';
     var dots = document.createElement('div'); dots.className = 'carousel-dots';
     var idx = 0, timer = null, dotEls = [];
@@ -1408,15 +1409,18 @@
     return ref;
   }
 
-  // mide el aspecto de cada media y agrupa por formato: cuadrado / vertical / rectangular
+  // mide el aspecto de cada media y agrupa por formato: cuadrado / vertical / rectangular (+ ratio del grupo)
   function groupByFormat(files, done) {
-    var fmts = new Array(files.length), pending = files.length;
+    var rs = new Array(files.length), pending = files.length;
     function classify(i, w, h) {
-      var r = (h > 0) ? w / h : 1;
-      fmts[i] = r < 0.85 ? 'vertical' : (r > 1.18 ? 'horizontal' : 'square');
+      rs[i] = (h > 0) ? w / h : 1;
       if (--pending === 0) {
-        var g = { square: [], vertical: [], horizontal: [] };
-        files.forEach(function (f, j) { g[fmts[j]].push(f); });
+        var g = { square: { files: [], ratio: 1 }, vertical: { files: [], ratio: 0.5625 }, horizontal: { files: [], ratio: 1.6 } };
+        files.forEach(function (f, j) {
+          var r = rs[j], fmt = r < 0.85 ? 'vertical' : (r > 1.18 ? 'horizontal' : 'square');
+          if (!g[fmt].files.length) g[fmt].ratio = r;   // ratio representativo (1er ítem del grupo)
+          g[fmt].files.push(f);
+        });
         done(g);
       }
     }
@@ -1460,8 +1464,8 @@
         if (openGalleries[key] !== items) return;      // se cerró antes de terminar de medir
         var anchor = row;
         ['square', 'vertical', 'horizontal'].forEach(function (fmt) {
-          var list = groups[fmt]; if (!list.length) return;
-          var c = buildCarousel(key, list, fmt);
+          var list = groups[fmt].files; if (!list.length) return;
+          var c = buildCarousel(key, list, fmt, groups[fmt].ratio);
           if (mobile) {
             c.wrap.classList.add('inline');
             anchor.insertAdjacentElement('afterend', c.wrap);
