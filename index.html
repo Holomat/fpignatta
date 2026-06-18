@@ -155,19 +155,23 @@
     .seq-cell.cue::before { background: var(--accent); opacity: 0.6; }     /* playhead */
     .seq-cell.cue.on::after { background: var(--accent); }
     .seq-cell.on::before { opacity: 0; }   /* el hueco central muestra el fondo (calado) */
-    .seq-transport { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+    .seq-transport { display: flex; align-items: stretch; gap: 6px; margin-bottom: 14px; }
+    .seq-transport > .seq-btn, .seq-transport > .seq-bpm { flex: 1; }   /* ocupan el ancho de la sección (como música) */
     .seq-btn {   /* botón con trazo (outline); tipografía del resto de la web */
       font-family: var(--font); font-size: inherit; line-height: 1;
       background: none; color: var(--text); cursor: pointer;
       border: 1.3px solid color-mix(in srgb, var(--text) 40%, transparent);   /* mismo grosor que el trazo de los [ ] */
-      border-radius: 6px; padding: 3px 14px;
+      border-radius: 6px; padding: 4px 6px; text-align: center;
     }
     .seq-btn:hover { border-color: var(--text); }
     .seq-btn.on { color: var(--accent); border-color: var(--accent); }
-    .seq-bpm { display: inline-flex; align-items: center; gap: 8px; }
+    .seq-bpm {   /* BPM en un rectángulo, como los botones */
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      border: 1.3px solid color-mix(in srgb, var(--text) 40%, transparent); border-radius: 6px; padding: 4px 6px;
+    }
     .seq-bpm .seq-btn { border: none; padding: 0; }   /* flechas de BPM: glifos, sin recuadro */
     .seq-bpm .seq-btn:hover { color: var(--accent); }
-    .seq-bpm-val { color: var(--text); min-width: 7ch; }
+    .seq-bpm-val { color: var(--text); }
 
 
     .col-label { white-space: nowrap; }
@@ -1782,7 +1786,7 @@
       decays.snare = 0.1 + Math.random() * 0.12;
       decays.tom = 0.32 + Math.random() * 0.22;   // rumble más largo
       bpm = 128 + Math.floor(Math.random() * 8); SEQ909.bpm = bpm;
-      if (bpmVal) bpmVal.textContent = bpm + ' bpm';
+      if (bpmVal) bpmVal.textContent = bpm;
       renderGrid();
     }
 
@@ -1834,10 +1838,10 @@
       // control de BPM (después de FX)
       var bpmWrap = document.createElement('span'); bpmWrap.className = 'seq-bpm';
       var bpmDown = document.createElement('button'); bpmDown.className = 'seq-btn'; bpmDown.textContent = '‹';
-      bpmVal = document.createElement('span'); bpmVal.className = 'seq-bpm-val'; bpmVal.textContent = bpm + ' bpm';
+      bpmVal = document.createElement('span'); bpmVal.className = 'seq-bpm-val'; bpmVal.textContent = bpm;
       var bpmUp = document.createElement('button'); bpmUp.className = 'seq-btn'; bpmUp.textContent = '›';
-      bpmDown.addEventListener('click', function () { bpm = Math.max(70, bpm - 2); SEQ909.bpm = bpm; bpmVal.textContent = bpm + ' bpm'; });
-      bpmUp.addEventListener('click', function () { bpm = Math.min(190, bpm + 2); SEQ909.bpm = bpm; bpmVal.textContent = bpm + ' bpm'; });
+      bpmDown.addEventListener('click', function () { bpm = Math.max(70, bpm - 2); SEQ909.bpm = bpm; bpmVal.textContent = bpm; });
+      bpmUp.addEventListener('click', function () { bpm = Math.min(190, bpm + 2); SEQ909.bpm = bpm; bpmVal.textContent = bpm; });
       bpmWrap.appendChild(bpmDown); bpmWrap.appendChild(bpmVal); bpmWrap.appendChild(bpmUp);
       tr.appendChild(bpmWrap);
       seq.appendChild(tr);      // transporte arriba
