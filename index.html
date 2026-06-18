@@ -1401,7 +1401,7 @@
       for (var k = 0; k < dotEls.length; k++) dotEls[k].classList.toggle('on', k === idx);   // punto activo
       if (files.length < 2) return;                       // un solo medio: queda fijo (video loopea)
       if (isVideo) el.onended = function () { go(1); };   // video: se ve completo, luego avanza
-      else timer = setTimeout(function () { go(1); }, isGif ? 2800 : 700);  // gif: completo · foto: 0.7s
+      else timer = setTimeout(function () { go(1); }, isGif ? 2800 : 1000);  // gif: completo · foto: 1s
     }
     render();
     stage.addEventListener('click', function () { go(1); });
@@ -1434,8 +1434,9 @@
 
   // mide el aspecto de cada media y agrupa por formato: cuadrado / vertical / rectangular (+ ratio del grupo)
   function groupByFormat(files, done) {
-    var rs = new Array(files.length), pending = files.length;
+    var rs = new Array(files.length), pending = files.length, settled = new Array(files.length);
     function classify(i, w, h) {
+      if (settled[i]) return; settled[i] = true;
       rs[i] = (h > 0) ? w / h : 1;
       if (--pending === 0) {
         var g = { square: { files: [], ratio: 1 }, vertical: { files: [], ratio: 0.5625 }, horizontal: { files: [], ratio: 1.6 } };
@@ -1448,18 +1449,12 @@
       }
     }
     files.forEach(function (f, i) {
-      var src = ASSET + f;
-      if (/\.mp4$/i.test(f)) {
-        var v = document.createElement('video'); v.preload = 'metadata'; v.muted = true;
-        v.onloadedmetadata = function () { classify(i, v.videoWidth, v.videoHeight); };
-        v.onerror = function () { classify(i, 1, 1); };
-        v.src = src;
-      } else {
-        var im = new Image();
-        im.onload = function () { classify(i, im.naturalWidth, im.naturalHeight); };
-        im.onerror = function () { classify(i, 1, 1); };
-        im.src = src;
-      }
+      if (/\.mp4$/i.test(f)) { classify(i, 9, 16); return; }   // video → vertical (se muestra 4/5), sin depender de la carga
+      var im = new Image();
+      im.onload = function () { classify(i, im.naturalWidth, im.naturalHeight); };
+      im.onerror = function () { classify(i, 1, 1); };
+      im.src = ASSET + f;
+      setTimeout(function () { classify(i, 1, 1); }, 4000);   // respaldo si la imagen no carga
     });
   }
 
@@ -1511,6 +1506,7 @@
   // hook del 303 al bloque 909+303: la fila de la 909 abre/cierra y su play arranca/para el 303
   var BASS303 = { active: false, start: null, stop: null, open: null, close: null, applyMute: null };
   var MUTE_ALL = { on: false };   // mute global del bloque 909+303
+  var MUSIC = { playing: false, stop: null };   // reproductor de música (exclusión con 909+303)
 
   // ===== 909: secuenciador TR-909 (Web Audio) inline =====
   (function () {
@@ -1679,6 +1675,7 @@
       requestAnimationFrame(drawHead);
     }
     function startSeq() {
+      if (MUSIC.stop) MUSIC.stop();   // exclusión: si suena 909+303, para la música
       playing = true; SEQ909.on = true; current = 0; shownStep = -1;
       nextTime = ctx.currentTime + 0.06; startTime = nextTime;
       SEQ909.startTime = startTime;
@@ -1703,6 +1700,7 @@
       if (playBtn) playBtn.textContent = 'play';
       if (BASS303.stop) BASS303.stop();   // un solo play: para también el 303
     }
+    SEQ909.stop = stop;   // expuesto para la exclusión con música
     function setFx(on) {
       fxOn = on;
       if (!audioReady) return;
@@ -2177,8 +2175,17 @@
       for (var b = 0; b < 2; b++) { var tgt = 0.2 + 0.7 * Math.random(); vuLvl[b] += (tgt - vuLvl[b]) * 0.3; paintVU(b, vuLvl[b]); }   // VU simulado
       raf = requestAnimationFrame(frame);
     }
-    function play() { playing = true; lastTs = 0; if (playBtn) playBtn.textContent = 'stop'; raf = requestAnimationFrame(frame); }
-    function stop() { playing = false; if (raf) cancelAnimationFrame(raf); raf = null; if (playBtn) playBtn.textContent = 'play'; vuLvl = [0, 0]; paintVU(0, 0); paintVU(1, 0); }
+    function play() {
+      if (SEQ909.on && SEQ909.stop) SEQ909.stop();   // exclusión: si suena 909+303, lo para
+      playing = true; MUSIC.playing = true; lastTs = 0;
+      if (playBtn) playBtn.textContent = 'stop'; raf = requestAnimationFrame(frame);
+    }
+    function stop() {
+      playing = false; MUSIC.playing = false;
+      if (raf) cancelAnimationFrame(raf); raf = null;
+      if (playBtn) playBtn.textContent = 'play'; vuLvl = [0, 0]; paintVU(0, 0); paintVU(1, 0);
+    }
+    MUSIC.stop = stop;   // expuesto para la exclusión con 909+303
     function setVol(d) { volume = Math.max(0, Math.min(1, volume + d * 0.1)); }   // listo para enchufar audio
     function rewind() { elapsed = 0; if (timeEl) timeEl.textContent = '00:00'; }
     function prev() { rewind(); }
