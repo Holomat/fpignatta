@@ -152,6 +152,7 @@
       margin-bottom: var(--row);
     }
     .brand-mark__star { font-variant-emoji: text; }   /* fuerza el ✳ como texto, no emoji (mobile) */
+    .mail-ico { font-variant-emoji: text; }            /* ✉ lineal, no emoji de iphone */
 
     .col-head {
       color: var(--text);
@@ -477,14 +478,11 @@
     <div class="col" data-cat>
       <div class="col-head cat-toggle" data-target="g-info"><span class="cat-mark">[<span class="mark">+</span>]</span> Info</div>
       <div class="group collapsed" id="g-info">
-        <p class="bio">Federico Pignatta investiga y desarrolla sistemas visuales y digitales en la intersección entre inteligencia artificial, comunicación y diseño.</p>
-        <p class="bio">Su práctica se apoya en más de 15 años de experiencia en diseño visual e identidad institucional, con especial foco en proyectos vinculados a educación y cultura.</p>
-        <p class="bio">Actualmente trabaja con agentes de IA, automatización y pensamiento de sistemas para explorar nuevas formas de crear interfaces, herramientas, procesos y lenguajes visuales.</p>
-        <p class="bio">Su práctica combina criterio visual, pensamiento de producto y capacidad técnica para llevar ideas a sistemas concretos.</p>
-        <p class="bio">Actualmente desarrolla su tesis de grado en Artes. En paralelo, explora la producción de música electrónica como campo de experimentación sonora y creativa.</p>
+        <p class="bio">Federico Pignatta es diseñador multidisciplinar. Trabaja entre diseño gráfico, producto y tecnologías emergentes, creando productos, interfaces y sistemas visuales.</p>
+        <p class="bio">Actualmente desarrolla su tesis de grado en Artes y explora la producción de música electrónica con hardware como campo de experimentación sonora y creativa.</p>
 
         <div class="cv-section">
-          <div class="cv-head">✉ Contacto para colaboraciones y trabajos por encargo</div>
+          <div class="cv-head"><span class="mail-ico">✉&#xFE0E;</span> Contacto para colaboraciones y trabajos por encargo</div>
           <div class="cv-item"><a class="cv-link" href="mailto:hola@pignatta.info">→ hola@pignatta.info</a></div>
         </div>
 
@@ -1260,7 +1258,7 @@
 
   // ===== MODO: gradiente + selector ‹ ›; apagado = pantalla negra =====
   var MODO_VARIANTS = 10, mv = 0, modoOn = true, modoActive = 0;
-  var MODO_NAMES = ['japonés', 'grafito', 'violeta', 'pizarra', 'lavanda', 'tierra', 'lima', 'salvia', 'petróleo', 'oliva'];
+  var MODO_NAMES = ['atmósfera', 'grafito', 'violeta', 'pizarra', 'lavanda', 'tierra', 'lima', 'salvia', 'petróleo', 'oliva'];
   var modoLayers = [document.getElementById('modoA'), document.getElementById('modoB')];
   var modoName = document.getElementById('modoName');
   var rowModo = document.getElementById('rowModo');
