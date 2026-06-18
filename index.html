@@ -73,6 +73,14 @@
       position: relative;
       z-index: 2;                 /* por encima del gradiente de Modo */
     }
+    /* desktop: la tipografía siempre arriba; las ventanas flotantes quedan detrás.
+       grid pasa los clicks (pointer-events:none) y se re-habilitan solo los elementos interactivos */
+    @media (min-width: 769px) {
+      .grid { z-index: 1000; pointer-events: none; }
+      .grid .cat-toggle, .grid .tag-row, .grid .sys-row,
+      .grid .cv-head, .grid .cv-item, .grid .cv-line,
+      .grid a, .grid button { pointer-events: auto; }
+    }
 
     /* WORK: carrusel en ventana flotante (100% opacidad) */
     .carousel { width: min(42vw, 360px); }
