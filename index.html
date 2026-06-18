@@ -92,18 +92,19 @@
     /* reproductor de carretes (terminal/lofi) */
     .music { margin-top: 12px; }
     .music[hidden] { display: none; }
-    .music-time { text-align: center; color: var(--text); margin-bottom: 6px; }   /* timecode = tipografía web, sin jerarquía */
     .tape-svg { display: block; width: 100%; max-width: 420px; height: auto; margin: 0 auto 12px; }
     .tape-ring { fill: none; stroke: var(--text); stroke-width: 1.3; }
     .tape-hub  { fill: none; stroke: var(--text); stroke-width: 1.3; }
     .tape-spoke { stroke: var(--text); stroke-width: 1.3; }
     .tape-dot  { fill: var(--text); }
-    .tape-belt { stroke: var(--text); stroke-width: 1.3; }     /* cinta: línea recta entre carretes */
+    .tape-belt { stroke: var(--text); stroke-width: 1.3; }     /* cinta: línea recta en el baseline de los carretes */
     .tape-tick { stroke: color-mix(in srgb, var(--text) 45%, transparent); stroke-width: 1.5; }
     .tape-tick.on { stroke: var(--accent); }
-    .music-transport { display: flex; gap: 8px; margin-top: 4px; }
-    .music-transport .seq-btn { flex: 1; }     /* play/atrás/adelante ocupan el ancho */
-    .music-track { color: var(--muted); margin-top: 6px; text-align: center; }
+    .tape-time { fill: var(--text); font-family: var(--font); font-size: 13px; font-weight: 600; }   /* tipografía web, sin jerarquía */
+    .music-transport { display: flex; gap: 8px; margin-top: 6px; }
+    .music-transport .seq-btn { flex: 1; }     /* botones ocupan el ancho de la sección */
+    .music-list { margin-top: 14px; }
+    .music-list .cv-item { color: var(--muted); }
     .scope-grid { fill: none; stroke: color-mix(in srgb, var(--text) 12%, transparent); stroke-width: 1; vector-effect: non-scaling-stroke; }
     .scope-wave { fill: none; stroke: color-mix(in srgb, var(--text) 85%, transparent); stroke-width: 0.4; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
     .seq909 { margin-top: 10px; }
@@ -222,13 +223,14 @@
     /* MATERIAL: ░ ilumina el renglón al hover — 1 fila = alto de la tipografía (1:1) */
     .cv-line { display: block; width: fit-content; max-width: 100%; }
     #g-info .cv-head, #g-info .cv-item, #g-info .cv-line,
-    #g-work .tag-row, #g-system .sys-row, #g-sound .sys-row { position: relative; isolation: isolate; }
+    #g-work .tag-row, #g-system .sys-row, #g-sound .sys-row, #g-sound .cv-item { position: relative; isolation: isolate; }
     #g-info .cv-head::before,
     #g-info .cv-item::before,
     #g-info .cv-line::before,
     #g-work .tag-row::before,
     #g-system .sys-row::before,
-    #g-sound .sys-row::before {
+    #g-sound .sys-row::before,
+    #g-sound .cv-item::before {
       content: "░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░";
       position: absolute;
       inset: 0;
@@ -249,7 +251,8 @@
     #g-info .cv-line:hover::before,
     #g-work .tag-row:hover::before,
     #g-system .sys-row:hover::before,
-    #g-sound .sys-row:hover::before { opacity: 0.5; }
+    #g-sound .sys-row:hover::before,
+    #g-sound .cv-item:hover::before { opacity: 0.5; }
 
     .clock { font-variant-numeric: tabular-nums; }
 
@@ -2082,10 +2085,9 @@
     var panel = document.getElementById('music');
     if (!row || !panel) return;
 
-    var TRACKS = ['untitled · 01', 'untitled · 02', 'untitled · 03'];   // placeholder hasta tener los temas
-    var idx = 0, playing = false, built = false;
+    var playing = false, built = false, volume = 0.8;
     var raf = null, angle = 0, lastTs = 0, elapsed = 0;
-    var reelL, reelR, timeEl, trackEl, playBtn;
+    var reelL, reelR, timeEl, playBtn;
     var LX = 92, RX = 368, CY = 100, R = 82, MID = 230;
 
     function reelSVG(cx, cls) {
@@ -2105,38 +2107,44 @@
       return s;
     }
 
+    function mkBtn(label, fn) { var b = document.createElement('button'); b.className = 'seq-btn'; b.textContent = label; b.addEventListener('click', fn); return b; }
     function build() {
-      timeEl = document.createElement('div'); timeEl.className = 'music-time'; timeEl.textContent = '00:00';
-      panel.appendChild(timeEl);
-
-      var W = 460, H = 200;
+      var W = 460, H = 196;
       var s = '<svg class="tape-svg" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMid meet">';
       s += reelSVG(LX, 'reel-l');
       s += reelSVG(RX, 'reel-r');
       for (var t = 0; t < 7; t++) {
         var tx = MID - 36 + t * 12;
-        s += '<line class="tape-tick' + (t === 3 ? ' on' : '') + '" x1="' + tx + '" y1="38" x2="' + tx + '" y2="52"/>';
+        s += '<line class="tape-tick' + (t === 3 ? ' on' : '') + '" x1="' + tx + '" y1="72" x2="' + tx + '" y2="86"/>';   // líneas verticales paralelas
       }
-      s += '<line class="tape-belt" x1="' + (LX + R) + '" y1="' + CY + '" x2="' + (RX - R) + '" y2="' + CY + '"/>';   // cinta recta
+      s += '<text class="tape-time" x="' + MID + '" y="108" text-anchor="middle">00:00</text>';   // timecode debajo de las líneas
+      s += '<line class="tape-belt" x1="' + LX + '" y1="' + (CY + R) + '" x2="' + RX + '" y2="' + (CY + R) + '"/>';   // cinta en el baseline de los carretes
       s += '</svg>';
       var holder = document.createElement('div'); holder.innerHTML = s;
       panel.appendChild(holder.firstChild);
+      timeEl = panel.querySelector('.tape-time');
 
-      var tr = document.createElement('div'); tr.className = 'music-transport';
-      var back = document.createElement('button'); back.className = 'seq-btn'; back.textContent = '‹'; back.addEventListener('click', prev);
-      playBtn = document.createElement('button'); playBtn.className = 'seq-btn'; playBtn.textContent = 'play';
-      playBtn.addEventListener('click', function () { playing ? stop() : play(); });
-      var fwd = document.createElement('button'); fwd.className = 'seq-btn'; fwd.textContent = '›'; fwd.addEventListener('click', next);
-      tr.appendChild(back); tr.appendChild(playBtn); tr.appendChild(fwd);
-      panel.appendChild(tr);
-      trackEl = document.createElement('div'); trackEl.className = 'music-track'; panel.appendChild(trackEl);
+      var tr1 = document.createElement('div'); tr1.className = 'music-transport';
+      playBtn = mkBtn('play', function () { playing ? stop() : play(); });
+      tr1.appendChild(mkBtn('‹', prev)); tr1.appendChild(playBtn); tr1.appendChild(mkBtn('›', next));
+      panel.appendChild(tr1);
+
+      var tr2 = document.createElement('div'); tr2.className = 'music-transport';
+      tr2.appendChild(mkBtn('vol −', function () { setVol(-1); }));
+      tr2.appendChild(mkBtn('vol +', function () { setVol(1); }));
+      panel.appendChild(tr2);
+
+      var list = document.createElement('div'); list.className = 'cv-section music-list';
+      ['01', '02', '03'].forEach(function (n) {
+        var it = document.createElement('div'); it.className = 'cv-item'; it.textContent = n + ' · próximamente';
+        list.appendChild(it);
+      });
+      panel.appendChild(list);
 
       reelL = panel.querySelector('.reel-l'); reelR = panel.querySelector('.reel-r');
-      renderTrack();
       built = true;
     }
 
-    function renderTrack() { if (trackEl) trackEl.textContent = TRACKS[idx] + '   ·   ' + (idx + 1) + ' / ' + TRACKS.length; }
     function fmt(sec) { var m = Math.floor(sec / 60), s = Math.floor(sec % 60); return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s; }
     function frame(ts) {
       if (!playing) return;
@@ -2150,9 +2158,10 @@
     }
     function play() { playing = true; lastTs = 0; if (playBtn) playBtn.textContent = 'stop'; raf = requestAnimationFrame(frame); }
     function stop() { playing = false; if (raf) cancelAnimationFrame(raf); raf = null; if (playBtn) playBtn.textContent = 'play'; }
-    function reset() { elapsed = 0; if (timeEl) timeEl.textContent = '00:00'; renderTrack(); }
-    function prev() { idx = (idx - 1 + TRACKS.length) % TRACKS.length; reset(); }
-    function next() { idx = (idx + 1) % TRACKS.length; reset(); }
+    function setVol(d) { volume = Math.max(0, Math.min(1, volume + d * 0.1)); }   // listo para enchufar audio
+    function rewind() { elapsed = 0; if (timeEl) timeEl.textContent = '00:00'; }
+    function prev() { rewind(); }
+    function next() { rewind(); }
 
     row.addEventListener('click', function () {
       if (panel.hidden) {
