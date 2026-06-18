@@ -92,22 +92,18 @@
     /* reproductor de carretes (terminal/lofi) */
     .music { margin-top: 12px; }
     .music[hidden] { display: none; }
-    .tape-svg { display: block; width: 100%; max-width: 460px; height: auto; margin-bottom: 12px; }
+    .music-time { text-align: center; color: var(--text); margin-bottom: 6px; }   /* timecode = tipografía web, sin jerarquía */
+    .tape-svg { display: block; width: 100%; max-width: 420px; height: auto; margin: 0 auto 12px; }
     .tape-ring { fill: none; stroke: var(--text); stroke-width: 1.3; }
-    .tape-band { fill: none; stroke: color-mix(in srgb, var(--text) 72%, transparent); }
-    .tape-disc { fill: color-mix(in srgb, var(--text) 10%, transparent); }
-    .tape-hub  { fill: color-mix(in srgb, var(--text) 10%, transparent); stroke: var(--text); stroke-width: 1.3; }
+    .tape-hub  { fill: none; stroke: var(--text); stroke-width: 1.3; }
     .tape-spoke { stroke: var(--text); stroke-width: 1.3; }
     .tape-dot  { fill: var(--text); }
-    .tape-path { fill: none; stroke: color-mix(in srgb, var(--text) 40%, transparent); stroke-width: 1.3; }
-    .tape-guide { fill: none; stroke: var(--text); stroke-width: 1.3; }
-    .tape-head { fill: none; stroke: var(--accent); stroke-width: 1.5; }
+    .tape-belt { stroke: var(--text); stroke-width: 1.3; }     /* cinta: línea recta entre carretes */
     .tape-tick { stroke: color-mix(in srgb, var(--text) 45%, transparent); stroke-width: 1.5; }
     .tape-tick.on { stroke: var(--accent); }
-    .tape-time { fill: var(--text); font-family: var(--mono); font-size: 22px; letter-spacing: 1px; }
-    .tape-pct  { fill: var(--accent); font-family: var(--mono); font-size: 15px; }
-    .tape-ico  { fill: var(--text); }
-    .music-track { color: var(--muted); margin-top: 2px; }
+    .music-transport { display: flex; gap: 8px; margin-top: 4px; }
+    .music-transport .seq-btn { flex: 1; }     /* play/atrás/adelante ocupan el ancho */
+    .music-track { color: var(--muted); margin-top: 6px; text-align: center; }
     .scope-grid { fill: none; stroke: color-mix(in srgb, var(--text) 12%, transparent); stroke-width: 1; vector-effect: non-scaling-stroke; }
     .scope-wave { fill: none; stroke: color-mix(in srgb, var(--text) 85%, transparent); stroke-width: 0.4; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
     .seq909 { margin-top: 10px; }
@@ -2090,46 +2086,43 @@
     var idx = 0, playing = false, built = false;
     var raf = null, angle = 0, lastTs = 0, elapsed = 0;
     var reelL, reelR, timeEl, trackEl, playBtn;
-    var LX = 92, RX = 368, CY = 112, R = 82, MID = 230;
+    var LX = 92, RX = 368, CY = 100, R = 82, MID = 230;
 
     function reelSVG(cx, cls) {
       var s = '';
       s += '<circle class="tape-ring" cx="' + cx + '" cy="' + CY + '" r="' + R + '"/>';
-      s += '<circle class="tape-band" cx="' + cx + '" cy="' + CY + '" r="' + (R * 0.66).toFixed(1) + '" stroke-width="' + (R * 0.42).toFixed(1) + '"/>';
-      s += '<circle class="tape-disc" cx="' + cx + '" cy="' + CY + '" r="' + (R * 0.46).toFixed(1) + '"/>';
+      s += '<circle class="tape-ring" cx="' + cx + '" cy="' + CY + '" r="' + (R * 0.58).toFixed(1) + '"/>';
       s += '<g class="' + cls + '">';
       s += '<line class="tape-spoke" x1="' + cx + '" y1="' + CY + '" x2="' + cx + '" y2="' + (CY - R * 0.96).toFixed(1) + '"/>';
       for (var a = 0; a < 3; a++) {
         var ang = (a * 120 + 30) * Math.PI / 180;
-        s += '<line class="tape-spoke" x1="' + (cx + Math.cos(ang) * R * 0.13).toFixed(1) + '" y1="' + (CY + Math.sin(ang) * R * 0.13).toFixed(1) +
-             '" x2="' + (cx + Math.cos(ang) * R * 0.4).toFixed(1) + '" y2="' + (CY + Math.sin(ang) * R * 0.4).toFixed(1) + '"/>';
+        s += '<line class="tape-spoke" x1="' + (cx + Math.cos(ang) * R * 0.18).toFixed(1) + '" y1="' + (CY + Math.sin(ang) * R * 0.18).toFixed(1) +
+             '" x2="' + (cx + Math.cos(ang) * R * 0.5).toFixed(1) + '" y2="' + (CY + Math.sin(ang) * R * 0.5).toFixed(1) + '"/>';
       }
       s += '<circle class="tape-hub" cx="' + cx + '" cy="' + CY + '" r="' + (R * 0.18).toFixed(1) + '"/>';
-      s += '<circle class="tape-dot" cx="' + cx + '" cy="' + CY + '" r="3"/>';
+      s += '<circle class="tape-dot" cx="' + cx + '" cy="' + CY + '" r="2.5"/>';
       s += '</g>';
       return s;
     }
 
     function build() {
-      var W = 460, H = 250;
+      timeEl = document.createElement('div'); timeEl.className = 'music-time'; timeEl.textContent = '00:00';
+      panel.appendChild(timeEl);
+
+      var W = 460, H = 200;
       var s = '<svg class="tape-svg" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMid meet">';
       s += reelSVG(LX, 'reel-l');
       s += reelSVG(RX, 'reel-r');
-      s += '<text class="tape-time" x="' + MID + '" y="40" text-anchor="middle">00:00</text>';
       for (var t = 0; t < 7; t++) {
         var tx = MID - 36 + t * 12;
-        s += '<line class="tape-tick' + (t === 3 ? ' on' : '') + '" x1="' + tx + '" y1="58" x2="' + tx + '" y2="72"/>';
+        s += '<line class="tape-tick' + (t === 3 ? ' on' : '') + '" x1="' + tx + '" y1="38" x2="' + tx + '" y2="52"/>';
       }
-      s += '<path class="tape-ico" d="M' + (MID + 4) + ' 92 L' + (MID - 8) + ' 102 L' + (MID + 4) + ' 112 Z"/>';
-      s += '<path class="tape-ico" d="M' + (MID + 16) + ' 92 L' + (MID + 4) + ' 102 L' + (MID + 16) + ' 112 Z"/>';
-      s += '<text class="tape-pct" x="' + MID + '" y="140" text-anchor="middle">100%</text>';
-      s += '<path class="tape-path" d="M' + LX + ' ' + (CY + R) + ' C 140 234, 200 216, ' + MID + ' 216 C 260 216, 320 234, ' + RX + ' ' + (CY + R) + '"/>';
-      [LX + 42, MID - 52, MID + 52, RX - 42].forEach(function (gx) { s += '<circle class="tape-guide" cx="' + gx + '" cy="220" r="6"/>'; });
-      s += '<rect class="tape-head" x="' + (MID - 9) + '" y="208" width="18" height="20"/>';
+      s += '<line class="tape-belt" x1="' + (LX + R) + '" y1="' + CY + '" x2="' + (RX - R) + '" y2="' + CY + '"/>';   // cinta recta
       s += '</svg>';
-      panel.innerHTML = s;
+      var holder = document.createElement('div'); holder.innerHTML = s;
+      panel.appendChild(holder.firstChild);
 
-      var tr = document.createElement('div'); tr.className = 'seq-transport';
+      var tr = document.createElement('div'); tr.className = 'music-transport';
       var back = document.createElement('button'); back.className = 'seq-btn'; back.textContent = '‹'; back.addEventListener('click', prev);
       playBtn = document.createElement('button'); playBtn.className = 'seq-btn'; playBtn.textContent = 'play';
       playBtn.addEventListener('click', function () { playing ? stop() : play(); });
@@ -2139,7 +2132,6 @@
       trackEl = document.createElement('div'); trackEl.className = 'music-track'; panel.appendChild(trackEl);
 
       reelL = panel.querySelector('.reel-l'); reelR = panel.querySelector('.reel-r');
-      timeEl = panel.querySelector('.tape-time');
       renderTrack();
       built = true;
     }
