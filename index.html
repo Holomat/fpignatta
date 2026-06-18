@@ -219,7 +219,9 @@
     .mark { display: inline-block; width: 0.7em; text-align: center; }
     .tag-label { color: var(--muted); transition: color 0.1s; }
     .tag-row.active .tag-label,
-    .sys-row.active .tag-label { color: var(--text); }
+    .sys-row.active .tag-label { color: var(--accent); }   /* seleccionado = mismo acento que la pestaña activa */
+    .tag-row.active .checkbox,
+    .sys-row.active .checkbox { color: var(--accent); }
 
     .group { margin-bottom: var(--row); }
     .group:last-child { margin-bottom: 0; }
@@ -503,7 +505,7 @@
     <div class="col col-label">
       <div class="brand-mark">
         <span class="brand-mark__star">✳&#xFE0E;</span>
-        <span><span class="keepcase">Federico Pignatta</span><br>diseñador multidisciplinar<br>arte &amp; sonido</span>
+        <span><span class="keepcase">Federico Pignatta</span><br>arte | diseño | sonido<br>Montevideo, Uy</span>
       </div>
     </div>
 
