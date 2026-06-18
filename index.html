@@ -80,7 +80,10 @@
     .carousel-stage { width: 100%; line-height: 0; cursor: pointer; }
     .carousel-stage img   { display: block; width: 100%; height: auto; border-radius: 24px; }
     .carousel-stage video { display: block; width: 100%; aspect-ratio: 4 / 5; object-fit: cover; border-radius: 24px; }
-    .carousel-meta { color: var(--muted); margin-top: 8px; line-height: 1.45; }
+    .carousel-meta { color: var(--muted); margin-top: 6px; line-height: 1.45; }
+    .carousel-dots { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-top: 8px; }
+    .cdot { width: 5px; height: 5px; border-radius: 50%; background: var(--text); opacity: 0.22; cursor: pointer; transition: opacity 0.15s ease, background 0.15s ease; }
+    .cdot.on { background: var(--accent); opacity: 1; }   /* imagen actual */
 
     /* ===== 909: secuenciador 16 pasos + vúmetro (inline en el item) ===== */
     .drone-scope {   /* osciloscopio lofi (SVG): onda fina sobre grilla de cuadrados */
@@ -429,8 +432,8 @@
       .col-label { flex: 0 0 100%; order: 0; }           /* brand arriba, full-width */
       .col-head {                                        /* recuadro como los botones del 909+303 */
         order: 1; flex: 1 1 0; min-width: 0;
-        margin: 0 0 14px; padding: 8px 6px; text-align: center; white-space: nowrap;
-        border: 1.3px solid color-mix(in srgb, var(--text) 40%, transparent); border-radius: 6px;
+        margin: 0 0 14px; padding: 5px 6px; text-align: center; white-space: nowrap;
+        border: 1.6px solid color-mix(in srgb, var(--text) 40%, transparent); border-radius: 6px;
       }
       .col-head .cat-mark { display: none; }             /* en botones: solo el nombre */
       .col-head.open { color: var(--accent); border-color: var(--accent); }   /* activo en celeste */
@@ -533,19 +536,7 @@
           <span class="tag-label">Respira</span>
           <span class="sys-extra" id="breathExtra"></span>
         </div>
-        <div class="sys-row" id="rowRemat">
-          <span class="checkbox">[<span class="mark"></span>]</span>
-          <span class="tag-label">Re-materialización</span>
-        </div>
-        <div class="sys-doc" id="rematDoc" hidden>
-          <p class="sys-doc-lead">herramienta de re-materialización: el sub bass como infraestructura de soberanía.</p>
-          <p>1. sitúese frente al sub bass.</p>
-          <p>2. permita que la baja frecuencia colisione su arquitectura ósea.</p>
-          <p>3. no escuche con el oído; deje que la médula traduzca la presión.</p>
-          <p>4. sienta cómo el algoritmo se desvanece mientras su cuerpo recupera su densidad.</p>
-          <p>5. repita hasta que el territorio sea suyo.</p>
-        </div>
-        <div class="sys-row" id="rowLattice">
+        <div class="sys-row" id="rowLattice" style="display:none">
           <span class="checkbox">[<span class="mark"></span>]</span>
           <span class="tag-label">Lattice</span>
         </div>
@@ -590,6 +581,18 @@
         </div>
         <div class="seq909" id="seq909" hidden></div>
         <div class="seq303" id="seq303" hidden></div>
+        <div class="sys-row" id="rowRemat">
+          <span class="checkbox">[<span class="mark"></span>]</span>
+          <span class="tag-label">Re-materialización</span>
+        </div>
+        <div class="sys-doc" id="rematDoc" hidden>
+          <p class="sys-doc-lead">herramienta de re-materialización: el sub bass como infraestructura de soberanía.</p>
+          <p>1. sitúese frente al sub bass.</p>
+          <p>2. permita que la baja frecuencia colisione su arquitectura ósea.</p>
+          <p>3. no escuche con el oído; deje que la médula traduzca la presión.</p>
+          <p>4. sienta cómo el algoritmo se desvanece mientras su cuerpo recupera su densidad.</p>
+          <p>5. repita hasta que el territorio sea suyo.</p>
+        </div>
       </div>
     </div>
 
@@ -684,6 +687,7 @@
           head.classList.add('open');           // pestaña activa (mobile)
           if (group.id === 'g-info') ensureBioLines();
           revealTerminal(group);
+          if (group.id === 'g-work') openWorkAll();   // Work mobile: galerías siempre abiertas
         };
         // mobile: acordeón → cierra rápido la sección abierta y abre la nueva en el callback (sin salto)
         if (window.matchMedia('(max-width: 768px)').matches) {
@@ -710,15 +714,45 @@
     });
   });
 
+  function mobileView() { return window.matchMedia('(max-width: 768px)').matches; }
+
   // toggle de tags individuales
   document.querySelectorAll('.tag-row').forEach(function (row) {
     row.addEventListener('click', function () {
+      if (mobileView() && row.closest('#g-work')) return;   // Work mobile: galerías fijas, sin toggle
       var mark = row.querySelector('.mark');
       var isActive = row.classList.toggle('active');
       mark.textContent = isActive ? '●' : '';
       handleGallery(row, isActive);
     });
   });
+
+  // Work (mobile): abre todas las galerías de la categoría (siempre abiertas)
+  function openWorkAll() {
+    if (!mobileView()) return;
+    document.querySelectorAll('#g-work .tag-row').forEach(function (row) {
+      if (row.classList.contains('active')) return;
+      row.classList.add('active');
+      var m = row.querySelector('.mark'); if (m) m.textContent = '●';
+      handleGallery(row, true);
+    });
+  }
+
+  // Sistema (mobile): un solo item abierto por vez (Reloj·Respira·Re-materialización·Lattice·Cinco pieles)
+  (function () {
+    var rows = ['rowReloj', 'rowRespira', 'rowSkins']
+      .map(function (id) { return document.getElementById(id); }).filter(Boolean);
+    var busy = false;
+    rows.forEach(function (row) {
+      row.addEventListener('click', function () {
+        if (busy || !mobileView()) return;
+        if (row.classList.contains('active')) return;   // se está cerrando: no toca a los demás
+        busy = true;                                     // se va a abrir → cierra los otros abiertos
+        rows.forEach(function (o) { if (o !== row && o.classList.contains('active')) o.click(); });
+        busy = false;
+      }, true);   // capture: corre antes del handler propio del item
+    });
+  })();
 
   // reloj en vivo [HH:MM:SS]
   var clock = document.getElementById('clock');
@@ -1286,8 +1320,8 @@
   var WORK_GALLERY = {
     'motion': ['motion_accsi.gif', 'motion_bienvenidos.gif', 'motion_holomate.gif', 'motion_panal.gif', 'motion_panal2.gif'],
     'identidad_visual': ['identidad_visual_dne.mp4'],
-    'product_design': ['producto_holomate.jpeg', 'producto_holomate0.gif', 'producto_holomate2.jpeg', 'producto_holomate3.jpeg', 'producto_holomate4.jpeg', 'producto_holomate5.jpeg', 'producto_holomate6.jpeg', 'producto_holomate7.jpeg'],
-    'ui_ux': ['uxui_holomateplay1.jpeg', 'uxui_holomateplay2.jpeg', 'uxui_holomateplay3.jpeg']
+    'product_design': ['producto_holomate.jpeg', 'producto_holomate0.gif', 'producto_holomate2.jpeg', 'producto_holomate3.jpeg', 'producto_holomate4.jpeg', 'producto_holomate5.jpeg', 'producto_holomate6.jpeg', 'producto_holomate7.jpeg', 'producto_holomate8.jpg', 'producto_holomate9.jpg', 'producto_holomate10.jpg', 'producto_holomate11.jpg'],
+    'ui_ux': ['uxui_holomateplay0.jpg', 'uxui_holomateplay1.jpeg', 'uxui_holomateplay2.jpeg', 'uxui_holomateplay3.jpeg', 'uxui_play1.jpg', 'uxui_play2.jpg', 'uxui_play3.jpg', 'uxui_play4.jpg', 'uxui_play5.jpg', 'uxui_play6.jpg']
   };
   var openGalleries = {};   // categoría -> { ref, stop }
 
@@ -1311,9 +1345,17 @@
     var wrap = document.createElement('div'); wrap.className = 'carousel';
     var stage = document.createElement('div'); stage.className = 'carousel-stage';
     var meta = document.createElement('div'); meta.className = 'carousel-meta';
-    wrap.appendChild(stage); wrap.appendChild(meta);
+    var dots = document.createElement('div'); dots.className = 'carousel-dots';
+    var idx = 0, timer = null, dotEls = [];
+    if (files.length > 1) {
+      files.forEach(function (_, j) {
+        var d = document.createElement('span'); d.className = 'cdot';
+        d.addEventListener('click', function () { idx = j; render(); });   // tap a un punto → salta a esa imagen
+        dots.appendChild(d); dotEls.push(d);
+      });
+    }
+    wrap.appendChild(stage); wrap.appendChild(dots); wrap.appendChild(meta);
 
-    var idx = 0, timer = null;
     function go(dir) { idx = (idx + (dir === -1 ? -1 : 1) + files.length) % files.length; render(); }
     function render() {
       clearTimeout(timer);
@@ -1322,7 +1364,8 @@
       var isVideo = /\.mp4$/i.test(src), isGif = /\.gif$/i.test(src);
       var el = mediaEl(ASSET + src, isVideo && files.length === 1);
       stage.appendChild(el);
-      meta.innerHTML = '<span class="lat-cap-key">' + category + '</span> · ' + (idx + 1) + ' / ' + files.length;
+      meta.innerHTML = '<span class="lat-cap-key">' + category + '</span>';
+      for (var k = 0; k < dotEls.length; k++) dotEls[k].classList.toggle('on', k === idx);   // punto activo
       if (files.length < 2) return;                       // un solo medio: queda fijo (video loopea)
       if (isVideo) el.onended = function () { go(1); };   // video: se ve completo, luego avanza
       else timer = setTimeout(function () { go(1); }, isGif ? 2800 : 700);  // gif: completo · foto: 0.7s
