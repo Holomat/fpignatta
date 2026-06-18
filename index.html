@@ -101,10 +101,11 @@
     .tape-tick { stroke: color-mix(in srgb, var(--text) 45%, transparent); stroke-width: 1.5; }
     .tape-tick.on { stroke: var(--accent); }
     .tape-time { fill: var(--text); font-family: var(--font); font-size: 13px; font-weight: 600; }   /* tipografía web, sin jerarquía */
-    .music-transport { display: flex; gap: 8px; margin-top: 6px; }
-    .music-transport .seq-btn { flex: 1; }     /* botones ocupan el ancho de la sección */
+    .music-transport { display: flex; gap: 6px; margin-top: 6px; }
+    .music-transport .seq-btn { flex: 1; padding: 4px 4px; }   /* 5 botones en una fila, ocupan el ancho */
     .music-list { margin-top: 14px; }
     .music-list .cv-item { color: var(--muted); }
+    .music-list .cv-item:nth-child(odd)::before { opacity: 0.5; }   /* textura ░ alternada (uno sí, uno no) */
     .scope-grid { fill: none; stroke: color-mix(in srgb, var(--text) 12%, transparent); stroke-width: 1; vector-effect: non-scaling-stroke; }
     .scope-wave { fill: none; stroke: color-mix(in srgb, var(--text) 85%, transparent); stroke-width: 0.4; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
     .seq909 { margin-top: 10px; }
@@ -2124,15 +2125,14 @@
       panel.appendChild(holder.firstChild);
       timeEl = panel.querySelector('.tape-time');
 
-      var tr1 = document.createElement('div'); tr1.className = 'music-transport';
+      var tr = document.createElement('div'); tr.className = 'music-transport';
       playBtn = mkBtn('play', function () { playing ? stop() : play(); });
-      tr1.appendChild(mkBtn('‹', prev)); tr1.appendChild(playBtn); tr1.appendChild(mkBtn('›', next));
-      panel.appendChild(tr1);
-
-      var tr2 = document.createElement('div'); tr2.className = 'music-transport';
-      tr2.appendChild(mkBtn('vol −', function () { setVol(-1); }));
-      tr2.appendChild(mkBtn('vol +', function () { setVol(1); }));
-      panel.appendChild(tr2);
+      tr.appendChild(mkBtn('‹', prev));
+      tr.appendChild(playBtn);
+      tr.appendChild(mkBtn('›', next));
+      tr.appendChild(mkBtn('vol−', function () { setVol(-1); }));
+      tr.appendChild(mkBtn('vol+', function () { setVol(1); }));
+      panel.appendChild(tr);
 
       var list = document.createElement('div'); list.className = 'cv-section music-list';
       ['01', '02', '03'].forEach(function (n) {
