@@ -569,18 +569,6 @@
     <div class="col" data-cat>
       <div class="col-head cat-toggle" data-target="g-sound"><span class="cat-mark">[<span class="mark">+</span>]</span> Sound</div>
       <div class="group collapsed" id="g-sound">
-        <div class="sys-row" id="rowDrone">
-          <span class="checkbox">[<span class="mark"></span>]</span>
-          <span class="tag-label">Drone</span>
-          <span class="sys-extra" id="droneExtra"></span>
-        </div>
-        <svg class="drone-scope" id="droneScope" preserveAspectRatio="none" hidden></svg>
-        <div class="sys-row" id="row909">
-          <span class="checkbox">[<span class="mark"></span>]</span>
-          <span class="tag-label">909+303</span>
-        </div>
-        <div class="seq909" id="seq909" hidden></div>
-        <div class="seq303" id="seq303" hidden></div>
         <div class="sys-row" id="rowRemat">
           <span class="checkbox">[<span class="mark"></span>]</span>
           <span class="tag-label">Re-materialización</span>
@@ -593,6 +581,18 @@
           <p>4. sienta cómo el algoritmo se desvanece mientras su cuerpo recupera su densidad.</p>
           <p>5. repita hasta que el territorio sea suyo.</p>
         </div>
+        <div class="sys-row" id="rowDrone">
+          <span class="checkbox">[<span class="mark"></span>]</span>
+          <span class="tag-label">Drone</span>
+          <span class="sys-extra" id="droneExtra"></span>
+        </div>
+        <svg class="drone-scope" id="droneScope" preserveAspectRatio="none" hidden></svg>
+        <div class="sys-row" id="row909">
+          <span class="checkbox">[<span class="mark"></span>]</span>
+          <span class="tag-label">909+303</span>
+        </div>
+        <div class="seq909" id="seq909" hidden></div>
+        <div class="seq303" id="seq303" hidden></div>
       </div>
     </div>
 
@@ -1341,8 +1341,8 @@
   }
 
   // construye el carrusel (sin presentación): stage + meta, auto-avance, click y swipe
-  function buildCarousel(category, files) {
-    var wrap = document.createElement('div'); wrap.className = 'carousel';
+  function buildCarousel(category, files, fmt) {
+    var wrap = document.createElement('div'); wrap.className = 'carousel' + (fmt ? ' fmt-' + fmt : '');
     var stage = document.createElement('div'); stage.className = 'carousel-stage';
     var meta = document.createElement('div'); meta.className = 'carousel-meta';
     var dots = document.createElement('div'); dots.className = 'carousel-dots';
@@ -1382,13 +1382,9 @@
     return { wrap: wrap, stage: stage, stop: function () { clearTimeout(timer); } };
   }
 
-  // carrusel de una categoría, en su propia ventana flotante (100% opacidad) — desktop
-  function openCarousel(category, files) {
-    var built = buildCarousel(category, files);
-    var wrap = built.wrap, stage = built.stage;
+  // monta un carrusel ya construido en una ventana flotante (desktop)
+  function mountWindow(wrap, stage) {
     var ref = createWindow(wrap);
-
-    // posición aleatoria en pantalla (siempre visible completa)
     var rx = Math.random(), ry = Math.random(), placed = false;
     function place() {
       var maxLeft = Math.max(10, window.innerWidth - ref.win.offsetWidth - 10);
@@ -1400,51 +1396,85 @@
     place();
     stage.addEventListener('load', placeOnce, true);
     stage.addEventListener('loadedmetadata', placeOnce, true);
-
-    return { ref: ref, stop: built.stop };
+    return ref;
   }
 
-  // abre/cierra la ventana de cada categoría de Work con galería
+  // mide el aspecto de cada media y agrupa por formato: cuadrado / vertical / rectangular
+  function groupByFormat(files, done) {
+    var fmts = new Array(files.length), pending = files.length;
+    function classify(i, w, h) {
+      var r = (h > 0) ? w / h : 1;
+      fmts[i] = r < 0.85 ? 'vertical' : (r > 1.18 ? 'horizontal' : 'square');
+      if (--pending === 0) {
+        var g = { square: [], vertical: [], horizontal: [] };
+        files.forEach(function (f, j) { g[fmts[j]].push(f); });
+        done(g);
+      }
+    }
+    files.forEach(function (f, i) {
+      var src = ASSET + f;
+      if (/\.mp4$/i.test(f)) {
+        var v = document.createElement('video'); v.preload = 'metadata'; v.muted = true;
+        v.onloadedmetadata = function () { classify(i, v.videoWidth, v.videoHeight); };
+        v.onerror = function () { classify(i, 1, 1); };
+        v.src = src;
+      } else {
+        var im = new Image();
+        im.onload = function () { classify(i, im.naturalWidth, im.naturalHeight); };
+        im.onerror = function () { classify(i, 1, 1); };
+        im.src = src;
+      }
+    });
+  }
+
+  // cierra y limpia todos los carruseles de una categoría
+  function closeWork(key, row) {
+    var arr = openGalleries[key];
+    if (arr) arr.forEach(function (it) { try { it.stop(); } catch (e) {} if (it.el) it.el.remove(); if (it.ref) it.ref.win.remove(); });
+    delete openGalleries[key];
+    if (row && row.classList.contains('active')) { row.classList.remove('active'); var m = row.querySelector('.mark'); if (m) m.textContent = ''; }
+  }
+
+  // abre/cierra la galería de una categoría; agrupa por formato → hasta 3 carruseles (cuadrado/vertical/rectangular)
   function handleGallery(row, isActive) {
     if (!row.closest('#g-work')) return;
     var label = row.querySelector('.tag-label');
     var key = label ? label.textContent.trim() : '';
     var files = WORK_GALLERY[key];
     if (!files) return;
+    var mobile = window.matchMedia('(max-width: 768px)').matches;
 
     if (isActive) {
-      if (window.matchMedia('(max-width: 768px)').matches) {
-        // mobile: carrusel inline (full-width, swipe) debajo de la categoría
-        var c = buildCarousel(key, files);
-        c.wrap.classList.add('inline');
-        row.insertAdjacentElement('afterend', c.wrap);
-        openGalleries[key] = { inline: c.wrap, stop: c.stop };
-      } else {
-        // desktop: ventana flotante arrastrable
-        var g = openCarousel(key, files);
-        openGalleries[key] = g;
-        g.ref.close.addEventListener('click', function () {
-          if (row.classList.contains('active')) {
-            row.classList.remove('active');
-            row.querySelector('.mark').textContent = '';
+      if (openGalleries[key]) return;                  // ya abierta
+      var items = []; openGalleries[key] = items;
+      groupByFormat(files, function (groups) {
+        if (openGalleries[key] !== items) return;      // se cerró antes de terminar de medir
+        var anchor = row;
+        ['square', 'vertical', 'horizontal'].forEach(function (fmt) {
+          var list = groups[fmt]; if (!list.length) return;
+          var c = buildCarousel(key, list, fmt);
+          if (mobile) {
+            c.wrap.classList.add('inline');
+            anchor.insertAdjacentElement('afterend', c.wrap);
+            anchor = c.wrap;                            // apila los formatos en orden bajo la categoría
+            items.push({ stop: c.stop, el: c.wrap });
+          } else {
+            var ref = mountWindow(c.wrap, c.stage);
+            ref.close.addEventListener('click', function () { closeWork(key, row); });
+            items.push({ stop: c.stop, ref: ref });
           }
-          g.stop();
-          g.ref.win.remove();
-          delete openGalleries[key];
         });
-      }
-    } else if (openGalleries[key]) {
-      openGalleries[key].stop();
-      if (openGalleries[key].inline) openGalleries[key].inline.remove();
-      else openGalleries[key].ref.win.remove();
-      delete openGalleries[key];
+      });
+    } else {
+      closeWork(key, null);
     }
   }
 
   // estado compartido de la 909 (para que la 303 esclavice su BPM)
   var SEQ909 = { bpm: 130, on: false, startTime: 0 };
   // hook del 303 al bloque 909+303: la fila de la 909 abre/cierra y su play arranca/para el 303
-  var BASS303 = { active: false, start: null, stop: null, open: null, close: null };
+  var BASS303 = { active: false, start: null, stop: null, open: null, close: null, applyMute: null };
+  var MUTE_ALL = { on: false };   // mute global del bloque 909+303
 
   // ===== 909: secuenciador TR-909 (Web Audio) inline =====
   (function () {
@@ -1457,7 +1487,7 @@
     var decays = { kick: 0.42, tom: 0.4, snare: 0.15, clap: 0.2, hhc: 0.045, hho: 0.26 };
     var ctx, master, comp, kickBus, duckBus, fxFilter, fxLfo, fxLfoGain, noiseBuf, audioReady = false;
     var playing = false, current = 0, nextTime = 0, startTime = 0, schedTimer = null, shownStep = -1, fxOn = false;
-    var playBtn = null, bpmVal = null, fxBtn = null;
+    var playBtn = null, bpmVal = null, fxBtn = null, muteBtn = null;
     var muted = [false, false, false, false, false, false], seqRows = [];
     var analyser, vuData, vuSegs = [], vuPeak = 0, VU_ROWS = 22, VU_COLS = 1;
 
@@ -1476,7 +1506,7 @@
     function setupAudio() {
       ctx = ensureCtx();
       if (audioReady) return;
-      master = ctx.createGain(); master.gain.value = 1.0;
+      master = ctx.createGain(); master.gain.value = MUTE_ALL.on ? 0 : 1.0;
       fxFilter = ctx.createBiquadFilter(); fxFilter.type = 'lowpass'; fxFilter.frequency.value = 20000; fxFilter.Q.value = 6;
       comp = ctx.createDynamicsCompressor();
       comp.threshold.value = -12; comp.knee.value = 6; comp.ratio.value = 6; comp.attack.value = 0.003; comp.release.value = 0.12;
@@ -1645,6 +1675,13 @@
       if (on) { fxFilter.frequency.setTargetAtTime(1100, now, 0.08); fxLfoGain.gain.setTargetAtTime(850, now, 0.08); }
       else { fxFilter.frequency.setTargetAtTime(20000, now, 0.08); fxLfoGain.gain.setTargetAtTime(0, now, 0.08); }
     }
+    // mute global del bloque: silencia 909 (master → 0) y 303 (vía hook)
+    function setMuteAll(on) {
+      MUTE_ALL.on = on;
+      if (muteBtn) muteBtn.classList.toggle('on', on);
+      if (master && ctx) master.gain.setTargetAtTime(on ? 0 : 1.0, ctx.currentTime, 0.02);
+      if (BASS303.applyMute) BASS303.applyMute();
+    }
 
     function randTrack(p) { var a = []; for (var i = 0; i < STEPS; i++) a.push(Math.random() < p ? 1 : 0); return a; }
     function zeros() { var a = []; for (var i = 0; i < STEPS; i++) a.push(0); return a; }
@@ -1711,7 +1748,9 @@
       rndBtn.addEventListener('click', randomize);
       fxBtn = document.createElement('button'); fxBtn.className = 'seq-btn'; fxBtn.textContent = 'fx';
       fxBtn.addEventListener('click', function () { setFx(!fxOn); fxBtn.classList.toggle('on', fxOn); });
-      tr.appendChild(playBtn); tr.appendChild(rndBtn); tr.appendChild(fxBtn);
+      muteBtn = document.createElement('button'); muteBtn.className = 'seq-btn'; muteBtn.textContent = 'mute';
+      muteBtn.addEventListener('click', function () { setMuteAll(!MUTE_ALL.on); });   // silencia 909 + 303
+      tr.appendChild(playBtn); tr.appendChild(rndBtn); tr.appendChild(fxBtn); tr.appendChild(muteBtn);
       // control de BPM (después de FX)
       var bpmWrap = document.createElement('span'); bpmWrap.className = 'seq-bpm';
       var bpmDown = document.createElement('button'); bpmDown.className = 'seq-btn'; bpmDown.textContent = '‹';
@@ -1789,7 +1828,7 @@
       master303 = ctx.createGain(); master303.gain.value = 0.95;        // pre-drive
       drive303 = ctx.createWaveShaper(); drive303.curve = driveCurve(8); drive303.oversample = '4x';
       tone303 = ctx.createBiquadFilter(); tone303.type = 'lowpass'; tone303.frequency.value = eqOn ? 700 : 3400; tone303.Q.value = 0.4;  // eq: filtra agudos
-      post303 = ctx.createGain(); post303.gain.value = volOn ? POST_LVL * VOL_CUT : POST_LVL;  // nivel de línea (vol = −3 dB)
+      post303 = ctx.createGain(); post303.gain.value = level303();  // nivel de línea (vol −3 dB / mute global)
       master303.connect(drive303); drive303.connect(tone303); tone303.connect(post303); post303.connect(ctx.destination);  // señal seca
 
       // FX send (un poco de efecto): delay con feedback (dub) + reverbcita, high-passed para no embarrar el bajo
@@ -1817,12 +1856,15 @@
       if (eqBtn) eqBtn.classList.toggle('on', eqOn);
       if (tone303 && ctx) tone303.frequency.setTargetAtTime(eqOn ? 700 : 3400, ctx.currentTime, 0.05);
     }
+    // nivel de salida del 303 según mute global y vol (−3 dB)
+    function level303() { return MUTE_ALL.on ? 0 : (volOn ? POST_LVL * VOL_CUT : POST_LVL); }
     // vol: baja la línea del 303 −3 dB
     function setVol(on) {
       volOn = on;
       if (volBtn) volBtn.classList.toggle('on', volOn);
-      if (post303 && ctx) post303.gain.setTargetAtTime(volOn ? POST_LVL * VOL_CUT : POST_LVL, ctx.currentTime, 0.03);
+      if (post303 && ctx) post303.gain.setTargetAtTime(level303(), ctx.currentTime, 0.03);
     }
+    BASS303.applyMute = function () { if (post303 && ctx) post303.gain.setTargetAtTime(level303(), ctx.currentTime, 0.02); };
     function defaultPattern() {
       pattern = [];
       for (var i = 0; i < STEPS; i++) pattern.push({ on: i % 2 === 0, semi: (i % 8 === 4 ? 12 : (i % 4 === 0 ? 0 : 7)), accent: i % 8 === 0, slide: false });
