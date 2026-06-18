@@ -149,6 +149,7 @@
       align-items: flex-start;
       margin-bottom: var(--row);
     }
+    .brand-mark__star { font-variant-emoji: text; }   /* fuerza el ✳ como texto, no emoji (mobile) */
 
     .col-head {
       color: var(--text);
@@ -463,7 +464,7 @@
     <!-- col 1: label / brand -->
     <div class="col col-label">
       <div class="brand-mark">
-        <span class="brand-mark__star">✳</span>
+        <span class="brand-mark__star">✳&#xFE0E;</span>
         <span><span class="keepcase">Federico Pignatta</span><br>diseñador multidisciplinar<br>arte &amp; sonido</span>
       </div>
     </div>
