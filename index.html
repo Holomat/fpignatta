@@ -405,6 +405,8 @@
     .win-close:hover { color: var(--text); }
 
     .now-clock svg { display: block; width: min(84vw, 459px); height: auto; }  /* +35% */
+    .now-clock-inline { margin: 12px 0 6px; }
+    .now-clock-inline svg { margin: 0 auto; }   /* mobile: reloj inline, centrado */
     .now-clock svg text {
       font-family: var(--font);
       font-size: 10.5px;        /* ~9px en pantalla (SVG escalado ~0.85×) → mismo registro que la web */
@@ -938,7 +940,8 @@
   rowReloj.addEventListener('click', function () {
     if (clockWin) {
       hands.delete(clockWin.hand);
-      clockWin.ref.win.remove();
+      if (clockWin.ref) clockWin.ref.win.remove();
+      if (clockWin.inline) clockWin.inline.remove();
       clockWin = null;
       setRow(rowReloj, false);
       return;
@@ -947,21 +950,27 @@
     var holder = document.createElement('div');
     holder.className = 'now-clock';
     holder.appendChild(clk.svg);
-
-    var ref = createWindow(holder);
     hands.add(clk.hand);
     ensureLoop();
-    clockWin = { hand: clk.hand, ref: ref };
-    setRow(rowReloj, true);
 
-    ref.close.addEventListener('click', function () {
-      if (clockWin && clockWin.ref === ref) {
-        hands.delete(clk.hand);
-        clockWin = null;
-        setRow(rowReloj, false);
-      }
-      ref.win.remove();
-    });
+    if (window.matchMedia('(max-width: 768px)').matches) {
+      // mobile: inline debajo de la fila Reloj (sin ventana flotante)
+      holder.classList.add('now-clock-inline');
+      rowReloj.insertAdjacentElement('afterend', holder);
+      clockWin = { hand: clk.hand, inline: holder };
+    } else {
+      var ref = createWindow(holder);
+      clockWin = { hand: clk.hand, ref: ref };
+      ref.close.addEventListener('click', function () {
+        if (clockWin && clockWin.ref === ref) {
+          hands.delete(clk.hand);
+          clockWin = null;
+          setRow(rowReloj, false);
+        }
+        ref.win.remove();
+      });
+    }
+    setRow(rowReloj, true);
   });
 
   // Respira: toggle 6s inhala / 6s exhala (activa parasimpático)
