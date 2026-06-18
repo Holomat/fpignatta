@@ -1,484 +1,1975 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Federico Pignatta — Proyecto</title>
-  
-  <!-- FONTS -->
-  <link rel="preload" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
-  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap"></noscript>
-  
-  <!-- CSS CRÍTICO INLINE -->
+  <title>pignatta</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600&display=swap" rel="stylesheet">
   <style>
-    .carousel-track {
-      display: flex !important;
-      transition: transform 0.3s ease !important;
-      will-change: transform !important;
-      width: 100% !important;
+    :root {
+      --bg:     #f3f3f6;        /* lavanda-blanco frío (ref: León Romero) */
+      --text:   #1a1a1a;
+      --muted:  #1a1a1a;        /* sin jerarquía: un solo color */
+      --border: #dcdce2;
+      --accent: #6fb7de;        /* celeste — aguja del reloj */
+      --font:   'Inter', sans-serif;
+      --mono:   'ABC Diatype Mono', ui-monospace, monospace;
+      --size:   12.6px;         /* +40% (9 → 12.6) */
+      --lh:     1.45;           /* sin unidad: el interlineado escala con la fuente */
+      --row:    22px;           /* ritmo vertical, +40% (16 → 22) */
+      --edge:   17px;           /* padding de página, +40% (12 → 17) */
     }
-    .carousel-slide {
-      min-width: 100% !important;
-      flex: 0 0 100% !important;
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* MATERIAL: tipografía del lattice de bloques (1ch por celda) */
+    @font-face {
+      font-family: 'ABC Diatype Mono';
+      src: url('assets/fonts/ABCDiatypeMono-Regular.otf') format('opentype');
+      font-weight: 400 600;
+      font-display: swap;
     }
-    .carousel-slide img {
-      width: 100% !important;
-      height: auto !important;
-      display: block !important;
-      user-select: none !important;
+    /* utilidad: retícula monospace de elementos de bloque, 1 celda = 1ch */
+    .block-grid {
+      display: grid;
+      grid-template-columns: repeat(var(--cells, 10), 1ch);
+      grid-auto-rows: 1em;
+      font-family: var(--mono);
+      line-height: 1;
+      letter-spacing: 0;
+      color: var(--text);
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      font-weight: 600;
+      font-size: var(--size);
+      line-height: var(--lh);
+      letter-spacing: 0.1px;
+      text-transform: lowercase;        /* todo en minúscula… */
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      min-height: 100vh;
+      padding: var(--edge);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .keepcase { text-transform: none; }   /* …salvo el nombre y apellido */
+    a { color: inherit; text-decoration: none; }
+    a:hover { text-decoration: underline; text-underline-offset: 2px; }
+
+    /* ── MAIN GRID ───────────────────────────────── */
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 2fr 1fr 1fr 1fr;
+      gap: 40px;
+      align-items: start;
+      position: relative;
+      z-index: 2;                 /* por encima del gradiente de Modo */
+    }
+
+    /* WORK: carrusel en ventana flotante (100% opacidad) */
+    .carousel { width: min(42vw, 360px); }
+    .carousel.inline { width: 100%; margin: 10px 0 4px; touch-action: pan-y; }   /* mobile: inline + swipe */
+    .carousel-stage { width: 100%; line-height: 0; cursor: pointer; }
+    .carousel-stage img   { display: block; width: 100%; height: auto; border-radius: 24px; }
+    .carousel-stage video { display: block; width: 100%; aspect-ratio: 4 / 5; object-fit: cover; border-radius: 24px; }
+    .carousel-meta { color: var(--muted); margin-top: 8px; line-height: 1.45; }
+
+    /* ===== 909: secuenciador 16 pasos + vúmetro (inline en el item) ===== */
+    .drone-scope {   /* osciloscopio lofi (SVG): onda fina sobre grilla de cuadrados */
+      display: block; width: 100%; height: 60px; margin: 7px 0 2px; overflow: hidden;
+    }
+    .drone-scope[hidden] { display: none; }
+    .scope-grid { fill: none; stroke: color-mix(in srgb, var(--text) 12%, transparent); stroke-width: 1; vector-effect: non-scaling-stroke; }
+    .scope-wave { fill: none; stroke: color-mix(in srgb, var(--text) 85%, transparent); stroke-width: 0.4; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+    .seq909 { margin-top: 10px; }
+    .seq909[hidden] { display: none; }
+    .seq303 { margin-top: 10px; }
+    .seq303[hidden] { display: none; }
+    .seq-cell.accent::after { background: var(--accent); }   /* 303: nota con acento */
+    .seq { font-family: var(--mono); width: 100%; }
+    .seq-main { display: flex; align-items: stretch; gap: 10px; }
+    .seq-grid { flex: 1; min-width: 0; }
+    /* vúmetro: 2 barras de bloques, misma altura que la grilla */
+    .seq-vu { display: flex; gap: 4px; flex-shrink: 0; }
+    .seq-spacer { width: 20px; flex-shrink: 0; }   /* 303: reserva el ancho del vúmetro → alinea los pasos con la 909 */
+    .vu-bar { display: grid; grid-template-columns: 1fr; grid-template-rows: repeat(22, 1fr); gap: 0; width: 8px; }
+    .vu-seg { display: flex; align-items: center; justify-content: center; }
+    .vu-seg::before { content: ''; width: 3px; height: 3px; border-radius: 50%; background: var(--text); opacity: 0.18; flex: none; }
+    .vu-seg.lit::before { opacity: 0.9; }   /* punto encendido (volumen) */
+    .seq-row { display: flex; align-items: center; gap: 6px; margin-bottom: 1px; }
+    .seq-row.muted { opacity: 0.28; }   /* pista muteada */
+    .seq-lbl { width: 5ch; flex-shrink: 0; color: var(--text); }
+    .seq-cells { display: grid; grid-template-columns: repeat(16, 1fr); gap: 1px; flex: 1; }
+    .seq-cell {
+      position: relative; width: 100%; aspect-ratio: 1;
+      border: none; background: none; padding: 0; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .seq-cell::before {   /* paso apagado: marcador de posición tenue */
+      content: ''; width: 4px; height: 4px; border-radius: 50%;
+      background: var(--text); opacity: 0.2;
+    }
+    .seq-cell.beat::before { background: var(--accent); opacity: 0.45; }   /* downbeat 1·5·9·13 */
+    .seq-cell.on::after {   /* paso activo: cuadradito con punto calado al centro */
+      content: ''; position: absolute; inset: 19%; border-radius: 2px; background: var(--text);
+      -webkit-mask: radial-gradient(circle at center, transparent 0 2.2px, #000 2.7px);
+      mask: radial-gradient(circle at center, transparent 0 2.2px, #000 2.7px);
+    }
+    .seq-cell.cue::before { background: var(--accent); opacity: 0.6; }     /* playhead */
+    .seq-cell.cue.on::after { background: var(--accent); }
+    .seq-cell.on::before { opacity: 0; }   /* el hueco central muestra el fondo (calado) */
+    .seq-transport { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+    .seq-btn {   /* botón con trazo (outline); tipografía del resto de la web */
+      font-family: var(--font); font-size: inherit; line-height: 1;
+      background: none; color: var(--text); cursor: pointer;
+      border: 1.3px solid color-mix(in srgb, var(--text) 40%, transparent);   /* mismo grosor que el trazo de los [ ] */
+      border-radius: 6px; padding: 3px 14px;
+    }
+    .seq-btn:hover { border-color: var(--text); }
+    .seq-btn.on { color: var(--accent); border-color: var(--accent); }
+    .seq-bpm { display: inline-flex; align-items: center; gap: 8px; }
+    .seq-bpm .seq-btn { border: none; padding: 0; }   /* flechas de BPM: glifos, sin recuadro */
+    .seq-bpm .seq-btn:hover { color: var(--accent); }
+    .seq-bpm-val { color: var(--text); min-width: 7ch; }
+
+
+    .col-label { white-space: nowrap; }
+
+    .brand-mark {
+      display: flex;
+      gap: 6px;
+      align-items: flex-start;
+      margin-bottom: var(--row);
+    }
+
+    .col-head {
+      color: var(--text);
+      margin-bottom: var(--row);
+    }
+    .cat-toggle { cursor: pointer; user-select: none; }
+    .cat-mark { color: var(--muted); }
+    .group.collapsed { display: none; }
+    @keyframes termline {
+      from { opacity: 0; transform: translateX(-5px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes termlineout {
+      from { opacity: 1; transform: translateX(0); }
+      to   { opacity: 0; transform: translateX(-5px); }
+    }
+
+    .col p {
+      color: var(--text);
+      margin-bottom: 0;
+    }
+
+    /* ── TAG LIST (interactiva) ──────────────────── */
+    .tag-row, .sys-row {
+      display: flex;
+      align-items: flex-start;
+      cursor: pointer;
+      user-select: none;
+      gap: 8px;
+    }
+    .checkbox { flex-shrink: 0; }
+    /* marca de ancho fijo: [ + caja 0.7em + ] siempre mide igual */
+    .mark { display: inline-block; width: 0.7em; text-align: center; }
+    .tag-label { color: var(--muted); transition: color 0.1s; }
+    .tag-row.active .tag-label,
+    .sys-row.active .tag-label { color: var(--text); }
+
+    .group { margin-bottom: var(--row); }
+    .group:last-child { margin-bottom: 0; }
+
+    /* ── INFO / CV — interlineado uniforme + 1 espacio antes de cada sección ── */
+    #g-info p.bio { text-transform: none; }   /* bio: respeta mayúsculas de inicio de oración */
+    .cv-section { margin-top: var(--row); }
+    .cv-head { color: var(--text); }
+    .cv-head:hover { text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+    .cv-item { margin-bottom: 0; }
+    .cv-title { display: block; color: var(--text); }
+    .cv-meta { display: block; color: var(--muted); }
+    .cv-link { color: var(--muted); transition: color 0.1s; }
+    .cv-link:hover { color: var(--text); }
+
+    /* MATERIAL: ░ ilumina el renglón al hover — 1 fila = alto de la tipografía (1:1) */
+    .cv-line { display: block; width: fit-content; max-width: 100%; }
+    #g-info .cv-head, #g-info .cv-item, #g-info .cv-line,
+    #g-work .tag-row, #g-system .sys-row, #g-sound .sys-row { position: relative; isolation: isolate; }
+    #g-info .cv-head::before,
+    #g-info .cv-item::before,
+    #g-info .cv-line::before,
+    #g-work .tag-row::before,
+    #g-system .sys-row::before,
+    #g-sound .sys-row::before {
+      content: "░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░";
+      position: absolute;
+      inset: 0;
+      font-family: var(--mono);
+      font-size: calc(var(--lh) * 1em);   /* alto de la fila = alto del renglón */
+      line-height: 1;
+      letter-spacing: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      color: var(--text);
+      opacity: 0;
+      transition: opacity 0.1s ease;
+      z-index: -1;
+      pointer-events: none;
+    }
+    #g-info .cv-head:hover::before,
+    #g-info .cv-item:hover::before,
+    #g-info .cv-line:hover::before,
+    #g-work .tag-row:hover::before,
+    #g-system .sys-row:hover::before,
+    #g-sound .sys-row:hover::before { opacity: 0.5; }
+
+    .clock { font-variant-numeric: tabular-nums; }
+
+    /* ── SISTEMA (controles con el mismo estilo que los tags) ── */
+    .sys-extra { color: var(--muted); margin-left: 4px; font-variant-numeric: tabular-nums; }
+    .sys-row.active .sys-extra { color: var(--text); }
+    .sys-row[hidden] { display: none; }
+
+    /* instrucción-objeto (Re-materialización) */
+    .sys-doc { color: var(--muted); margin-top: 10px; }
+    .sys-doc[hidden] { display: none; }
+    .sys-doc p { margin-bottom: 6px; }
+    .sys-doc p:last-child { margin-bottom: 0; }
+    .sys-doc .sys-doc-lead { color: var(--text); margin-bottom: var(--row); }
+
+    /* LATTICE — diagrama de 3 estados */
+    .lattice { margin-top: 10px; }
+    .lattice[hidden] { display: none; }
+    .lat-art svg { display: block; width: 100%; height: auto; }
+    .lat-cap { color: var(--muted); margin-top: 8px; margin-bottom: 0; }
+    .lat-cap-key { color: var(--text); }
+
+    .lat-dot    { fill: var(--muted); opacity: .4; }
+    .lat-line   { stroke: var(--muted); stroke-width: .6;
+                  stroke-dasharray: 150; stroke-dashoffset: 150; }
+    .lat-self   { fill: var(--text); }
+    .lat-future { fill: none; stroke: var(--muted); stroke-width: 1;
+                  transition: cx .9s ease, cy .9s ease; }
+    .lat-ripple { fill: none; stroke: var(--accent); stroke-width: 1;
+                  transform-box: fill-box; transform-origin: center; opacity: 0; }
+    .lat-label  { fill: var(--muted); font-family: var(--font); font-size: 8px; }
+
+    /* estado 0 · imaginación → los futuros laten */
+    .lattice[data-phase="0"] .lat-future { animation: latPulse 1.6s ease-in-out infinite; }
+    /* estado 1 y 2 · coherencia → la línea se dibuja a un solo futuro */
+    .lattice[data-phase="1"] .lat-line,
+    .lattice[data-phase="2"] .lat-line { stroke-dashoffset: 0; transition: stroke-dashoffset 1.1s ease; }
+    /* estado 2 · gratitud → el elegido se materializa + vibra */
+    .lattice[data-phase="2"] .lat-future.chosen { fill: var(--accent); stroke: var(--accent); }
+    .lattice[data-phase="2"] .lat-ripple { animation: latRipple 1.3s ease-out infinite; }
+
+    @keyframes latPulse  { 0%,100% { opacity: .4 } 50% { opacity: 1 } }
+    @keyframes latRipple { 0% { transform: scale(.5); opacity: .7 } 100% { transform: scale(3); opacity: 0 } }
+
+    /* CINCO PIELES — interpretación de Hundertwasser */
+    .skins { margin-top: 10px; }
+    .skins[hidden] { display: none; }
+    .skins-art svg { display: block; width: min(58vw, 200px); height: auto; }
+    .skins-lead { color: var(--muted); margin-top: 6px; }
+    .skin-ring  { fill: none; stroke: var(--muted); stroke-width: .8;
+                  transition: stroke .4s ease, stroke-width .4s ease; }
+    .skin-ring.on { stroke: var(--accent); stroke-width: 1.6; }
+    .skin-num   { fill: var(--muted); font-family: var(--font); font-size: 8px;
+                  transition: fill .4s ease; }
+    .skin-num.on { fill: var(--text); }
+
+    /* MODO: gradiente japonés full-screen (JAPANESE GRADIENTS FOR UI · 04) */
+    .modo {
+      position: fixed;
+      inset: 0;
+      z-index: 1;                 /* detrás del contenido (la grilla va a z-index: 2) */
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.9s ease;   /* crossfade entre variantes */
+    }
+    .modo.show { opacity: 1; }
+    /* selector de Modo (flechas ‹ ›) */
+    .modo-sel { display: inline-flex; align-items: baseline; gap: 6px; }
+    .modo-arrow {
+      font: inherit; color: var(--text); background: none; border: none;
+      padding: 0 2px; cursor: pointer; line-height: 1;
+    }
+    .modo-arrow:hover { opacity: 0.55; }
+    .modo-name { display: inline-block; min-width: 6ch; }
+    /* variantes de gradiente — iteran en cada recarga */
+    .modo.v0 {
+      background: linear-gradient(to bottom,
+        #000000 0%, #06070f 25%, #33386a 47%, #646d88 58%,
+        #9a9d97 70%, #cbcbc3 83%, #f4f3ee 100%);
+    }
+    .modo.v1 {
+      background: linear-gradient(to bottom,
+        #000000 0%, #0a0a0a 30%, #2a2a2a 50%, #545454 68%,
+        #7b7b79 82%, #9a9a98 100%);
+    }
+    .modo.v2 {
+      background: linear-gradient(to bottom,
+        #15101c 0%, #221a2e 27%, #3c3450 47%, #5d5670 62%,
+        #847f96 80%, #a4a1b2 100%);
+    }
+    .modo.v3 {
+      background: linear-gradient(to bottom,
+        #283040 0%, #3a4456 28%, #5d6878 50%, #8b939e 74%, #b6bbc0 100%);
+    }
+    .modo.v4 {
+      background: linear-gradient(to bottom,
+        #a4a6bb 0%, #afabb6 38%, #bba8ad 65%, #c6aaa6 100%);
+    }
+    .modo.v5 {
+      background: linear-gradient(to bottom,
+        #956230 0%, #6a4220 14%, #1c1208 32%, #0c0a07 46%,
+        #34332f 64%, #707070 84%, #919190 100%);
+    }
+    .modo.v6 {
+      background: linear-gradient(to bottom,
+        #7e9440 0%, #9aae48 24%, #c2cf52 46%, #e0e85c 60%,
+        #e9ec9c 80%, #eef0e2 100%);
+    }
+    .modo.v7 {   /* salvia — foto "Harley" (washed, brumoso) */
+      background: linear-gradient(to bottom,
+        #c9d1c3 0%, #c7c6b7 32%, #beb59c 62%, #b0a486 100%);
+    }
+    .modo.v8 {   /* petróleo — misma rampa de % que japonés, en clave teal */
+      background: linear-gradient(to bottom,
+        #06100f 0%, #0c1a1f 25%, #235059 47%, #4d6b72 58%,
+        #8a9a9a 70%, #c0c6c4 83%, #eef1ef 100%);
+    }
+    .modo.v9 {   /* oliva — khaki oscuro arriba → off-white */
+      background: linear-gradient(to bottom,
+        #4d4d20 0%, #545420 18%, #7c773f 40%, #a8a37e 56%,
+        #ccc9b8 72%, #e3e1da 87%, #efedea 100%);
+    }
+    /* Modo activo: texto claro para leer sobre el gradiente */
+    body.modo-on { --text: #ededf0; --muted: #ededf0; }            /* v0·v1·v3: claro sobre oscuro */
+    body.modo-on.modo-v2 { --text: #dcd4ee; --muted: #dcd4ee; }    /* violeta muy claro, tono a tono */
+    body.modo-on.modo-v4 { --text: #2f2a3d; --muted: #2f2a3d; }    /* lavanda/rosa claro → texto oscuro */
+    body.modo-on.modo-v5 { --text: #f1ebe1; --muted: #f1ebe1; }    /* marrón/negro → crema cálido */
+    body.modo-on.modo-v6 { --text: #2f3a16; --muted: #2f3a16; }    /* verde/amarillo claro → oliva oscuro */
+    body.modo-on.modo-v7 { --text: #353b2b; --muted: #353b2b; }    /* salvia claro → oliva oscuro */
+    body.modo-on.modo-v8 { --text: #dfe9e8; --muted: #dfe9e8; }    /* petróleo oscuro → teal claro */
+    body.modo-on.modo-v9 { --text: #ecebdf; --muted: #ecebdf; }    /* oliva oscuro → crema claro */
+
+    /* acento tono-a-tono por Modo: destaca dentro de cada paleta (ya no celeste fijo) */
+    body.modo-on.modo-v0 { --accent: #7e88e6; }   /* japonés · periwinkle (azul del gradiente) */
+    body.modo-on.modo-v1 { --accent: #8fa3b8; }   /* grafito · acero frío */
+    body.modo-on.modo-v2 { --accent: #a98ae8; }   /* violeta · violeta vivo */
+    body.modo-on.modo-v3 { --accent: #86a0cf; }   /* pizarra · azul acero */
+    body.modo-on.modo-v4 { --accent: #8f5288; }   /* lavanda · ciruela */
+    body.modo-on.modo-v5 { --accent: #cf8a3a; }   /* tierra · ámbar */
+    body.modo-on.modo-v6 { --accent: #3f6310; }   /* lima · verde profundo (oscuro para destacar sobre el fondo claro) */
+    body.modo-on.modo-v7 { --accent: #7e9356; }   /* salvia · musgo */
+    body.modo-on.modo-v8 { --accent: #3fa6ad; }   /* petróleo · teal */
+    body.modo-on.modo-v9 { --accent: #b8a63f; }   /* oliva · oro */
+
+    body.modo-off { background: #000; --text: #efedef; --muted: #efedef; }  /* apagado: negro 100% + texto gris (acento celeste base) */
+
+    /* ===== GALERÍA DE WORK (carrusel en ventana flotante) ===== */
+
+    /* ── VENTANAS FLOTANTES (desktop) ────────────── */
+    .win {
+      position: fixed;
+      background: transparent;
+      cursor: move;
+      touch-action: none;
+      padding: 14px;
+    }
+    .win-close {
+      position: absolute;
+      top: 0;
+      right: 0;
+      font: inherit;
+      color: var(--muted);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+    }
+    .win-close:hover { color: var(--text); }
+
+    .now-clock svg { display: block; width: min(84vw, 459px); height: auto; }  /* +35% */
+    .now-clock svg text {
+      font-family: var(--font);
+      font-size: 10.5px;        /* ~9px en pantalla (SVG escalado ~0.85×) → mismo registro que la web */
+      font-weight: 600;
+    }
+    .now-clock .now-face { fill: none; stroke: var(--muted); }
+    .now-clock .now-tick { fill: var(--muted); }      /* puntos de segundos */
+    .now-clock .now-word { fill: var(--muted); }
+    .now-clock .now-hand { stroke: var(--accent); }   /* aguja celeste */
+    .now-clock .now-hub  { fill: var(--muted); }
+
+    /* ===== MOBILE: columnas apiladas (acordeón), mismo registro, más legible ===== */
+    @media (max-width: 768px) {
+      :root {
+        --size: 13px;          /* legible en mano, sigue siendo un solo registro */
+        --lh:   1.5;
+        --row:  20px;
+        --edge: 18px;
+      }
+      html { -webkit-text-size-adjust: 100%; }
+
+      /* Info · Work · Sistema · Sound = menú horizontal de botones; contenido full-width debajo */
+      .grid { display: flex; flex-wrap: wrap; column-gap: 8px; row-gap: 0; }
+      .col[data-cat] { display: contents; }              /* desata head + group como items del flex */
+      .col-label { flex: 0 0 100%; order: 0; }           /* brand arriba, full-width */
+      .col-head {                                        /* recuadro como los botones del 909+303 */
+        order: 1; flex: 1 1 0; min-width: 0;
+        margin: 0 0 14px; padding: 8px 6px; text-align: center; white-space: nowrap;
+        border: 1.3px solid color-mix(in srgb, var(--text) 40%, transparent); border-radius: 6px;
+      }
+      .col-head .cat-mark { display: none; }             /* en botones: solo el nombre */
+      .col-head.open { color: var(--accent); border-color: var(--accent); }   /* activo en celeste */
+      .group { order: 2; flex: 0 0 100%; }               /* contenido a lo ancho, bajo los botones */
+      .group:not(.collapsed) { padding-top: 4px; }
+
+      /* targets táctiles cómodos sin perder la densidad */
+      .tag-row, .sys-row { padding: 5px 0; }
+      .modo-arrow { padding: 5px 10px; }
+
+      /* secuenciador 909+303: botonera envuelve si no entra a lo ancho */
+      .seq-transport { flex-wrap: wrap; row-gap: 8px; }
+
+      /* piezas SVG / ventanas a escala de pantalla chica */
+      .carousel        { width: min(86vw, 380px); }
+      .now-clock svg   { width: min(88vw, 432px); }
+      .skins-art svg   { width: min(62vw, 220px); }
+      .lat-art svg     { width: 100%; }
     }
   </style>
-  
-  <!-- CSS PRINCIPAL -->
-  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- Barra de reflexiones inferior -->
-  <div class="reflection-bar" id="reflectionBar">
-    <div class="reflection-content" id="reflectionContent">
-       • UX UI Y BRAND • UX UI Y BRAND • UX UI Y BRAND • UX UI Y BRAND • UX UI Y BRAND • UX UI Y BRAND • UX UI Y BRAND • UX UI Y BRAND • UX UI Y BRAND •
-    </div>
-    <button class="reflection-close" onclick="closeReflectionBar()">×</button>
-  </div>
 
-  <div class="main-container">
-    
-    <!-- Panel Izquierdo - Proyectos -->
-    <div class="left-projects-panel">
-      
-      <div class="project">
-        <div class="project-media">
-          <div class="project-carousel">
-            <div class="carousel-track">
-              <div class="carousel-slide">
-                <img src="https://i.imgur.com/GlaO5F9.jpeg" alt="Holomate Controller 1">
-              </div>
-              <div class="carousel-slide">
-                <img src="https://i.imgur.com/9c0RD4N.jpeg" alt="Holomate Controller 2">
-              </div>
-              <div class="carousel-slide">
-                <img src="https://i.imgur.com/4y06kXF.jpeg" alt="Holomate Controller 3">
-              </div>
-              <div class="carousel-slide">
-                <img src="https://i.imgur.com/VegU2IC.jpeg" alt="Holomate Controller 4">
-              </div>
-              <div class="carousel-slide">
-                <img src="https://i.imgur.com/dGyLYqY.jpeg" alt="Holomate Controller 5">
-              </div>
-              <div class="carousel-slide">
-                <img src="https://i.imgur.com/IptYkX3.jpeg" alt="Holomate Controller 6">
-              </div>
-              <div class="carousel-slide">
-                <img src="https://i.imgur.com/8ILMl1q.jpeg" alt="Holomate Controller 7">
-              </div>
-              <div class="carousel-slide">
-                <img src="https://i.imgur.com/fXWTT1x.gif" alt="Holomate Controller 8">
-              </div>
-            </div>
-            <div class="carousel-controls">
-              <button class="carousel-btn prev"></button>
-              <button class="carousel-btn next"></button>
-            </div>
-            <div class="carousel-indicators"></div>
-          </div>
-        </div>
-        
-        <div class="project-info-grid">
-          <div class="project-left">
-            <div class="project-number">[01]</div>
-            <div class="project-category"></div>
-          </div>
-          <div class="project-details">
-            <div class="project-title">Holomate</div>
-            <p class="project-description">
-              Controlador MIDI portátil y experimental. Lanzado como una edición limitada de 50 unidades,
-es compatible con Holomate Play y Ableton Live. Un dispositivo que fusiona diseño físico
-con experiencia digital para la creación musical colaborativa.
-            </p>
-          </div>
-        </div>
+  <!-- modo: gradiente full-screen (dos capas para crossfade entre variantes) -->
+  <div class="modo" id="modoA"></div>
+  <div class="modo" id="modoB"></div>
+
+  <!-- main grid -->
+  <div class="grid">
+
+    <!-- col 1: label / brand -->
+    <div class="col col-label">
+      <div class="brand-mark">
+        <span class="brand-mark__star">✳</span>
+        <span><span class="keepcase">Federico Pignatta</span><br>diseñador multidisciplinar<br>arte &amp; sonido</span>
       </div>
-
-      <div class="project">
-        <div class="project-media">
-          <div class="project-carousel">
-            <div class="carousel-track">
-              <div class="carousel-slide">
-                <img src="https://i.imgur.com/sELz8tj.jpeg" alt="Holomate Play 1">
-              </div>
-              <div class="carousel-slide">
-                <img src="https://i.imgur.com/C0uNKjq.jpeg" alt="Holomate Play 2">
-              </div>
-              <div class="carousel-slide">
-                <img src="https://i.imgur.com/jCY91qu.jpeg" alt="Holomate Play 3">
-              </div>
-            </div>
-            <div class="carousel-controls">
-              <button class="carousel-btn prev"></button>
-              <button class="carousel-btn next"></button>
-            </div>
-            <div class="carousel-indicators"></div>
-          </div>
-        </div>
-        
-        <div class="project-info-grid">
-          <div class="project-left">
-            <div class="project-number">[02]</div>
-            <div class="project-category"></div>
-          </div>
-          <div class="project-details">
-            <div class="project-title">Diseño de producto y UX/UI</div>
-            <p class="project-description">
-              Es una plataforma web para hacer música de forma simple, lúdica y colectiva.
-Funciona como una app en el navegador, sin necesidad de instalar nada, y está pensada
-para conectarse directamente con el controlador Holomate o usarse de forma independiente.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div class="project">
-        <div class="project-media square-video-container">
-          <video class="square-video" autoplay loop muted playsinline onclick="if(window.innerWidth > 768) openLightboxVideo(this.src)">
-            <source src="https://i.imgur.com/lM5fRyp.mp4" type="video/mp4">
-            Tu navegador no soporta el elemento de video.
-          </video>
-        </div>
-        
-        <div class="project-info-grid">
-          <div class="project-left">
-            <div class="project-number">[03]</div>
-            <div class="project-category"></div>
-          </div>
-          <div class="project-details">
-            <div class="project-title">Identidad visual</div>
-            <p class="project-description">
-              Una nueva identidad para una nueva etapa de la Dirección Nacional de Educación. El rediseño parte de dos conceptos simples y claros: preservar y evolucionar. La letra "E" se mantiene como símbolo central que representa Educación, Estudiantes y Educadores.
-              <br><br>
-              A su lado se integran un círculo y una línea, formas que sugieren el componente humano del sistema, los vínculos y una trayectoria educativa. Una segunda línea, en la base, actúa como estructura visual y como símbolo de aquello que sostiene al sistema educativo, aunque no siempre se vea: la vocación, el territorio y la historia compartida.
-              <br><br>
-              El nuevo diseño plasma el diálogo entre la institución y las personas, una identidad renovada e inclusiva.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div class="project">
-        <div class="project-media">
-          <div class="project-carousel">
-            <div class="carousel-track">
-              <div class="carousel-slide">
-                <img src="https://i.imgur.com/AFZpR1x.jpeg" alt="Ferias Departamentales de Clubes de Ciencia 1">
-              </div>
-              <div class="carousel-slide">
-                <img src="https://i.imgur.com/R7UgqsB.jpeg" alt="Ferias Departamentales de Clubes de Ciencia 2">
-              </div>
-              <div class="carousel-slide">
-                <img src="https://i.imgur.com/U1MSxeo.jpeg" alt="Ferias Departamentales de Clubes de Ciencia 3">
-              </div>
-              <div class="carousel-slide">
-                <img src="https://i.imgur.com/mlezC47.jpeg" alt="Ferias Departamentales de Clubes de Ciencia 4">
-              </div>
-            </div>
-            <div class="carousel-controls">
-              <button class="carousel-btn prev"></button>
-              <button class="carousel-btn next"></button>
-            </div>
-            <div class="carousel-indicators"></div>
-          </div>
-        </div>
-        
-        <div class="project-info-grid">
-          <div class="project-left">
-            <div class="project-number">[04]</div>
-            <div class="project-category"></div>
-          </div>
-          <div class="project-details">
-            <div class="project-title">Identidad visual</div>
-            <p class="project-description">
-              Identidad visual para las Ferias Departamentales de Clubes de Ciencia del programa Cultura Científica del MEC, un ciclo de 19 encuentros que impulsa la participación de cientos de clubes en todos los departamentos de Uruguay.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div class="project">
-        <div class="project-media">
-          <div class="project-carousel">
-            <div class="carousel-track">
-              <div class="carousel-slide">
-                <img src="https://i.imgur.com/zDWUWPv.jpeg" alt="Feria Nacional de Clubes de Ciencia 2025 - 1">
-              </div>
-              <div class="carousel-slide">
-                <img src="https://i.imgur.com/wmsURUi.jpeg" alt="Feria Nacional de Clubes de Ciencia 2025 - 2">
-              </div>
-              <div class="carousel-slide">
-                <img src="https://i.imgur.com/cy2b25m.jpeg" alt="Feria Nacional de Clubes de Ciencia 2025 - 3">
-              </div>
-            </div>
-            <div class="carousel-controls">
-              <button class="carousel-btn prev"></button>
-              <button class="carousel-btn next"></button>
-            </div>
-            <div class="carousel-indicators"></div>
-          </div>
-        </div>
-        
-        <div class="project-info-grid">
-          <div class="project-left">
-            <div class="project-number">[05]</div>
-            <div class="project-category"></div>
-          </div>
-          <div class="project-details">
-            <div class="project-title">Identidad visual</div>
-            <p class="project-description">
-              Para la Feria Nacional de Clubes de Ciencia desarrollé una evolución de la identidad visual creada para las ferias departamentales, adaptándola a un escenario de mayor alcance y proyección. Esta instancia reúne los proyectos con mayor potencial de todo el Uruguay.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div class="project">
-        <div class="project-media">
-          <img src="https://i.imgur.com/ZpTQBFH.jpeg" alt="Identidad visual" class="single-image" onclick="if(window.innerWidth > 768) openLightbox('https://i.imgur.com/ZpTQBFH.jpeg')">
-        </div>
-        
-        <div class="project-info-grid">
-          <div class="project-left">
-            <div class="project-number">[06]</div>
-            <div class="project-category"></div>
-          </div>
-          <div class="project-details">
-            <div class="project-title">Afiche</div>
-            <p class="project-description">
-             Muestra anual del Programa Nacional de Educación en Cárceles "Construir encuentros. Aportes de la educación al arte y la convivencia en contexto de encierro".
-            </p>
-          </div>
-        </div>
-      </div>
-
     </div>
 
-    <!-- Panel Central - Información complementaria -->
-    <div class="center-info-panel">
-      
-      <div class="info-section">
-        <div class="info-title">→ Educación</div>
-        <div class="info-item">
-          <div>Licenciatura en Artes Visuales — en proceso de tesis</div>
-          <div class="info-description">Universidad de la República, Uruguay</div>
+    <!-- col 2: INFO -->
+    <div class="col" data-cat>
+      <div class="col-head cat-toggle" data-target="g-info"><span class="cat-mark">[<span class="mark">+</span>]</span> Info</div>
+      <div class="group collapsed" id="g-info">
+        <p class="bio">Federico Pignatta investiga y desarrolla sistemas visuales y digitales en la intersección entre inteligencia artificial, comunicación y diseño.</p>
+        <p class="bio">Su práctica se apoya en más de 15 años de experiencia en diseño visual e identidad institucional, con especial foco en proyectos vinculados a educación y cultura.</p>
+        <p class="bio">Actualmente trabaja con agentes de IA, automatización y pensamiento de sistemas para explorar nuevas formas de crear interfaces, herramientas, procesos y lenguajes visuales.</p>
+        <p class="bio">Su práctica combina criterio visual, pensamiento de producto y capacidad técnica para llevar ideas a sistemas concretos.</p>
+        <p class="bio">Actualmente desarrolla su tesis de grado en Artes. En paralelo, explora la producción de música electrónica como campo de experimentación sonora y creativa.</p>
+
+        <div class="cv-section">
+          <div class="cv-head">✉ Contacto para colaboraciones y trabajos por encargo</div>
+          <div class="cv-item"><a class="cv-link" href="mailto:hola@pignatta.info">→ hola@pignatta.info</a></div>
         </div>
-        <div class="info-item">
-          <div>Tecnicatura en Diseño Gráfico</div>
-          <div class="info-description">UTU Comunicación Social</div>
+
+        <div class="cv-section">
+          <div class="cv-head">→ Trabajos destacados por</div>
+          <div class="cv-item"><a class="cv-link" href="https://www.buenosaliens.com/notas.cfm/cod.83068.t.controlador-made-in-montevideo.htm" target="_blank" rel="noopener">2024 Buenos aliens</a></div>
+          <div class="cv-item"><a class="cv-link" href="https://magmafutura.com/dispararte" target="_blank" rel="noopener">2024 Dispararte x magma futura</a></div>
+          <div class="cv-item"><a class="cv-link" href="https://fondos.culturaenlinea.uy/presentacion/proyectos-y-becas-seleccionadas/proy-y-becas-fefca/proyectos-y-becas-seleccionados-fefca-2020/" target="_blank" rel="noopener">2020 Fefca</a></div>
+          <div class="cv-item"><a class="cv-link" href="#" onclick="alert('FONAM 2019 - Proyecto N° 2-2019-454'); return false;">2019 Fonam</a></div>
         </div>
-        <div class="info-item">
-          <div>Especialización en UX/UI</div>
-          <div class="info-description">Certificación Coderhouse</div>
+
+        <div class="cv-section">
+          <div class="cv-head">→ Proyectos colaborativos de autoría</div>
+          <div class="cv-item"><a class="cv-link" href="https://play.holomate.cc" target="_blank" rel="noopener">Holomate play</a></div>
+          <div class="cv-item"><a class="cv-link" href="https://instagram.com/holomate_" target="_blank" rel="noopener">Holomate controlador midi</a></div>
+          <div class="cv-item"><a class="cv-link" href="https://instagram.com/riodelaplata_uy" target="_blank" rel="noopener">Ruido de la plata</a></div>
+        </div>
+
+        <div class="cv-section">
+          <div class="cv-head">→ Social</div>
+          <div class="cv-item"><a class="cv-link" href="https://instagram.com/efe_defede" target="_blank" rel="noopener">Instagram</a></div>
+          <div class="cv-item"><a class="cv-link" href="https://soundcloud.com/efe_defede" target="_blank" rel="noopener">Soundcloud</a></div>
+          <div class="cv-item"><a class="cv-link" href="https://linktr.ee/efe_defede" target="_blank" rel="noopener">Linktr.ee</a></div>
         </div>
       </div>
-
-      <div class="info-section">
-        <div class="info-title">→ Experiencia</div>
-        <div class="info-item">
-          <div>Diseñador Gráfico Senior</div>
-          <div class="info-description">Ministerio de Educación y Cultura</div>
-        </div>
-        <div class="info-item">
-          <div>Diseñador Freelance</div>
-          <div class="info-description">Proyectos comisionados desde 2011 - presente</div>
-        </div>
-      </div>
-
-      <div class="info-section">
-        <div class="info-title">→ Enseñanza</div>
-        <div class="info-item">
-          <div>2018-2021 Talleres de arte y comunicación (PAS)</div>
-          <div class="info-description"></div>
-        </div>
-      </div>
-
-      <div class="info-section">
-        <div class="info-title">→ Trabajos destacados por</div>
-        <div class="info-item compact">
-          <a href="https://www.buenosaliens.com/notas.cfm/cod.83068.t.controlador-made-in-montevideo.htm" target="_blank">2024 BUENOS ALIENS</a>
-        </div>
-        <div class="info-item compact">
-          <a href="https://magmafutura.com/dispararte" target="_blank">2024 DISPARARTE X MAGMA FUTURA</a>
-        </div>
-        <div class="info-item compact">
-          <a href="https://fondos.culturaenlinea.uy/presentacion/proyectos-y-becas-seleccionadas/proy-y-becas-fefca/proyectos-y-becas-seleccionados-fefca-2020/" target="_blank">2020 FEFCA</a>
-        </div>
-        <div class="info-item compact">
-          <a href="#" onclick="alert('FONAM 2019 - Proyecto N° 2-2019-454'); return false;">2019 FONAM</a>
-        </div>
-      </div>
-
-      <div class="info-section">
-        <div class="info-title">→ Proyectos colaborativos de autoría</div>
-        <div class="info-item compact">
-          <a href="https://play.holomate.cc" target="_blank">HOLOMATE PLAY</a>
-        </div>
-        <div class="info-item compact">
-          <a href="https://instagram.com/holomate_" target="_blank">HOLOMATE CONTROLADOR MIDI</a>
-        </div>
-        <div class="info-item compact">
-          <a href="https://instagram.com/riodelaplata_uy" target="_blank">RUIDO DE LA PLATA</a>
-        </div>
-      </div>
-
-      <div class="info-section">
-        <div class="info-title">→ Social</div>
-        <div class="info-item compact">
-          <a href="https://instagram.com/efe_defede" target="_blank">INSTAGRAM</a>
-        </div>
-        <div class="info-item compact">
-          <a href="https://soundcloud.com/efe_defede" target="_blank">SOUNDCLOUD</a>
-        </div>
-        <div class="info-item compact">
-          <a href="https://linktr.ee/efe_defede" target="_blank">LINKTR.EE</a>
-        </div>
-      </div>
-
-      <div class="sound-section">
-        <div class="sound-player-full">
-          <div class="sound-player-controls">
-            <div class="sound-controls-left">
-              <button class="sound-control-btn" onclick="soundPreviousTrack()" title="Anterior">
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M0 0v12h3V0zM3 6l9-6v12z" fill="currentColor"/>
-                </svg>
-              </button>
-              <button class="sound-control-btn play-btn" onclick="soundTogglePlayPause()" id="soundPlayBtn">
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M3 0v12l9-6z" fill="currentColor"/>
-                </svg>
-              </button>
-              <button class="sound-control-btn" onclick="soundNextTrack()" title="Siguiente">
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 0v12H9V0zM9 6L0 0v12z" fill="currentColor"/>
-                </svg>
-              </button>
-              <button class="sound-control-btn pause-btn" onclick="soundStop()" title="Detener">
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <rect width="12" height="12" fill="currentColor"/>
-                </svg>
-              </button>
-            </div>
-            <div class="sound-brand">Radio Imaginaria</div>
-          </div>
-          
-          <div class="sound-channel-list" id="soundChannelList">
-            <div class="sound-channel-item selected" onclick="soundSelectChannel(0)">CH 01: PRÓXIMAMENTE</div>
-            <div class="sound-channel-item" onclick="soundSelectChannel(1)">CH 02: PRÓXIMAMENTE</div>
-            <div class="sound-channel-item" onclick="soundSelectChannel(2)">CH 03: PRÓXIMAMENTE</div>
-            <div class="sound-channel-item" onclick="soundSelectChannel(3)">CH 04: PRÓXIMAMENTE</div>
-            <div class="sound-channel-item" onclick="soundSelectChannel(4)">CH 05: PRÓXIMAMENTE</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Micrográficos móviles -->
-      <div class="mobile-micros-center">
-        <div class="mobile-micros-center-left">
-          <div class="mobile-micros-center-line">
-            ÚLTIMA
-            ACTUALIZACIÓN:<br>
-            17.NOV.2025
-          </div>
-        </div>
-        <div class="mobile-micros-center-right">
-          <div class="mobile-micros-center-line">
-            MONTEVIDEO, UY<br>
-            11.4°C ☁️
-          </div>
-          <div class="mobile-micros-center-line" id="mobileLiveClock2">[23:40:39]</div>
-        </div>
-      </div>
-
     </div>
 
-    <!-- Panel Derecho - Bio y contacto -->
-    <div class="right-bio-panel">
-      <h1 class="studio-name">Pignatta</h1>
-      
-      <div class="bio-section">
-        <p class="bio-text">
-        Federico Pignatta es diseñador con más de 15 años de experiencia en comunicación visual y audiovisual.
-        En los últimos años se ha dedicado a la comunicación institucional especializada en Educación,
-        desarrollando identidades visuales con un enfoque estratégico y centrado en las personas.
-        </p>
-        
-        <p class="contact-collab">
-          ✉ Contacto para colaboraciones y trabajos por encargo.
-        </p>
+    <!-- col 3: WORK -->
+    <div class="col" data-cat>
+      <div class="col-head cat-toggle" data-target="g-work"><span class="cat-mark">[<span class="mark">+</span>]</span> Work</div>
+      <div class="group collapsed" id="g-work">
+        <div class="tag-row"><span class="checkbox">[<span class="mark"></span>]</span><span class="tag-label">identidad_visual</span></div>
+        <div class="tag-row"><span class="checkbox">[<span class="mark"></span>]</span><span class="tag-label">motion</span></div>
+        <div class="tag-row"><span class="checkbox">[<span class="mark"></span>]</span><span class="tag-label">product_design</span></div>
+        <div class="tag-row"><span class="checkbox">[<span class="mark"></span>]</span><span class="tag-label">ui_ux</span></div>
       </div>
+    </div>
 
-      <div class="contact-section">
-        <a href="mailto:hola@pignatta.info" class="contact-link">→ hola@pignatta.info</a>
+    <!-- col 4: SISTEMA -->
+    <div class="col" data-cat>
+      <div class="col-head cat-toggle" data-target="g-system"><span class="cat-mark">[<span class="mark">+</span>]</span> Sistema</div>
+      <div class="group collapsed" id="g-system">
+        <div class="sys-row" id="rowReloj">
+          <span class="checkbox">[<span class="mark"></span>]</span>
+          <span class="tag-label">Reloj</span>
+          <span class="sys-extra clock" id="clock">[ -- : -- ]</span>
+        </div>
+        <div class="sys-row" id="rowRespira">
+          <span class="checkbox">[<span class="mark"></span>]</span>
+          <span class="tag-label">Respira</span>
+          <span class="sys-extra" id="breathExtra"></span>
+        </div>
+        <div class="sys-row" id="rowRemat">
+          <span class="checkbox">[<span class="mark"></span>]</span>
+          <span class="tag-label">Re-materialización</span>
+        </div>
+        <div class="sys-doc" id="rematDoc" hidden>
+          <p class="sys-doc-lead">herramienta de re-materialización: el sub bass como infraestructura de soberanía.</p>
+          <p>1. sitúese frente al sub bass.</p>
+          <p>2. permita que la baja frecuencia colisione su arquitectura ósea.</p>
+          <p>3. no escuche con el oído; deje que la médula traduzca la presión.</p>
+          <p>4. sienta cómo el algoritmo se desvanece mientras su cuerpo recupera su densidad.</p>
+          <p>5. repita hasta que el territorio sea suyo.</p>
+        </div>
+        <div class="sys-row" id="rowLattice">
+          <span class="checkbox">[<span class="mark"></span>]</span>
+          <span class="tag-label">Lattice</span>
+        </div>
+        <div class="lattice" id="lattice" hidden>
+          <div class="lat-art" id="latArt"></div>
+          <p class="lat-cap" id="latCap"></p>
+        </div>
+        <div class="sys-row" id="rowSkins">
+          <span class="checkbox">[<span class="mark"></span>]</span>
+          <span class="tag-label">Cinco pieles</span>
+        </div>
+        <div class="skins" id="skins" hidden>
+          <div class="skins-art" id="skinsArt"></div>
+          <p class="lat-cap" id="skinsCap"></p>
+          <p class="skins-lead">según f. hundertwasser · «las cinco pieles»</p>
+        </div>
+        <div class="sys-row" id="rowModo">
+          <span class="checkbox">[<span class="mark"></span>]</span>
+          <span class="tag-label">Modo</span>
+          <span class="sys-extra modo-sel">
+            <button class="modo-arrow" id="modoPrev" aria-label="anterior">‹</button>
+            <span class="modo-name" id="modoName"></span>
+            <button class="modo-arrow" id="modoNext" aria-label="siguiente">›</button>
+          </span>
+        </div>
       </div>
+    </div>
 
-      <div class="time-section">
-        <div class="time-left">
-          <div class="update-date">
-            ÚLTIMA
-            ACTUALIZACIÓN:<br>
-            23.JUL.2025
-          </div>
+    <!-- col 5: SOUND -->
+    <div class="col" data-cat>
+      <div class="col-head cat-toggle" data-target="g-sound"><span class="cat-mark">[<span class="mark">+</span>]</span> Sound</div>
+      <div class="group collapsed" id="g-sound">
+        <div class="sys-row" id="rowDrone">
+          <span class="checkbox">[<span class="mark"></span>]</span>
+          <span class="tag-label">Drone</span>
+          <span class="sys-extra" id="droneExtra"></span>
         </div>
-        <div class="time-right">
-          <div class="weather-info">
-            <span class="location">MONTEVIDEO, UY</span>
-            <span class="weather-temp">11.4°C ☁️</span>
-          </div>
-          <div class="live-clock" id="liveClock">[23:40:39]</div>
+        <svg class="drone-scope" id="droneScope" preserveAspectRatio="none" hidden></svg>
+        <div class="sys-row" id="row909">
+          <span class="checkbox">[<span class="mark"></span>]</span>
+          <span class="tag-label">909+303</span>
         </div>
+        <div class="seq909" id="seq909" hidden></div>
+        <div class="seq303" id="seq303" hidden></div>
       </div>
     </div>
 
   </div>
 
-  <!-- Lightbox -->
-  <div class="lightbox" id="lightbox">
-    <div class="lightbox-content">
-      <img class="lightbox-image" id="lightboxImage" src="" alt="">
-      <video class="lightbox-video" id="lightboxVideo" controls style="display: none;">
-        <source src="" type="video/mp4">
-      </video>
-      <button class="lightbox-nav lightbox-nav-prev" id="lightboxPrev" onclick="lightboxPrevious()"></button>
-      <button class="lightbox-nav lightbox-nav-next" id="lightboxNext" onclick="lightboxNext()"></button>
-      <button class="lightbox-close" onclick="closeLightbox()">×</button>
-    </div>
-  </div>
-
-  <!-- SCRIPT AL FINAL -->
-  <script defer src="script.js"></script>
-  
-  <!-- VERIFICACIÓN DE CARGA -->
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      console.log('🔍 Verificación de carga GitHub Pages:');
-      console.log('- CSS externo:', !!document.querySelector('link[href="style.css"]'));
-      console.log('- JS externo:', !!document.querySelector('script[src="script.js"]'));
-      
-      const track = document.querySelector('.carousel-track');
-      if (track) {
-        const styles = window.getComputedStyle(track);
-        console.log('- Display de .carousel-track:', styles.display);
-        console.log('- Transform inicial:', styles.transform);
-      }
-      
-      setTimeout(() => {
-        const links = document.querySelectorAll('link[rel="stylesheet"]');
-        links.forEach(link => {
-          if (link.sheet) {
-            console.log('✅', link.href, 'cargado');
-          } else {
-            console.error('❌', link.href, 'falló');
-          }
-        });
-      }, 100);
+<script>
+(function () {
+  // parte cada párrafo de bio en renglones reales (medidos), adaptados al ancho
+  function ensureBioLines() {
+    document.querySelectorAll('#g-info p.bio').forEach(function (p) {
+      var text = p.getAttribute('data-text');
+      if (text === null) { text = p.textContent.replace(/\s+/g, ' ').trim(); p.setAttribute('data-text', text); }
+      // envuelve cada palabra para medir en qué renglón cae
+      p.innerHTML = text.split(' ').map(function (w) { return '<span class="cv-w">' + w + '</span>'; }).join(' ');
+      var words = p.querySelectorAll('.cv-w');
+      var lines = [], cur = [], top = null;
+      words.forEach(function (w) {
+        var t = w.offsetTop;
+        if (top === null) top = t;
+        if (t !== top) { lines.push(cur.join(' ')); cur = []; top = t; }
+        cur.push(w.textContent);
+      });
+      if (cur.length) lines.push(cur.join(' '));
+      // reconstruye como renglones-entrada (cada uno se ilumina por separado)
+      p.innerHTML = lines.map(function (ln) {
+        ln = ln.replace('Federico Pignatta', '<span class="keepcase">Federico Pignatta</span>');
+        return '<span class="cv-line">' + ln + '</span>';
+      }).join('');
     });
-  </script>
+  }
+
+  // líneas visibles de una categoría (en orden de documento)
+  function termLines(group) {
+    return Array.prototype.slice.call(
+      group.querySelectorAll('.cv-line, .cv-head, .cv-item, .tag-row, .sys-row')
+    ).filter(function (el) { return el.offsetParent !== null; });
+  }
+
+  // apertura: cada línea se carga en cascada sutil (arriba → abajo)
+  function revealTerminal(group) {
+    termLines(group).forEach(function (el, i) {
+      el.style.animation = 'none';
+      el.offsetHeight; // reflow para reiniciar
+      el.style.animation = 'termline 0.26s ease both';
+      el.style.animationDelay = (i * 0.05) + 's';
+    });
+  }
+
+  // cierre: cada línea se descarga (abajo → arriba), luego colapsa
+  function hideTerminal(group) {
+    var lines = termLines(group), n = lines.length, step = 0.04, dur = 0.2;
+    lines.forEach(function (el, i) {
+      el.style.animation = 'none';
+      el.offsetHeight;
+      el.style.animation = 'termlineout ' + dur + 's ease both';
+      el.style.animationDelay = ((n - 1 - i) * step) + 's';
+    });
+    clearTimeout(group._t);
+    group._t = setTimeout(function () {
+      group.classList.remove('closing');
+      group.classList.add('collapsed');
+    }, (n * step + dur) * 1000);
+  }
+
+  // cierre rápido y uniforme (para el cambio de sección en mobile): fade del bloque entero, luego callback
+  function quickCollapse(group, cb) {
+    clearTimeout(group._t);
+    group.classList.add('closing');
+    group.style.transition = 'opacity 0.22s ease';
+    void group.offsetHeight;                 // reflow para que el fade arranque
+    group.style.opacity = '0';
+    group._t = setTimeout(function () {
+      group.classList.remove('closing');
+      group.classList.add('collapsed');
+      group.style.opacity = '';
+      group.style.transition = '';
+      if (cb) cb();                          // recién acá abre la nueva (ya colapsada la anterior)
+    }, 240);
+  }
+
+  // colapso/despliegue de categorías
+  document.querySelectorAll('.cat-toggle').forEach(function (head) {
+    head.addEventListener('click', function () {
+      var group = document.getElementById(head.getAttribute('data-target'));
+      var mark = head.querySelector('.cat-mark .mark');
+      if (group.classList.contains('collapsed') || group.classList.contains('closing')) {
+        var openNew = function () {
+          clearTimeout(group._t);
+          group.classList.remove('collapsed', 'closing');
+          group.style.opacity = ''; group.style.transition = '';
+          mark.textContent = '-';
+          head.classList.add('open');           // pestaña activa (mobile)
+          if (group.id === 'g-info') ensureBioLines();
+          revealTerminal(group);
+        };
+        // mobile: acordeón → cierra rápido la sección abierta y abre la nueva en el callback (sin salto)
+        if (window.matchMedia('(max-width: 768px)').matches) {
+          var openHead = null, openSection = null;
+          document.querySelectorAll('.cat-toggle').forEach(function (other) {
+            if (other === head) return;
+            var og = document.getElementById(other.getAttribute('data-target'));
+            if (og && !og.classList.contains('collapsed') && !og.classList.contains('closing')) { openHead = other; openSection = og; }
+          });
+          if (openSection) {
+            openHead.querySelector('.cat-mark .mark').textContent = '+';
+            openHead.classList.remove('open');
+            quickCollapse(openSection, openNew);   // primero cierra, recién después abre
+            return;
+          }
+        }
+        openNew();
+      } else {
+        mark.textContent = '+';
+        head.classList.remove('open');
+        group.classList.add('closing');
+        hideTerminal(group);
+      }
+    });
+  });
+
+  // toggle de tags individuales
+  document.querySelectorAll('.tag-row').forEach(function (row) {
+    row.addEventListener('click', function () {
+      var mark = row.querySelector('.mark');
+      var isActive = row.classList.toggle('active');
+      mark.textContent = isActive ? '●' : '';
+      handleGallery(row, isActive);
+    });
+  });
+
+  // reloj en vivo [HH:MM:SS]
+  var clock = document.getElementById('clock');
+  function tick() {
+    var n = new Date();
+    var p = function (v) { return String(v).padStart(2, '0'); };
+    var h = n.getHours(), ampm = h >= 12 ? 'PM' : 'AM', h12 = h % 12 || 12;
+    clock.textContent = '[ ' + p(h12) + ' : ' + p(n.getMinutes()) + ' ' + ampm + ' ]';
+  }
+  tick();
+  setInterval(tick, 1000);
+
+  // ── escritorio: gestor de ventanas flotantes ─────
+  var NS = 'http://www.w3.org/2000/svg';
+  var zTop = 100;          // z-index incremental (traer al frente)
+  var hands = new Set();   // agujas vivas a animar
+  var raf = null;
+
+  function svgEl(tag, attrs) {
+    var node = document.createElementNS(NS, tag);
+    for (var k in attrs) node.setAttribute(k, attrs[k]);
+    return node;
+  }
+
+  // animación compartida: una aguja por ventana, mismo tiempo real
+  function loop() {
+    var n = new Date();
+    var deg = (n.getSeconds() + n.getMilliseconds() / 1000) * 6;
+    hands.forEach(function (h) { h.setAttribute('transform', 'rotate(' + deg + ' 200 200)'); });
+    raf = hands.size ? requestAnimationFrame(loop) : null;
+  }
+  function ensureLoop() { if (!raf) raf = requestAnimationFrame(loop); }
+
+  function buildNowClock() {
+    var svg = svgEl('svg', { viewBox: '0 0 400 400' });
+    svg.appendChild(svgEl('circle', { class: 'now-face', cx: 200, cy: 200, r: 196, 'stroke-width': 1 }));
+
+    for (var i = 0; i < 60; i++) {
+      var t = i * 6, rad = t * Math.PI / 180;
+      var sin = Math.sin(rad), cos = Math.cos(rad);
+
+      svg.appendChild(svgEl('circle', {
+        class: 'now-tick',
+        cx: 200 + 188 * sin, cy: 200 - 188 * cos,
+        r: 1.3
+      }));
+
+      var wx = 200 + 150 * sin, wy = 200 - 150 * cos;
+      var word = svgEl('text', {
+        class: 'now-word',
+        x: wx, y: wy, 'text-anchor': 'middle', 'dominant-baseline': 'middle',
+        transform: 'rotate(' + (t - 90) + ' ' + wx + ' ' + wy + ')'
+      });
+      word.textContent = 'ahora';
+      svg.appendChild(word);
+    }
+
+    var hand = svgEl('g', {});
+    hand.appendChild(svgEl('line', { class: 'now-hand', x1: 200, y1: 226, x2: 200, y2: 42, 'stroke-width': 1.5 }));
+    svg.appendChild(hand);
+    svg.appendChild(svgEl('circle', { class: 'now-hub', cx: 200, cy: 200, r: 6 }));
+
+    return { svg: svg, hand: hand };
+  }
+
+  // diagrama de la lattice: campo de futuros que se reacomoda; 1 línea por loop
+  function buildLattice() {
+    var svg = svgEl('svg', { viewBox: '0 0 260 200' });
+    var x0 = 20, y0 = 20, dx = 28, dy = 28, cols = 9, rows = 6;
+
+    var nodes = [];
+    for (var r = 0; r < rows; r++) {
+      for (var c = 0; c < cols; c++) {
+        nodes.push({ x: x0 + c * dx, y: y0 + r * dy });
+        svg.appendChild(svgEl('circle', { class: 'lat-dot', cx: x0 + c * dx, cy: y0 + r * dy, r: 1.1 }));
+      }
+    }
+    var self = { x: x0 + 4 * dx, y: y0 + 3 * dy };
+
+    // una sola línea de coherencia (su destino cambia cada loop)
+    var line = svgEl('line', { class: 'lat-line', x1: self.x, y1: self.y, x2: self.x, y2: self.y });
+    svg.appendChild(line);
+    var ripple = svgEl('circle', { class: 'lat-ripple', cx: self.x, cy: self.y, r: 5 });
+    svg.appendChild(ripple);
+
+    // futuros: arrancan en el centro y se dispersan en cada reacomodo
+    var futures = [];
+    for (var i = 0; i < 11; i++) {
+      var fn = svgEl('circle', { class: 'lat-future', cx: self.x, cy: self.y, r: 3.2 });
+      fn.style.animationDelay = (i * 0.13) + 's';
+      svg.appendChild(fn);
+      futures.push(fn);
+    }
+
+    svg.appendChild(svgEl('circle', { class: 'lat-self', cx: self.x, cy: self.y, r: 3.4 }));
+    var lbl = svgEl('text', { class: 'lat-label', x: self.x, y: self.y + 13, 'text-anchor': 'middle' });
+    lbl.textContent = 'acá';
+    svg.appendChild(lbl);
+
+    return { svg: svg, nodes: nodes, self: self, line: line, ripple: ripple, futures: futures };
+  }
+
+  // las cinco pieles: anillos concéntricos + figura al centro (ref. Hundertwasser)
+  function buildSkins() {
+    var svg = svgEl('svg', { viewBox: '0 0 240 240' });
+    var cx = 120, cy = 120, radii = [26, 46, 68, 92, 116];
+    var rings = [], nums = [];
+
+    radii.forEach(function (rr) {
+      var ring = svgEl('circle', { class: 'skin-ring', cx: cx, cy: cy, r: rr });
+      svg.appendChild(ring);
+      rings.push(ring);
+    });
+
+    // números (1..5) a la derecha de cada anillo
+    radii.forEach(function (rr, i) {
+      var n = svgEl('text', { class: 'skin-num', x: cx + rr - 7, y: cy + 3, 'text-anchor': 'middle' });
+      n.textContent = (i + 1);
+      svg.appendChild(n);
+      nums.push(n);
+    });
+
+    return { svg: svg, rings: rings, nums: nums };
+  }
+
+  // crea una ventana flotante transparente, arrastrable desde cualquier parte
+  function createWindow(bodyNode) {
+    var win = document.createElement('div');
+    win.className = 'win';
+
+    var closeEl = document.createElement('button');
+    closeEl.className = 'win-close';
+    closeEl.textContent = '[x]';
+
+    win.appendChild(closeEl);
+    win.appendChild(bodyNode);
+    document.body.appendChild(win);
+
+    // posición inicial: en desktop, centro de la mitad derecha; en chico, centrado
+    var w = win.offsetWidth || 360;
+    var h = win.offsetHeight || 360;
+    var cx = window.innerWidth >= 900 ? window.innerWidth * 0.75 : window.innerWidth / 2;
+    win.style.left = Math.max(10, Math.min(cx - w / 2, window.innerWidth - w - 10)) + 'px';
+    win.style.top = Math.max(10, (window.innerHeight - h) / 2) + 'px';
+
+    function focus() { win.style.zIndex = ++zTop; }
+    focus();
+
+    win.addEventListener('pointerdown', function (e) {
+      focus();
+      if (e.target.closest('button, a, input, .seq-cell')) return;  // no arrastrar desde controles → deja pasar el click
+      var rect = win.getBoundingClientRect();
+      var dx = e.clientX - rect.left, dy = e.clientY - rect.top;
+      win.setPointerCapture(e.pointerId);
+
+      function move(ev) {
+        var x = Math.min(Math.max(0, ev.clientX - dx), window.innerWidth - win.offsetWidth);
+        var y = Math.min(Math.max(0, ev.clientY - dy), window.innerHeight - 30);
+        win.style.left = x + 'px';
+        win.style.top = y + 'px';
+      }
+      function up() {
+        win.releasePointerCapture(e.pointerId);
+        win.removeEventListener('pointermove', move);
+        win.removeEventListener('pointerup', up);
+      }
+      win.addEventListener('pointermove', move);
+      win.addEventListener('pointerup', up);
+    });
+
+    return { win: win, close: closeEl };
+  }
+
+  // helper: enciende/apaga una fila con el puntito (como los tags)
+  function setRow(row, on) {
+    row.classList.toggle('active', on);
+    row.querySelector('.mark').textContent = on ? '●' : '';
+  }
+
+  // Reloj: toggle que abre/cierra la ventana AHORA en el escritorio
+  var rowReloj = document.getElementById('rowReloj');
+  var clockWin = null;
+  rowReloj.addEventListener('click', function () {
+    if (clockWin) {
+      hands.delete(clockWin.hand);
+      clockWin.ref.win.remove();
+      clockWin = null;
+      setRow(rowReloj, false);
+      return;
+    }
+    var clk = buildNowClock();
+    var holder = document.createElement('div');
+    holder.className = 'now-clock';
+    holder.appendChild(clk.svg);
+
+    var ref = createWindow(holder);
+    hands.add(clk.hand);
+    ensureLoop();
+    clockWin = { hand: clk.hand, ref: ref };
+    setRow(rowReloj, true);
+
+    ref.close.addEventListener('click', function () {
+      if (clockWin && clockWin.ref === ref) {
+        hands.delete(clk.hand);
+        clockWin = null;
+        setRow(rowReloj, false);
+      }
+      ref.win.remove();
+    });
+  });
+
+  // Respira: toggle 6s inhala / 6s exhala (activa parasimpático)
+  var rowRespira = document.getElementById('rowRespira');
+  var breathExtra = document.getElementById('breathExtra');
+  var breathing = false, phaseTimer = null, countTimer = null;
+
+  function runPhase(kind) {
+    if (!breathing) return;
+    var arrow = kind === 'inhale' ? '↑ Inhala' : '↓ Exhala';
+    var s = 1;
+    breathExtra.textContent = arrow + ' 1s';
+    countTimer = setInterval(function () {
+      s++;
+      if (s <= 6) breathExtra.textContent = arrow + ' ' + s + 's';
+    }, 1000);
+    phaseTimer = setTimeout(function () {
+      clearInterval(countTimer);
+      runPhase(kind === 'inhale' ? 'exhale' : 'inhale');
+    }, 6000);
+  }
+
+  rowRespira.addEventListener('click', function () {
+    breathing = !breathing;
+    setRow(rowRespira, breathing);
+    if (breathing) {
+      runPhase('inhale');
+    } else {
+      clearTimeout(phaseTimer); clearInterval(countTimer);
+      breathExtra.textContent = '';
+    }
+  });
+
+  // Drone: binaural físico — 2 osciladores desfasados 1 Hz, uno por canal estéreo
+  // Familia 432: 54 = 432÷8, 108 = 432÷4, 132 = 528÷4 (primo cercano)
+  var LOW_FREQS = [54, 108, 132];
+  var BEAT = 1; // Hz de batido: L = f-0.5, R = f+0.5
+  var audioCtx = null;
+  var rowDrone = document.getElementById('rowDrone');
+  var droneExtra = document.getElementById('droneExtra');
+  var v = { oscL: null, oscR: null, gain: null, lfo: null, lfoDepth: null, freq: 0 };
+
+  function ensureCtx() {
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }
+  // compensación perceptual: a más frecuencia, menos volumen
+  function gainFor(freq) {
+    var g = 0.16 * Math.pow(60 / freq, 0.9);
+    g = Math.max(0.02, Math.min(0.2, g));
+    return g * 0.794;   // −2 dB de volumen general
+  }
+
+  // ── osciloscopio lofi (SVG): onda fina (grosor [ ]) sobre grilla de cuadrados ──
+  var SVGNS = 'http://www.w3.org/2000/svg';
+  var scopeEl = document.getElementById('droneScope');
+  var droneAnalyser = null, scopeBuf = null, scopeRAF = null, scopePhase = 0;
+  var scopeGrid = null, scopeWave = null, scopeW = 0;
+  var SCOPE_H = 60, SCOPE_CELL = 12;                                 // alto fijo; celda cuadrada
+  function buildScope() {
+    if (!scopeEl || scopeGrid) return;
+    scopeGrid = document.createElementNS(SVGNS, 'path'); scopeGrid.setAttribute('class', 'scope-grid');
+    scopeWave = document.createElementNS(SVGNS, 'polyline'); scopeWave.setAttribute('class', 'scope-wave');
+    scopeEl.appendChild(scopeGrid); scopeEl.appendChild(scopeWave);
+  }
+  function layoutScope() {
+    var w = Math.max(40, scopeEl.clientWidth | 0);
+    if (w === scopeW) return;
+    scopeW = w;
+    scopeEl.setAttribute('viewBox', '0 0 ' + w + ' ' + SCOPE_H);
+    var d = '', x, y;                                                // cuadrícula: V y H equiespaciadas (cuadrados)
+    for (x = 0; x <= w + 0.5; x += SCOPE_CELL) d += 'M' + x + ' 0V' + SCOPE_H;
+    for (y = 0; y <= SCOPE_H + 0.5; y += SCOPE_CELL) d += 'M0 ' + y + 'H' + w;
+    scopeGrid.setAttribute('d', d);
+  }
+  function drawScope() {
+    if (!droneAnalyser || !scopeEl) { scopeRAF = null; return; }
+    layoutScope();
+    droneAnalyser.getFloatTimeDomainData(scopeBuf);
+    var N = scopeBuf.length, i;
+    var freq = (v && v.freq) ? v.freq : 108;
+    var period = droneAnalyser.context.sampleRate / freq;
+    var win = Math.min(N - 2, Math.round(period * 3));               // ~3 ciclos (zoom out)
+    var trig = 0, lim = Math.min(N - win - 1, Math.round(period));   // trigger por cruce de cero → estable
+    for (i = 1; i < lim; i++) { if (scopeBuf[i - 1] < 0 && scopeBuf[i] >= 0) { trig = i; break; } }
+    scopePhase += period / 180;                                      // scroll lento (~3 s por ciclo)
+    if (scopePhase >= period) scopePhase -= period;
+    var off = trig + Math.floor(scopePhase);
+    if (off + win >= N) off = N - win - 1;
+    var peak = 0.0001;
+    for (i = 0; i < win; i++) { var a = Math.abs(scopeBuf[off + i]); if (a > peak) peak = a; }
+    var scale = (peak > 0.001) ? (0.55 * SCOPE_H / 2) / peak : 0;     // amplitud chica
+    var mid = SCOPE_H / 2, pts = '';
+    for (var px = 0; px <= scopeW; px += 2) {
+      var fpos = px / scopeW * win, i0 = off + Math.floor(fpos), frac = fpos - Math.floor(fpos);
+      var s0 = scopeBuf[i0], s1 = (i0 + 1 < N) ? scopeBuf[i0 + 1] : s0;
+      var s = (s0 + (s1 - s0) * frac) * scale;                        // interpolación → línea suave (sin escaleras)
+      var yy = mid - s;
+      if (yy < 1) yy = 1; else if (yy > SCOPE_H - 1) yy = SCOPE_H - 1;
+      pts += px + ',' + yy.toFixed(2) + ' ';
+    }
+    scopeWave.setAttribute('points', pts);
+    scopeRAF = requestAnimationFrame(drawScope);
+  }
+  function startScope() { if (!scopeEl) return; buildScope(); scopeEl.hidden = false; scopeW = 0; if (!scopeRAF) drawScope(); }
+  function stopScope() {
+    if (scopeRAF) { cancelAnimationFrame(scopeRAF); scopeRAF = null; }
+    if (scopeEl) { scopeEl.hidden = true; if (scopeWave) scopeWave.setAttribute('points', ''); }
+  }
+
+  rowDrone.addEventListener('click', function () {
+    if (v.oscL) {
+      var t = audioCtx.currentTime;
+      var fo = 3.2;                                        // fade out largo (no cortar abrupto)
+      v.gain.gain.cancelScheduledValues(t);
+      v.gain.gain.setValueAtTime(Math.max(0.0002, v.gain.gain.value), t);   // anclar nivel actual
+      v.gain.gain.exponentialRampToValueAtTime(0.0001, t + fo);
+      v.lfoDepth.gain.cancelScheduledValues(t);
+      v.lfoDepth.gain.linearRampToValueAtTime(0, t + fo);
+      v.oscL.stop(t + fo + 0.1);
+      v.oscR.stop(t + fo + 0.1);
+      v.lfo.stop(t + fo + 0.1);
+      v.oscL = v.oscR = v.lfo = null;
+      setRow(rowDrone, false);
+      droneExtra.textContent = '';
+      setTimeout(function () { if (!v.oscL) stopScope(); }, (fo + 0.3) * 1000);   // apaga el scope al terminar el fade
+      return;
+    }
+    var ctx = ensureCtx();
+    var f = LOW_FREQS[Math.floor(Math.random() * LOW_FREQS.length)];
+    var half = BEAT / 2;
+    var base = gainFor(f);
+
+    v.gain = ctx.createGain();
+    v.gain.gain.value = 0.0001;
+    v.gain.connect(ctx.destination);
+
+    if (!droneAnalyser) { droneAnalyser = ctx.createAnalyser(); droneAnalyser.fftSize = 4096; scopeBuf = new Float32Array(droneAnalyser.fftSize); }
+    v.gain.connect(droneAnalyser);   // tap para el osciloscopio
+
+    var panL = ctx.createStereoPanner(); panL.pan.value = -1;  // canal izquierdo
+    var panR = ctx.createStereoPanner(); panR.pan.value = 1;   // canal derecho
+    panL.connect(v.gain);
+    panR.connect(v.gain);
+
+    v.oscL = ctx.createOscillator();
+    v.oscR = ctx.createOscillator();
+    v.oscL.type = v.oscR.type = 'sine';
+    v.oscL.frequency.value = f - half;
+    v.oscR.frequency.value = f + half;
+    v.oscL.connect(panL);
+    v.oscR.connect(panR);
+    v.oscL.start();
+    v.oscR.start();
+
+    // LFO lento: hace "respirar" el volumen (±30% alrededor del nivel base)
+    v.lfo = ctx.createOscillator();
+    v.lfo.type = 'sine';
+    v.lfo.frequency.value = 0.08 + Math.random() * 0.08; // ~6–12 s por ciclo
+    v.lfoDepth = ctx.createGain();
+    v.lfoDepth.gain.value = 0;
+    v.lfo.connect(v.lfoDepth).connect(v.gain.gain);
+    v.lfo.start();
+
+    var now = ctx.currentTime;
+    var fi = 3.2;                                          // fade in largo (entra de a poco)
+    v.gain.gain.exponentialRampToValueAtTime(base, now + fi);
+    v.lfoDepth.gain.linearRampToValueAtTime(base * 0.3, now + fi);
+
+    v.freq = f;
+    setRow(rowDrone, true);
+    droneExtra.textContent = (f - half) + ' · ' + (f + half) + ' Hz';
+    startScope();
+  });
+
+  // Re-materialización: toggle que despliega la instrucción-objeto
+  var rowRemat = document.getElementById('rowRemat');
+  var rematDoc = document.getElementById('rematDoc');
+  rowRemat.addEventListener('click', function () {
+    var show = rematDoc.hidden;
+    rematDoc.hidden = !show;
+    setRow(rowRemat, show);
+  });
+
+  // Lattice: toggle que despliega el diagrama y cicla los 3 estados
+  var rowLattice = document.getElementById('rowLattice');
+  var lattice = document.getElementById('lattice');
+  var latArt = document.getElementById('latArt');
+  var latCap = document.getElementById('latCap');
+  var lat = null, latPhase = 0, latTimer = null;
+  var LAT_STATES = [
+    ['imaginación', 'acceso a un futuro disponible en la lattice'],
+    ['coherencia', 'alineación estable entre el cuerpo y ese futuro'],
+    ['gratitud', 'emoción que materializa el acceso']
+  ];
+
+  function shuffle(a) {
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  // nuevo loop: reacomoda los futuros y elige uno nuevo para la coherencia
+  function latShuffle() {
+    var pool = lat.nodes.filter(function (n) { return n.x !== lat.self.x || n.y !== lat.self.y; });
+    shuffle(pool);
+    var chosen = Math.floor(Math.random() * lat.futures.length);
+    lat.futures.forEach(function (fn, i) {
+      var p = pool[i];
+      fn.setAttribute('cx', p.x);
+      fn.setAttribute('cy', p.y);
+      fn.classList.toggle('chosen', i === chosen);
+    });
+    var cp = pool[chosen];
+    lat.line.setAttribute('x2', cp.x);
+    lat.line.setAttribute('y2', cp.y);
+    lat.ripple.setAttribute('cx', cp.x);
+    lat.ripple.setAttribute('cy', cp.y);
+  }
+
+  function latRender() {
+    lattice.setAttribute('data-phase', latPhase);
+    var s = LAT_STATES[latPhase];
+    latCap.innerHTML = '<span class="lat-cap-key">' + s[0] + '</span> · ' + s[1];
+  }
+
+  rowLattice.addEventListener('click', function () {
+    var show = lattice.hidden;
+    if (show) {
+      if (!lat) { lat = buildLattice(); latArt.appendChild(lat.svg); }
+      lattice.hidden = false;
+      latPhase = 0;
+      latShuffle();
+      latRender();
+      latTimer = setInterval(function () {
+        latPhase = (latPhase + 1) % 3;
+        if (latPhase === 0) latShuffle();  // cada loop: nuevo reparto + nuevo elegido
+        latRender();
+      }, 3000);
+    } else {
+      lattice.hidden = true;
+      clearInterval(latTimer);
+      latTimer = null;
+    }
+    setRow(rowLattice, show);
+  });
+
+  // Cinco pieles: recorre las 5 capas encendiendo una por vez
+  var rowSkins = document.getElementById('rowSkins');
+  var skinsEl = document.getElementById('skins');
+  var skinsArt = document.getElementById('skinsArt');
+  var skinsCap = document.getElementById('skinsCap');
+  var skins = null, skinIdx = 0, skinTimer = null;
+  var SKIN_STATES = [
+    ['epidermis', 'el primer borde del cuerpo'],
+    ['ropa', 'la segunda piel, la que uno elige'],
+    ['casa', 'el refugio: piel construida'],
+    ['identidad', 'familia, lengua y territorio'],
+    ['tierra', 'la piel compartida: ecología y universo']
+  ];
+  function skinRender() {
+    skins.rings.forEach(function (r, i) { r.classList.toggle('on', i === skinIdx); });
+    skins.nums.forEach(function (n, i) { n.classList.toggle('on', i === skinIdx); });
+    var s = SKIN_STATES[skinIdx];
+    skinsCap.innerHTML = '<span class="lat-cap-key">' + s[0] + '</span> · ' + s[1];
+  }
+  rowSkins.addEventListener('click', function () {
+    var show = skinsEl.hidden;
+    if (show) {
+      if (!skins) { skins = buildSkins(); skinsArt.appendChild(skins.svg); }
+      skinsEl.hidden = false;
+      skinIdx = 0;
+      skinRender();
+      skinTimer = setInterval(function () {
+        skinIdx = (skinIdx + 1) % SKIN_STATES.length;
+        skinRender();
+      }, 2400);
+    } else {
+      skinsEl.hidden = true;
+      clearInterval(skinTimer);
+      skinTimer = null;
+    }
+    setRow(rowSkins, show);
+  });
+
+  // ===== MODO: gradiente + selector ‹ ›; apagado = pantalla negra =====
+  var MODO_VARIANTS = 10, mv = 0, modoOn = true, modoActive = 0;
+  var MODO_NAMES = ['japonés', 'grafito', 'violeta', 'pizarra', 'lavanda', 'tierra', 'lima', 'salvia', 'petróleo', 'oliva'];
+  var modoLayers = [document.getElementById('modoA'), document.getElementById('modoB')];
+  var modoName = document.getElementById('modoName');
+  var rowModo = document.getElementById('rowModo');
+
+  function bodyVariant(idx) {           // texto tono a tono de la variante
+    document.body.classList.remove('modo-off');
+    for (var i = 0; i < MODO_VARIANTS; i++) document.body.classList.remove('modo-v' + i);
+    document.body.classList.add('modo-on', 'modo-v' + idx);
+  }
+  function bodyBlack() {                // apagado: negro + gris
+    for (var i = 0; i < MODO_VARIANTS; i++) document.body.classList.remove('modo-v' + i);
+    document.body.classList.remove('modo-on');
+    document.body.classList.add('modo-off');
+  }
+  function crossfade(idx, animate) {    // funde la capa al gradiente idx
+    var incoming = modoLayers[1 - modoActive], outgoing = modoLayers[modoActive];
+    incoming.className = 'modo v' + idx;
+    if (animate) {
+      void incoming.offsetHeight;
+      incoming.classList.add('show');
+    } else {
+      incoming.style.transition = 'none';
+      incoming.classList.add('show');
+      void incoming.offsetHeight;
+      incoming.style.transition = '';
+    }
+    outgoing.classList.remove('show');
+    modoActive = 1 - modoActive;
+  }
+
+  function selectVariant(idx, animate) {
+    mv = idx;
+    modoOn = true;
+    setRow(rowModo, true);
+    if (modoName) modoName.textContent = MODO_NAMES[idx];
+    try { localStorage.setItem('modoVariant', String((idx + 1) % MODO_VARIANTS)); } catch (e) {}
+    crossfade(idx, animate);
+    if (animate) setTimeout(function () { if (modoOn) bodyVariant(idx); }, 450);
+    else bodyVariant(idx);
+  }
+
+  function setModo(on) {
+    if (on) { selectVariant(mv, true); return; }
+    modoOn = false;
+    setRow(rowModo, false);
+    modoLayers.forEach(function (l) { l.classList.remove('show'); });  // funde a negro
+    bodyBlack();
+  }
+
+  // carga: variante rotada por recarga, modo activo por defecto [●]
+  try { mv = (parseInt(localStorage.getItem('modoVariant') || '0', 10) || 0) % MODO_VARIANTS; } catch (e) {}
+  selectVariant(mv, false);   // instantáneo
+
+  rowModo.addEventListener('click', function (e) {
+    if (e.target.closest('.modo-arrow')) return;   // las flechas tienen su propio handler
+    setModo(!modoOn);
+  });
+  var modoPrev = document.getElementById('modoPrev');
+  var modoNext = document.getElementById('modoNext');
+  if (modoPrev) modoPrev.addEventListener('click', function () { selectVariant((mv - 1 + MODO_VARIANTS) % MODO_VARIANTS, true); });
+  if (modoNext) modoNext.addEventListener('click', function () { selectVariant((mv + 1) % MODO_VARIANTS, true); });
+
+  // ===== GALERÍA DE WORK (carrusel gigante en ventana flotante) =====
+  var ASSET = 'assets/work/';
+  var WORK_GALLERY = {
+    'motion': ['motion_accsi.gif', 'motion_bienvenidos.gif', 'motion_holomate.gif', 'motion_panal.gif', 'motion_panal2.gif'],
+    'identidad_visual': ['identidad_visual_dne.mp4'],
+    'product_design': ['producto_holomate.jpeg', 'producto_holomate0.gif', 'producto_holomate2.jpeg', 'producto_holomate3.jpeg', 'producto_holomate4.jpeg', 'producto_holomate5.jpeg', 'producto_holomate6.jpeg', 'producto_holomate7.jpeg'],
+    'ui_ux': ['uxui_holomateplay1.jpeg', 'uxui_holomateplay2.jpeg', 'uxui_holomateplay3.jpeg']
+  };
+  var openGalleries = {};   // categoría -> { ref, stop }
+
+  function mediaEl(src, loop) {
+    var el;
+    if (/\.mp4$/i.test(src)) {
+      el = document.createElement('video');
+      el.muted = true; el.loop = !!loop; el.autoplay = true; el.playsInline = true;
+      el.setAttribute('muted', ''); el.setAttribute('playsinline', '');
+      el.src = src;
+      var p = el.play(); if (p && p.catch) p.catch(function () {});
+    } else {
+      el = document.createElement('img');
+      el.src = src;
+    }
+    return el;
+  }
+
+  // construye el carrusel (sin presentación): stage + meta, auto-avance, click y swipe
+  function buildCarousel(category, files) {
+    var wrap = document.createElement('div'); wrap.className = 'carousel';
+    var stage = document.createElement('div'); stage.className = 'carousel-stage';
+    var meta = document.createElement('div'); meta.className = 'carousel-meta';
+    wrap.appendChild(stage); wrap.appendChild(meta);
+
+    var idx = 0, timer = null;
+    function go(dir) { idx = (idx + (dir === -1 ? -1 : 1) + files.length) % files.length; render(); }
+    function render() {
+      clearTimeout(timer);
+      stage.innerHTML = '';
+      var src = files[idx];
+      var isVideo = /\.mp4$/i.test(src), isGif = /\.gif$/i.test(src);
+      var el = mediaEl(ASSET + src, isVideo && files.length === 1);
+      stage.appendChild(el);
+      meta.innerHTML = '<span class="lat-cap-key">' + category + '</span> · ' + (idx + 1) + ' / ' + files.length;
+      if (files.length < 2) return;                       // un solo medio: queda fijo (video loopea)
+      if (isVideo) el.onended = function () { go(1); };   // video: se ve completo, luego avanza
+      else timer = setTimeout(function () { go(1); }, isGif ? 2800 : 700);  // gif: completo · foto: 0.7s
+    }
+    render();
+    stage.addEventListener('click', function () { go(1); });
+    // swipe táctil: izquierda → siguiente, derecha → anterior
+    var sx = 0;
+    wrap.addEventListener('touchstart', function (e) { sx = e.touches[0].clientX; }, { passive: true });
+    wrap.addEventListener('touchend', function (e) {
+      var dx = e.changedTouches[0].clientX - sx;
+      if (Math.abs(dx) > 40) go(dx < 0 ? 1 : -1);
+    }, { passive: true });
+    return { wrap: wrap, stage: stage, stop: function () { clearTimeout(timer); } };
+  }
+
+  // carrusel de una categoría, en su propia ventana flotante (100% opacidad) — desktop
+  function openCarousel(category, files) {
+    var built = buildCarousel(category, files);
+    var wrap = built.wrap, stage = built.stage;
+    var ref = createWindow(wrap);
+
+    // posición aleatoria en pantalla (siempre visible completa)
+    var rx = Math.random(), ry = Math.random(), placed = false;
+    function place() {
+      var maxLeft = Math.max(10, window.innerWidth - ref.win.offsetWidth - 10);
+      var maxTop = Math.max(10, window.innerHeight - ref.win.offsetHeight - 10);
+      ref.win.style.left = (10 + rx * (maxLeft - 10)) + 'px';
+      ref.win.style.top = (10 + ry * (maxTop - 10)) + 'px';
+    }
+    function placeOnce() { if (!placed) { placed = true; place(); } }
+    place();
+    stage.addEventListener('load', placeOnce, true);
+    stage.addEventListener('loadedmetadata', placeOnce, true);
+
+    return { ref: ref, stop: built.stop };
+  }
+
+  // abre/cierra la ventana de cada categoría de Work con galería
+  function handleGallery(row, isActive) {
+    if (!row.closest('#g-work')) return;
+    var label = row.querySelector('.tag-label');
+    var key = label ? label.textContent.trim() : '';
+    var files = WORK_GALLERY[key];
+    if (!files) return;
+
+    if (isActive) {
+      if (window.matchMedia('(max-width: 768px)').matches) {
+        // mobile: carrusel inline (full-width, swipe) debajo de la categoría
+        var c = buildCarousel(key, files);
+        c.wrap.classList.add('inline');
+        row.insertAdjacentElement('afterend', c.wrap);
+        openGalleries[key] = { inline: c.wrap, stop: c.stop };
+      } else {
+        // desktop: ventana flotante arrastrable
+        var g = openCarousel(key, files);
+        openGalleries[key] = g;
+        g.ref.close.addEventListener('click', function () {
+          if (row.classList.contains('active')) {
+            row.classList.remove('active');
+            row.querySelector('.mark').textContent = '';
+          }
+          g.stop();
+          g.ref.win.remove();
+          delete openGalleries[key];
+        });
+      }
+    } else if (openGalleries[key]) {
+      openGalleries[key].stop();
+      if (openGalleries[key].inline) openGalleries[key].inline.remove();
+      else openGalleries[key].ref.win.remove();
+      delete openGalleries[key];
+    }
+  }
+
+  // estado compartido de la 909 (para que la 303 esclavice su BPM)
+  var SEQ909 = { bpm: 130, on: false, startTime: 0 };
+  // hook del 303 al bloque 909+303: la fila de la 909 abre/cierra y su play arranca/para el 303
+  var BASS303 = { active: false, start: null, stop: null, open: null, close: null };
+
+  // ===== 909: secuenciador TR-909 (Web Audio) inline =====
+  (function () {
+    var row = document.getElementById('row909');
+    if (!row) return;
+    var TRACKS = ['bg', 'tm', 'sd', 'cp', 'hc', 'ho'];
+    var STEPS = 16;
+    var bpm = 130;
+    var pattern = [], cells = [];
+    var decays = { kick: 0.42, tom: 0.4, snare: 0.15, clap: 0.2, hhc: 0.045, hho: 0.26 };
+    var ctx, master, comp, kickBus, duckBus, fxFilter, fxLfo, fxLfoGain, noiseBuf, audioReady = false;
+    var playing = false, current = 0, nextTime = 0, startTime = 0, schedTimer = null, shownStep = -1, fxOn = false;
+    var playBtn = null, bpmVal = null, fxBtn = null;
+    var muted = [false, false, false, false, false, false], seqRows = [];
+    var analyser, vuData, vuSegs = [], vuPeak = 0, VU_ROWS = 22, VU_COLS = 1;
+
+    function defaultPattern() {
+      pattern = [
+        [1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0],   // bg  · kick 4-on-the-floor
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],   // tm
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],   // sd
+        [0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0],   // cp  · clap backbeat (2 y 4)
+        [0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0],   // hh-cl · offbeat
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0]    // hh-op
+      ];
+    }
+
+    // ---- audio ----
+    function setupAudio() {
+      ctx = ensureCtx();
+      if (audioReady) return;
+      master = ctx.createGain(); master.gain.value = 1.0;
+      fxFilter = ctx.createBiquadFilter(); fxFilter.type = 'lowpass'; fxFilter.frequency.value = 20000; fxFilter.Q.value = 6;
+      comp = ctx.createDynamicsCompressor();
+      comp.threshold.value = -12; comp.knee.value = 6; comp.ratio.value = 6; comp.attack.value = 0.003; comp.release.value = 0.12;
+      master.connect(fxFilter); fxFilter.connect(comp); comp.connect(ctx.destination);
+      kickBus = ctx.createGain(); kickBus.gain.value = 1; kickBus.connect(master);   // kick: no se duckea
+      duckBus = ctx.createGain(); duckBus.gain.value = 1; duckBus.connect(master);   // resto: sidechain
+      noiseBuf = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
+      var d = noiseBuf.getChannelData(0);
+      for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      fxLfo = ctx.createOscillator(); fxLfo.type = 'sine'; fxLfo.frequency.value = 0.22;
+      fxLfoGain = ctx.createGain(); fxLfoGain.gain.value = 0;
+      fxLfo.connect(fxLfoGain); fxLfoGain.connect(fxFilter.frequency);
+      fxLfo.start();
+      analyser = ctx.createAnalyser(); analyser.fftSize = 256; analyser.smoothingTimeConstant = 0.5;
+      comp.connect(analyser);                  // tap de salida para el vúmetro
+      vuData = new Uint8Array(analyser.fftSize);
+      audioReady = true;
+    }
+    function noiseSrc() { var s = ctx.createBufferSource(); s.buffer = noiseBuf; s.loop = true; return s; }
+
+    // fundamental actual del drone (familia 432); default 108 si el drone nunca sonó
+    function droneRoot() {
+      try { if (v && v.freq) return v.freq; } catch (e) {}
+      return 108;
+    }
+
+    // sidechain: el kick duckea todo lo demás (pump)
+    function duck(t, decay) {
+      var g = duckBus.gain;
+      g.cancelScheduledValues(t);
+      g.setValueAtTime(1, t);
+      g.linearRampToValueAtTime(0.32, t + 0.012);
+      g.linearRampToValueAtTime(1, t + Math.min(0.2, decay * 0.55));
+    }
+    function kick(t) {
+      var o = ctx.createOscillator(); o.type = 'sine';
+      var g = ctx.createGain();
+      var r = droneRoot(), f0 = r > 70 ? r / 2 : r;   // fundamental del kick: sub-octava del drone (~54–66 Hz)
+      o.frequency.setValueAtTime(f0 * 2.9, t);
+      o.frequency.exponentialRampToValueAtTime(f0, t + 0.06);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(1.0, t + 0.004);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + decays.kick);
+      o.connect(g).connect(kickBus);
+      o.start(t); o.stop(t + decays.kick + 0.05);
+      duck(t, decays.kick);
+    }
+    function tom(t) {
+      var o = ctx.createOscillator(); o.type = 'triangle';
+      var lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 200; lp.Q.value = 0.7;   // filtra agudos → rumble oscuro
+      var g = ctx.createGain();
+      var r = droneRoot();
+      o.frequency.setValueAtTime(r * 0.9, t);
+      o.frequency.exponentialRampToValueAtTime(r * 0.42, t + 0.14);   // rumble grave (Jeff Mills)
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.5, t + 0.006);            // un poco más bajo
+      g.gain.exponentialRampToValueAtTime(0.0001, t + decays.tom);
+      o.connect(lp).connect(g).connect(duckBus); o.start(t); o.stop(t + decays.tom + 0.05);
+    }
+    function snare(t) {
+      var o = ctx.createOscillator(); o.type = 'triangle'; o.frequency.value = droneRoot() * 1.5;   // snare: quinta del root
+      var og = ctx.createGain();
+      og.gain.setValueAtTime(0.0001, t); og.gain.exponentialRampToValueAtTime(0.45, t + 0.004); og.gain.exponentialRampToValueAtTime(0.0001, t + 0.07);
+      o.connect(og).connect(duckBus); o.start(t); o.stop(t + 0.09);
+      var n = noiseSrc(), hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 1400;
+      var ng = ctx.createGain();
+      ng.gain.setValueAtTime(0.0001, t); ng.gain.exponentialRampToValueAtTime(0.5, t + 0.004); ng.gain.exponentialRampToValueAtTime(0.0001, t + decays.snare);
+      n.connect(hp).connect(ng).connect(duckBus); n.start(t); n.stop(t + decays.snare + 0.05);
+    }
+    function clap(t) {
+      var n = noiseSrc(), bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1100; bp.Q.value = 1.3;
+      var g = ctx.createGain();
+      n.connect(bp).connect(g).connect(duckBus);
+      g.gain.setValueAtTime(0.0001, t);
+      [0, 0.011, 0.022].forEach(function (o) {
+        g.gain.exponentialRampToValueAtTime(0.5, t + o + 0.001);
+        g.gain.exponentialRampToValueAtTime(0.04, t + o + 0.009);
+      });
+      g.gain.exponentialRampToValueAtTime(0.35, t + 0.03);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + decays.clap);
+      n.start(t); n.stop(t + decays.clap + 0.05);
+    }
+    function hat(t, decay, level, hpf) {
+      var n = noiseSrc(), hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = hpf || 8000;
+      var g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(level, t + 0.002); g.gain.exponentialRampToValueAtTime(0.0001, t + decay);
+      n.connect(hp).connect(g).connect(duckBus); n.start(t); n.stop(t + decay + 0.03);
+    }
+    // velocity del hc por paso: negras fuertes, 8vos medios, 16vos suaves + humanización
+    function hcVel(step) {
+      var base = (step % 4 === 0) ? 0.28 : (step % 2 === 0 ? 0.21 : 0.13);
+      return base * (0.85 + Math.random() * 0.3);
+    }
+
+    function scheduleStep(step, t) {
+      if (pattern[0][step] && !muted[0]) kick(t);
+      if (pattern[1][step] && !muted[1]) tom(t);
+      if (pattern[2][step] && !muted[2]) snare(t);
+      if (pattern[3][step] && !muted[3]) clap(t);
+      if (pattern[4][step] && !muted[4]) hat(t, decays.hhc, hcVel(step), 6000);   // hc · velocity por paso, grave
+      if (pattern[5][step] && !muted[5]) hat(t, decays.hho, 0.24, 9500);          // ho · un poco más arriba
+    }
+    function stepDur() { return (60 / bpm) / 4; }       // semicorcheas (16 pasos = 1 compás)
+    function scheduler() {
+      while (nextTime < ctx.currentTime + 0.1) {
+        scheduleStep(current, nextTime);
+        nextTime += stepDur();
+        current = (current + 1) % STEPS;
+      }
+    }
+    function vuBar(b, v) {
+      var segs = vuSegs[b]; if (!segs) return;
+      var litRows = Math.round(v * VU_ROWS);
+      for (var i = 0; i < segs.length; i++) {
+        var r = Math.floor(i / VU_COLS);                 // 0 = arriba
+        segs[i].classList.toggle('lit', r >= VU_ROWS - litRows);
+      }
+    }
+    function drawHead() {
+      if (!playing) return;
+      var s = Math.floor((ctx.currentTime - startTime) / stepDur()) % STEPS;
+      if (s < 0) s = 0;
+      if (s !== shownStep) {
+        for (var t = 0; t < TRACKS.length; t++) for (var i = 0; i < STEPS; i++) cells[t][i].classList.toggle('cue', i === s);
+        shownStep = s;
+      }
+      if (analyser && vuSegs.length) {
+        analyser.getByteTimeDomainData(vuData);
+        var sum = 0; for (var k = 0; k < vuData.length; k++) { var x = (vuData[k] - 128) / 128; sum += x * x; }
+        var lvl = Math.min(1, Math.sqrt(sum / vuData.length) * 2.6);
+        vuPeak = Math.max(lvl, vuPeak - 0.025);
+        vuBar(0, lvl); vuBar(1, vuPeak);
+      }
+      requestAnimationFrame(drawHead);
+    }
+    function startSeq() {
+      playing = true; SEQ909.on = true; current = 0; shownStep = -1;
+      nextTime = ctx.currentTime + 0.06; startTime = nextTime;
+      SEQ909.startTime = startTime;
+      setFx(fxOn);
+      schedTimer = setInterval(scheduler, 25);
+      requestAnimationFrame(drawHead);
+      if (playBtn) playBtn.textContent = 'stop';
+      if (BASS303.active && BASS303.start) BASS303.start(startTime);   // un solo play: arranca el 303 en fase
+    }
+    function play() {
+      setupAudio();
+      if (ctx.state === 'suspended') { ctx.resume().then(startSeq); }  // espera a que el audio arranque
+      else startSeq();
+    }
+    function stop() {
+      playing = false; SEQ909.on = false;
+      clearInterval(schedTimer); schedTimer = null;
+      for (var t = 0; t < TRACKS.length; t++) for (var i = 0; i < STEPS; i++) if (cells[t]) cells[t][i].classList.remove('cue');
+      shownStep = -1;
+      vuPeak = 0;
+      for (var b = 0; b < vuSegs.length; b++) for (var i = 0; i < vuSegs[b].length; i++) vuSegs[b][i].classList.remove('lit');
+      if (playBtn) playBtn.textContent = 'play';
+      if (BASS303.stop) BASS303.stop();   // un solo play: para también el 303
+    }
+    function setFx(on) {
+      fxOn = on;
+      if (!audioReady) return;
+      var now = ctx.currentTime;
+      fxFilter.frequency.cancelScheduledValues(now);
+      if (on) { fxFilter.frequency.setTargetAtTime(1100, now, 0.08); fxLfoGain.gain.setTargetAtTime(850, now, 0.08); }
+      else { fxFilter.frequency.setTargetAtTime(20000, now, 0.08); fxLfoGain.gain.setTargetAtTime(0, now, 0.08); }
+    }
+
+    function randTrack(p) { var a = []; for (var i = 0; i < STEPS; i++) a.push(Math.random() < p ? 1 : 0); return a; }
+    function zeros() { var a = []; for (var i = 0; i < STEPS; i++) a.push(0); return a; }
+    function randomize() {
+      pattern[0] = zeros(); [0,4,8,12].forEach(function (i) { pattern[0][i] = 1; });             // kick 4-floor
+      if (Math.random() < 0.35) pattern[0][14] = 1;                                              // pickup sincopado
+      if (Math.random() < 0.2) pattern[0][10] = 1;
+      pattern[1] = randTrack(0.08);                                                              // tom: acentos
+      pattern[2] = randTrack(0.08);                                                              // sd: fantasma
+      pattern[3] = zeros(); pattern[3][4] = 1; pattern[3][12] = 1; if (Math.random() < 0.35) pattern[3][6] = 1;
+      pattern[4] = zeros();
+      for (var i = 0; i < STEPS; i++) pattern[4][i] = (i % 2 === 0 ? (Math.random() < 0.2 ? 1 : 0) : (Math.random() < 0.7 ? 1 : 0));
+      pattern[5] = zeros(); pattern[5][[6, 10, 14][Math.floor(Math.random() * 3)]] = 1; if (Math.random() < 0.4) pattern[5][2] = 1;
+      decays.kick = 0.3 + Math.random() * 0.25;     // acid/electro: decays variables
+      decays.hhc = 0.03 + Math.random() * 0.04;
+      decays.hho = 0.15 + Math.random() * 0.2;
+      decays.clap = 0.15 + Math.random() * 0.12;
+      decays.snare = 0.1 + Math.random() * 0.12;
+      decays.tom = 0.32 + Math.random() * 0.22;   // rumble más largo
+      bpm = 128 + Math.floor(Math.random() * 8); SEQ909.bpm = bpm;
+      if (bpmVal) bpmVal.textContent = bpm + ' bpm';
+      renderGrid();
+    }
+
+    function renderGrid() {
+      for (var t = 0; t < TRACKS.length; t++) for (var i = 0; i < STEPS; i++) cells[t][i].classList.toggle('on', !!pattern[t][i]);
+    }
+    function buildUI() {
+      var seq = document.createElement('div'); seq.className = 'seq';
+      var main = document.createElement('div'); main.className = 'seq-main';
+      var grid = document.createElement('div'); grid.className = 'seq-grid';
+      cells = []; seqRows = [];
+      for (var t = 0; t < TRACKS.length; t++) {
+        var rowEl = document.createElement('div'); rowEl.className = 'seq-row';
+        var lbl = document.createElement('span'); lbl.className = 'seq-lbl'; lbl.textContent = TRACKS[t];
+        var wrap = document.createElement('div'); wrap.className = 'seq-cells';
+        cells[t] = [];
+        for (var i = 0; i < STEPS; i++) (function (tt, ii) {
+          var c = document.createElement('button'); c.className = 'seq-cell' + (ii % 4 === 0 ? ' beat' : '');
+          c.addEventListener('click', function () { pattern[tt][ii] = pattern[tt][ii] ? 0 : 1; c.classList.toggle('on', !!pattern[tt][ii]); });
+          wrap.appendChild(c); cells[tt][ii] = c;
+        })(t, i);
+        rowEl.appendChild(lbl); rowEl.appendChild(wrap); grid.appendChild(rowEl);
+        rowEl.classList.toggle('muted', muted[t]); seqRows[t] = rowEl;
+      }
+      // vúmetro estéreo: ▒ grilla (track) / ▓ volumen (fill, recortado desde abajo)
+      var vu = document.createElement('div'); vu.className = 'seq-vu';
+      vuSegs = [];
+      for (var b = 0; b < 2; b++) {
+        var bar = document.createElement('div'); bar.className = 'vu-bar';
+        var segs = [];
+        for (var sI = 0; sI < VU_ROWS * VU_COLS; sI++) {
+          var seg = document.createElement('div'); seg.className = 'vu-seg';
+          bar.appendChild(seg); segs.push(seg);
+        }
+        vu.appendChild(bar); vuSegs.push(segs);
+      }
+      main.appendChild(grid); main.appendChild(vu);
+
+      var tr = document.createElement('div'); tr.className = 'seq-transport';
+      playBtn = document.createElement('button'); playBtn.className = 'seq-btn'; playBtn.textContent = 'play';
+      playBtn.addEventListener('click', function () { playing ? stop() : play(); });
+      var rndBtn = document.createElement('button'); rndBtn.className = 'seq-btn'; rndBtn.textContent = 'rnd';
+      rndBtn.addEventListener('click', randomize);
+      fxBtn = document.createElement('button'); fxBtn.className = 'seq-btn'; fxBtn.textContent = 'fx';
+      fxBtn.addEventListener('click', function () { setFx(!fxOn); fxBtn.classList.toggle('on', fxOn); });
+      tr.appendChild(playBtn); tr.appendChild(rndBtn); tr.appendChild(fxBtn);
+      // control de BPM (después de FX)
+      var bpmWrap = document.createElement('span'); bpmWrap.className = 'seq-bpm';
+      var bpmDown = document.createElement('button'); bpmDown.className = 'seq-btn'; bpmDown.textContent = '‹';
+      bpmVal = document.createElement('span'); bpmVal.className = 'seq-bpm-val'; bpmVal.textContent = bpm + ' bpm';
+      var bpmUp = document.createElement('button'); bpmUp.className = 'seq-btn'; bpmUp.textContent = '›';
+      bpmDown.addEventListener('click', function () { bpm = Math.max(70, bpm - 2); SEQ909.bpm = bpm; bpmVal.textContent = bpm + ' bpm'; });
+      bpmUp.addEventListener('click', function () { bpm = Math.min(190, bpm + 2); SEQ909.bpm = bpm; bpmVal.textContent = bpm + ' bpm'; });
+      bpmWrap.appendChild(bpmDown); bpmWrap.appendChild(bpmVal); bpmWrap.appendChild(bpmUp);
+      tr.appendChild(bpmWrap);
+      seq.appendChild(tr);      // transporte arriba
+      seq.appendChild(main);    // grilla + vúmetro debajo
+      return seq;
+    }
+
+    defaultPattern();
+    var panel = document.getElementById('seq909');
+    var built = false;
+    row.addEventListener('click', function () {
+      if (panel.hidden) {
+        if (!built) { panel.appendChild(buildUI()); built = true; }
+        renderGrid();
+        panel.hidden = false;
+        setRow(row, true);
+        if (BASS303.open) BASS303.open();   // bloque 909+303: abre todo junto
+      } else {
+        stop();
+        panel.hidden = true;
+        setRow(row, false);
+        if (BASS303.close) BASS303.close();
+      }
+    });
+
+    // teclado: 1–6 mutean pistas (bg·tm·sd·cp·hc·ho), 7 = random, 8 = fx
+    function toggleMute(i) {
+      muted[i] = !muted[i];
+      if (seqRows[i]) seqRows[i].classList.toggle('muted', muted[i]);
+    }
+    document.addEventListener('keydown', function (e) {
+      if (!built || e.metaKey || e.ctrlKey || e.altKey) return;
+      var k = e.key;
+      if (k >= '1' && k <= '6') toggleMute(+k - 1);
+      else if (k === '7') randomize();
+      else if (k === '8') { setFx(!fxOn); if (fxBtn) fxBtn.classList.toggle('on', fxOn); }
+    });
+  })();
+
+  // ===== 303: bajo acid (Web Audio); parte del bloque 909+303, BPM esclavo de la 909 =====
+  (function () {
+    var STEPS = 16, bpm303 = 130;
+    var pattern = [], cells = [], vizRow = null;
+    var muted = false, fxOn = false, eqOn = false, volOn = false, playing = false;
+    var current = 0, nextTime = 0, startTime = 0, schedTimer = null, shownStep = -1, prevFreq = 0;
+    var panel, built = false, playBtn = null, fxBtn = null, eqBtn = null, volBtn = null, bpmWrap = null, bpmVal = null;
+    var ctx, master303, drive303, fxSend, delay303, tone303, post303;
+    var POST_LVL = 0.27, VOL_CUT = 0.708;   // nivel de línea y atenuación de −3 dB (10^(−3/20))
+
+    // saturación suave (soft-clip): el "grit" del acid, carácter Roland sobredriveado
+    function driveCurve(k) {
+      var n = 1024, c = new Float32Array(n);
+      for (var i = 0; i < n; i++) { var x = (i * 2) / n - 1; c[i] = (1 + k) * x / (1 + k * Math.abs(x)); }
+      return c;
+    }
+    // impulso corto sintético para una reverbcita de aire
+    function makeImpulse(dur, decay) {
+      var rate = ctx.sampleRate, len = Math.floor(rate * dur), buf = ctx.createBuffer(2, len, rate);
+      for (var ch = 0; ch < 2; ch++) {
+        var d = buf.getChannelData(ch);
+        for (var i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, decay);
+      }
+      return buf;
+    }
+    function setupAudio() {
+      ctx = ensureCtx();
+      if (master303) return;
+      master303 = ctx.createGain(); master303.gain.value = 0.95;        // pre-drive
+      drive303 = ctx.createWaveShaper(); drive303.curve = driveCurve(8); drive303.oversample = '4x';
+      tone303 = ctx.createBiquadFilter(); tone303.type = 'lowpass'; tone303.frequency.value = eqOn ? 700 : 3400; tone303.Q.value = 0.4;  // eq: filtra agudos
+      post303 = ctx.createGain(); post303.gain.value = volOn ? POST_LVL * VOL_CUT : POST_LVL;  // nivel de línea (vol = −3 dB)
+      master303.connect(drive303); drive303.connect(tone303); tone303.connect(post303); post303.connect(ctx.destination);  // señal seca
+
+      // FX send (un poco de efecto): delay con feedback (dub) + reverbcita, high-passed para no embarrar el bajo
+      fxSend = ctx.createGain(); fxSend.gain.value = 0.22;              // cuánto se manda al efecto
+      post303.connect(fxSend);
+      delay303 = ctx.createDelay(1.5); delay303.delayTime.value = 0.34; // ~corchea con puntillo (se sincroniza en play)
+      var fbk = ctx.createGain(); fbk.gain.value = 0.3;                 // repeticiones
+      var fbHp = ctx.createBiquadFilter(); fbHp.type = 'highpass'; fbHp.frequency.value = 420;  // ecos más finos
+      fxSend.connect(delay303); delay303.connect(fbHp); fbHp.connect(fbk); fbk.connect(delay303);
+      var dWet = ctx.createGain(); dWet.gain.value = 0.6; delay303.connect(dWet); dWet.connect(ctx.destination);
+      var verb = ctx.createConvolver(); verb.buffer = makeImpulse(0.9, 2.6);                    // reverb corta (aire)
+      var vHp = ctx.createBiquadFilter(); vHp.type = 'highpass'; vHp.frequency.value = 380;
+      var vWet = ctx.createGain(); vWet.gain.value = 0.16;
+      fxSend.connect(vHp); vHp.connect(verb); verb.connect(vWet); vWet.connect(ctx.destination);
+    }
+    // root del bajo: afinado al drone (familia 432), una octava arriba del registro grave (≈108–132 Hz)
+    function droneRoot() {
+      var r = 108;
+      try { if (v && v.freq) r = v.freq; } catch (e) {}
+      return r > 70 ? r : r * 2;
+    }
+    // eq: corta agudos para un sonido más grave/oscuro
+    function setEq(on) {
+      eqOn = on;
+      if (eqBtn) eqBtn.classList.toggle('on', eqOn);
+      if (tone303 && ctx) tone303.frequency.setTargetAtTime(eqOn ? 700 : 3400, ctx.currentTime, 0.05);
+    }
+    // vol: baja la línea del 303 −3 dB
+    function setVol(on) {
+      volOn = on;
+      if (volBtn) volBtn.classList.toggle('on', volOn);
+      if (post303 && ctx) post303.gain.setTargetAtTime(volOn ? POST_LVL * VOL_CUT : POST_LVL, ctx.currentTime, 0.03);
+    }
+    function defaultPattern() {
+      pattern = [];
+      for (var i = 0; i < STEPS; i++) pattern.push({ on: i % 2 === 0, semi: (i % 8 === 4 ? 12 : (i % 4 === 0 ? 0 : 7)), accent: i % 8 === 0, slide: false });
+      pattern[0].on = true; pattern[0].semi = 0;
+    }
+
+    // voz acid: saw → filtro 24 dB/oct resonante con envelope → amp env → drive
+    function note(t, semi, accent, slide, dur) {
+      var freq = droneRoot() * Math.pow(2, semi / 12);    // afinado al drone/909
+      var o = ctx.createOscillator(); o.type = 'square';
+      o.frequency.setValueAtTime((slide && prevFreq) ? prevFreq : freq, t);
+      if (slide && prevFreq) o.frequency.exponentialRampToValueAtTime(freq, t + 0.11);    // glide más largo/notorio
+
+      // 24 dB/oct: dos polos en cascada — resonancia baja (perilla a la izquierda, redondo)
+      var res = accent ? 4 : 2.5;
+      var lp1 = ctx.createBiquadFilter(); lp1.type = 'lowpass'; lp1.Q.value = res;
+      var lp2 = ctx.createBiquadFilter(); lp2.type = 'lowpass'; lp2.Q.value = res * 0.6;
+      var fb = 100;                                       // cutoff base (cerrado)
+      var env = accent ? 6800 : 4600;                     // env mod +6: barrido más abierto/brillante
+      var dec = accent ? 0.07 : 0.05;                     // decay mínimo: pluck corto y snappy
+      [lp1, lp2].forEach(function (lp) {
+        lp.frequency.setValueAtTime(fb + env, t);
+        lp.frequency.exponentialRampToValueAtTime(fb, t + dec);
+      });
+
+      var g = ctx.createGain();
+      var peak = accent ? 0.62 : 0.34;                    // acento más fuerte
+      var atk = slide ? 0.018 : 0.004;                    // ataque más suave si liga (slide)
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(peak, t + atk);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur * 1.05);
+      o.connect(lp1); lp1.connect(lp2); lp2.connect(g); g.connect(master303);
+      o.start(t); o.stop(t + dur * 1.1 + 0.05);
+      prevFreq = freq;
+    }
+
+    function effBpm() { return SEQ909.on ? SEQ909.bpm : bpm303; }      // esclavo de la 909
+    function stepDur() { return (60 / effBpm()) / 4; }
+    function scheduleStep(step, t) {
+      var s = pattern[step];
+      if (!s || !s.on || muted) return;
+      var accent = s.accent || (fxOn && Math.random() < 0.5);           // fx: acentos random (más explícito)
+      var slide = s.slide || (fxOn && Math.random() < 0.58);            // fx: slides random (más notorios)
+      note(t, s.semi, accent, slide, stepDur() * 0.92);
+    }
+    function scheduler() {
+      while (nextTime < ctx.currentTime + 0.1) {
+        scheduleStep(current, nextTime);
+        nextTime += stepDur();
+        current = (current + 1) % STEPS;
+      }
+    }
+    function updateBpmUI() {
+      if (!bpmWrap || !bpmVal) return;
+      bpmWrap.classList.toggle('seq-bpm-slave', SEQ909.on);
+      bpmVal.textContent = SEQ909.on ? 'sync 909' : bpm303 + ' bpm';
+    }
+    function drawHead() {
+      if (!playing) return;
+      var s = Math.floor((ctx.currentTime - startTime) / stepDur()) % STEPS;
+      if (s < 0) s = 0;
+      if (s !== shownStep) { for (var i = 0; i < STEPS; i++) if (cells[i]) cells[i].classList.toggle('cue', i === s); shownStep = s; }
+      updateBpmUI();
+      requestAnimationFrame(drawHead);
+    }
+    // arranca en fase con la 909 (un solo play): `at` = startTime del transporte 909
+    function startAt(at) {
+      setupAudio();
+      if (ctx.state === 'suspended') ctx.resume();
+      playing = true; shownStep = -1; prevFreq = 0;
+      startTime = at;
+      if (delay303) delay303.delayTime.setValueAtTime(Math.min(1.4, (60 / effBpm()) * 0.75), ctx.currentTime);  // dub sync (corchea c/puntillo)
+      var sd = stepDur(), elapsed = ctx.currentTime - at;
+      if (elapsed <= 0) { current = 0; nextTime = at; }
+      else { var n = Math.ceil(elapsed / sd); current = n % STEPS; nextTime = at + n * sd; }   // alinear al paso de la 909
+      clearInterval(schedTimer);
+      schedTimer = setInterval(scheduler, 25);
+      requestAnimationFrame(drawHead);
+    }
+    function stop() {
+      playing = false; clearInterval(schedTimer); schedTimer = null;
+      for (var i = 0; i < STEPS; i++) if (cells[i]) cells[i].classList.remove('cue');
+      shownStep = -1;
+    }
+    BASS303.start = function (at) { if (built) startAt(at); };
+    BASS303.stop = stop;
+
+    // sorteo de grado: juega entre root (grado 1), 1ª aumentada (#1) y séptima
+    function pickSemi() {
+      var r = Math.random();
+      if (r < 0.70) { var o = Math.random(); return o < 0.82 ? 0 : (o < 0.91 ? 12 : -12); }  // 70% grado 1
+      if (r < 0.80) return 1;                                          // ~10% primera aumentada (#1)
+      if (r < 0.95) return Math.random() < 0.78 ? 10 : 11;             // ~15% séptima (b7, a veces mayor)
+      return Math.random() < 0.5 ? 7 : 12;                            // ~5% 5ª / 8ª (movimiento)
+    }
+    // RND: línea de bajo acid (inspirado en Josh Wink) — root-pesada + tensión #1
+    function randomize() {
+      var density = 0.56 + Math.random() * 0.22;
+      var baseOct = Math.random() < 0.5 ? 0 : -12;     // registro RND: actual (108–132 Hz) o una octava más grave (54–66 Hz)
+      for (var i = 0; i < STEPS; i++) {
+        var on = Math.random() < density;
+        var semi = pickSemi() + baseOct;
+        if (semi < -17) semi += 12;                     // evita sub-graves inaudibles
+        pattern[i] = {
+          on: on,
+          semi: semi,
+          accent: Math.random() < (i % 4 === 0 ? 0.58 : 0.28),
+          slide: i > 0 && Math.random() < 0.32
+        };
+      }
+      pattern[0].on = true; pattern[0].semi = baseOct; pattern[0].accent = true;   // ancla en el root del registro
+      if (Math.random() < 0.7) pattern[15].on = true;
+      if (Math.random() < 0.45) { pattern[15].slide = true; pattern[15].semi = pattern[0].semi - 1; }
+      renderViz();
+    }
+    function renderViz() {
+      for (var i = 0; i < STEPS; i++) {
+        if (!cells[i]) continue;
+        cells[i].classList.toggle('on', !!pattern[i].on);
+        cells[i].classList.toggle('accent', !!(pattern[i].on && pattern[i].accent));
+      }
+    }
+    function buildUI() {
+      var b = document.createElement('div'); b.className = 'seq';
+      var tr = document.createElement('div'); tr.className = 'seq-transport';
+      var rndBtn = document.createElement('button'); rndBtn.className = 'seq-btn'; rndBtn.textContent = 'rnd';
+      rndBtn.addEventListener('click', randomize);
+      fxBtn = document.createElement('button'); fxBtn.className = 'seq-btn'; fxBtn.textContent = 'fx';
+      fxBtn.addEventListener('click', function () { fxOn = !fxOn; fxBtn.classList.toggle('on', fxOn); });
+      eqBtn = document.createElement('button'); eqBtn.className = 'seq-btn'; eqBtn.textContent = 'eq';
+      eqBtn.addEventListener('click', function () { setEq(!eqOn); });   // filtra agudos → más grave
+      volBtn = document.createElement('button'); volBtn.className = 'seq-btn'; volBtn.textContent = 'vol';
+      volBtn.addEventListener('click', function () { setVol(!volOn); });   // −3 dB
+      tr.appendChild(rndBtn); tr.appendChild(fxBtn); tr.appendChild(eqBtn); tr.appendChild(volBtn);
+      b.appendChild(tr);
+      // misma geometría que la 909 (grilla + hueco del vúmetro) → pasos alineados a los de arriba
+      var main = document.createElement('div'); main.className = 'seq-main';
+      var grid = document.createElement('div'); grid.className = 'seq-grid';
+      vizRow = document.createElement('div'); vizRow.className = 'seq-row';
+      var lbl = document.createElement('span'); lbl.className = 'seq-lbl'; lbl.textContent = '303';
+      var wrap = document.createElement('div'); wrap.className = 'seq-cells';
+      cells = [];
+      for (var i = 0; i < STEPS; i++) {
+        var c = document.createElement('div'); c.className = 'seq-cell' + (i % 4 === 0 ? ' beat' : '');
+        wrap.appendChild(c); cells[i] = c;
+      }
+      vizRow.appendChild(lbl); vizRow.appendChild(wrap);
+      grid.appendChild(vizRow);
+      var spacer = document.createElement('div'); spacer.className = 'seq-spacer';
+      main.appendChild(grid); main.appendChild(spacer);
+      b.appendChild(main);
+      return b;
+    }
+
+    defaultPattern();
+    panel = document.getElementById('seq303');
+    if (!panel) return;
+    // el bloque 909+303 lo abre/cierra la fila de la 909 (un solo toggle)
+    BASS303.open = function () {
+      if (!built) { panel.appendChild(buildUI()); built = true; }
+      renderViz();
+      panel.hidden = false;
+      BASS303.active = true;
+      if (SEQ909.on) startAt(SEQ909.startTime);   // 909 ya sonando → engancha el 303 en fase
+    };
+    BASS303.close = function () {
+      BASS303.active = false; stop();
+      panel.hidden = true;
+    };
+
+    // teclado: 0 mutea, 9 random, ' = fx
+    document.addEventListener('keydown', function (e) {
+      if (!built || e.metaKey || e.ctrlKey || e.altKey) return;
+      var k = e.key;
+      if (k === '0') { e.preventDefault(); muted = !muted; if (vizRow) vizRow.classList.toggle('muted', muted); }
+      else if (k === '9') { e.preventDefault(); randomize(); }
+      else if (k === "'") { e.preventDefault(); fxOn = !fxOn; if (fxBtn) fxBtn.classList.toggle('on', fxOn); }
+    });
+  })();
+
+  // re-medir los renglones de la bio al cambiar el ancho (si Info está abierto)
+  var rzT;
+  window.addEventListener('resize', function () {
+    clearTimeout(rzT);
+    rzT = setTimeout(function () {
+      var g = document.getElementById('g-info');
+      if (g && !g.classList.contains('collapsed') && !g.classList.contains('closing')) ensureBioLines();
+    }, 150);
+  });
+})();
+</script>
+
 </body>
 </html>
