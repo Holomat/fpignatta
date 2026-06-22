@@ -1945,7 +1945,7 @@
   (function () {
     var STEPS = 16, bpm303 = 130;
     var pattern = [], cells = [], vizRow = null;
-    var muted = false, fxOn = false, eqOn = false, volOn = false, octOn = false, playing = false;
+    var muted = false, fxOn = false, eqOn = true, volOn = true, octOn = false, playing = false;
     var current = 0, nextTime = 0, startTime = 0, schedTimer = null, shownStep = -1, prevFreq = 0;
     var panel, built = false, playBtn = null, fxBtn = null, eqBtn = null, volBtn = null, octBtn = null, bpmWrap = null, bpmVal = null;
     var ctx, master303, drive303, fxSend, delay303, tone303, post303;
@@ -2139,8 +2139,10 @@
       fxBtn = document.createElement('button'); fxBtn.className = 'seq-btn'; fxBtn.textContent = 'fx';
       fxBtn.addEventListener('click', function () { fxOn = !fxOn; fxBtn.classList.toggle('on', fxOn); });
       eqBtn = document.createElement('button'); eqBtn.className = 'seq-btn'; eqBtn.textContent = 'eq';
+      eqBtn.classList.toggle('on', eqOn);   // activado por defecto
       eqBtn.addEventListener('click', function () { setEq(!eqOn); });   // filtra agudos → más grave
       volBtn = document.createElement('button'); volBtn.className = 'seq-btn'; volBtn.textContent = 'vol';
+      volBtn.classList.toggle('on', volOn);   // activado por defecto
       volBtn.addEventListener('click', function () { setVol(!volOn); });   // −3 dB
       octBtn = document.createElement('button'); octBtn.className = 'seq-btn'; octBtn.textContent = 'oct−';
       octBtn.addEventListener('click', function () { octOn = !octOn; octBtn.classList.toggle('on', octOn); });   // baja una octava
@@ -2165,7 +2167,7 @@
       return b;
     }
 
-    defaultPattern();
+    randomize();   // arranca con una secuencia generada (acid), no la default
     panel = document.getElementById('seq303');
     if (!panel) return;
     // el bloque 909+303 lo abre/cierra la fila de la 909 (un solo toggle)
