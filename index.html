@@ -505,9 +505,9 @@
     /* screensaver de inactividad: círculos del color de la tipografía */
     .idle-screensaver { position: fixed; inset: 0; z-index: 99999; pointer-events: none; }   /* deja navegar el sitio por los huecos */
     .idle-circle {
-      position: absolute; border-radius: 50%; background: var(--text);
+      position: absolute; left: 0; top: 0; border-radius: 50%; background: var(--text);
       pointer-events: auto; cursor: pointer; opacity: 0;
-      transition: opacity 0.6s ease; will-change: left, top;
+      transition: opacity 0.6s ease; will-change: transform, opacity;
     }
   </style>
 </head>
@@ -822,10 +822,11 @@
     var n = new Date();
     var p = function (v) { return String(v).padStart(2, '0'); };
     var h = n.getHours(), ampm = h >= 12 ? 'PM' : 'AM', h12 = h % 12 || 12;
-    clock.textContent = '[ ' + p(h12) + ' : ' + p(n.getMinutes()) + ' ' + ampm + ' ]';
+    var s = '[ ' + p(h12) + ' : ' + p(n.getMinutes()) + ' ' + ampm + ' ]';
+    if (clock.textContent !== s) clock.textContent = s;   // solo escribir cuando cambia (1×/min, no 60×)
   }
   tick();
-  setInterval(tick, 1000);
+  setInterval(tick, 30000);   // muestra HH:MM → con chequear cada 30 s alcanza
 
   // ── escritorio: gestor de ventanas flotantes ─────
   var NS = 'http://www.w3.org/2000/svg';
@@ -2317,8 +2318,9 @@
     var IDLE_MS = 5 * 60 * 1000;    // 5 min sin interacción → se activa
     var APPEAR_MS = 5000;           // aparecen escalonados en 5 s
     var COUNT = 42;   // sin meta de 10: se sacan todos, uno por uno
+    var REDUCE = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var rowPuntos = document.getElementById('rowPuntos');
-    var layer = null, circles = [], raf = null, idleT = null, removed = 0, active = false;
+    var layer = null, circles = [], raf = null, lastActivity = Date.now(), removed = 0, active = false;
     function rand(a, b) { return a + Math.random() * (b - a); }
 
     function start() {
@@ -2356,16 +2358,17 @@
         a = circles[i]; if (a.gone) continue;
         for (j = i + 1; j < circles.length; j++) {
           b = circles[j]; if (b.gone) continue;
-          var dx = b.x - a.x, dy = b.y - a.y, d = Math.sqrt(dx * dx + dy * dy), mn = a.r + b.r;
-          if (d > 0 && d < mn) {
-            var nx = dx / d, ny = dy / d, ov = (mn - d) / 2;
+          var dx = b.x - a.x, dy = b.y - a.y, mn = a.r + b.r, d2 = dx * dx + dy * dy;
+          if (d2 > 0 && d2 < mn * mn) {   // sqrt solo cuando hay choque
+            var d = Math.sqrt(d2), nx = dx / d, ny = dy / d, ov = (mn - d) / 2;
             a.x -= nx * ov; a.y -= ny * ov; b.x += nx * ov; b.y += ny * ov;
             var diff = (b.vx * nx + b.vy * ny) - (a.vx * nx + a.vy * ny);   // rebote elástico suave
             a.vx += diff * nx; a.vy += diff * ny; b.vx -= diff * nx; b.vy -= diff * ny;
           }
         }
       }
-      for (i = 0; i < circles.length; i++) { a = circles[i]; if (a.gone) continue; a.el.style.left = (a.x - a.r) + 'px'; a.el.style.top = (a.y - a.r) + 'px'; }
+      // transform (compositado, sin layout) en vez de left/top
+      for (i = 0; i < circles.length; i++) { a = circles[i]; if (a.gone) continue; a.el.style.transform = 'translate3d(' + (a.x - a.r).toFixed(1) + 'px,' + (a.y - a.r).toFixed(1) + 'px,0)'; }
       raf = requestAnimationFrame(loop);
     }
 
@@ -2373,7 +2376,8 @@
       if (c.gone || !active) return;
       c.gone = true;
       c.el.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
-      c.el.style.opacity = '0'; c.el.style.transform = 'scale(0.3)';
+      c.el.style.opacity = '0';
+      c.el.style.transform = 'translate3d(' + (c.x - c.r).toFixed(1) + 'px,' + (c.y - c.r).toFixed(1) + 'px,0) scale(0.3)';
       var el = c.el; setTimeout(function () { el.style.display = 'none'; }, 260);
       removed++;
       if (removed >= circles.length) setTimeout(function () { if (active) stop(); }, 320);   // los quitó todos → reinicia el contador
@@ -2385,21 +2389,18 @@
       if (layer) { layer.remove(); layer = null; }
       circles = [];
       if (rowPuntos) setRow(rowPuntos, false);   // apaga el item "puntos"
-      resetIdle();                                // reinicia el contador (5 min) para volver a llenarse
+      lastActivity = Date.now();                 // reinicia el contador (5 min) para volver a llenarse
     }
     function escClose(e) { if (e.key === 'Escape') { e.stopPropagation(); stop(); } }   // solo Escape cierra; el resto del teclado sigue navegable
 
-    function resetIdle() {
-      if (active) return;
-      clearTimeout(idleT);
-      idleT = setTimeout(start, IDLE_MS);
-    }
+    // inactividad: marca un timestamp (barato, sin churn de timers en cada mousemove) y un solo intervalo lo chequea
+    function markActivity() { lastActivity = Date.now(); }
     ['pointerdown', 'pointermove', 'keydown', 'wheel', 'scroll', 'touchstart'].forEach(function (ev) {
-      window.addEventListener(ev, resetIdle, { passive: true });
+      window.addEventListener(ev, markActivity, { passive: true });
     });
+    setInterval(function () { if (!active && !REDUCE && Date.now() - lastActivity >= IDLE_MS) start(); }, 15000);
     // item "puntos" (Core): toggle manual — off → aparecen todos sin esperar; on → se apaga
     if (rowPuntos) rowPuntos.addEventListener('click', function () { active ? stop() : start(); });
-    resetIdle();
   })();
 
   // re-medir los renglones de la bio al cambiar el ancho (si Info está abierto)
