@@ -2267,7 +2267,7 @@
 
   // ===== screensaver de inactividad: círculos que flotan, chocan y se quitan con clic =====
   (function () {
-    var IDLE_MS = 150 * 1000;       // 2:30 min sin interacción → se activa
+    var IDLE_MS = 5 * 60 * 1000;    // 5 min sin interacción → se activa
     var APPEAR_MS = 5000;           // aparecen escalonados en 5 s
     var COUNT = 42;   // sin meta de 10: se sacan todos, uno por uno
     var rowPuntos = document.getElementById('rowPuntos');
@@ -2338,7 +2338,7 @@
       if (layer) { layer.remove(); layer = null; }
       circles = [];
       if (rowPuntos) setRow(rowPuntos, false);   // apaga el item "puntos"
-      resetIdle();                                // reinicia el contador (2:30) para volver a llenarse
+      resetIdle();                                // reinicia el contador (5 min) para volver a llenarse
     }
     function escClose(e) { if (e.key === 'Escape') { e.stopPropagation(); stop(); } }   // solo Escape cierra; el resto del teclado sigue navegable
 
