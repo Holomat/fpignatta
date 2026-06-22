@@ -94,6 +94,16 @@
     .cdot { width: 5px; height: 5px; border-radius: 50%; background: var(--text); opacity: 0.22; cursor: pointer; transition: opacity 0.15s ease, background 0.15s ease; }
     .cdot.on { background: var(--accent); opacity: 1; }   /* imagen actual */
 
+    @media (min-width: 769px) {
+      .win-work {
+        width: calc(25vw - 16px);
+        padding: 10px;
+      }
+      .win-work .carousel {
+        width: 100%;
+      }
+    }
+
     /* ===== 909: secuenciador 16 pasos + vúmetro (inline en el item) ===== */
     .drone-scope {   /* osciloscopio lofi (SVG): onda fina sobre grilla de cuadrados */
       display: block; width: 100%; height: 60px; margin: 7px 0 2px; overflow: hidden;
@@ -239,7 +249,7 @@
     .cv-link:hover { color: var(--text); }
 
     /* MATERIAL: ░ ilumina el renglón al hover — 1 fila = alto de la tipografía (1:1) */
-    .cv-line { display: block; width: fit-content; max-width: 100%; }
+    .cv-line { display: block; width: 100%; }
     #g-info .cv-head, #g-info .cv-item, #g-info .cv-line,
     #g-work .tag-row, #g-system .sys-row, #g-sound .sys-row, #g-sound .cv-item { position: relative; isolation: isolate; }
     #g-info .cv-head::before,
@@ -522,7 +532,7 @@
     <div class="col" data-cat>
       <div class="col-head cat-toggle" data-target="g-info"><span class="cat-mark">[<span class="mark">+</span>]</span> Info</div>
       <div class="group collapsed" id="g-info">
-        <p class="bio">Federico Pignatta es diseñador multidisciplinar basado en Montevideo. Su práctica combina criterio visual, pensamiento de producto y el uso de tecnologías emergentes para construir sistemas de marca, herramientas y lenguajes visuales que ayudan a comunicar, organizar y expandir ideas.</p>
+        <p class="bio">Federico Pignatta es un diseñador multidisciplinar radicado en Montevideo. Su práctica combina criterio visual, pensamiento de producto y tecnologías emergentes para construir sistemas de marca, herramientas y lenguajes visuales que comunican, organizan y expanden ideas.</p>
         <p class="bio">Actualmente desarrolla su tesis de grado en Artes y explora la producción de música electrónica con hardware como campo de experimentación sonora y creativa.</p>
 
         <div class="cv-section">
@@ -1481,19 +1491,53 @@
   }
 
   // monta un carrusel ya construido en una ventana flotante (desktop)
-  function mountWindow(wrap, stage) {
+  var WORK_COLUMNS = {
+    'identidad_visual': 0,
+    'product_design': 1,
+    'ui_ux': 2,
+    'motion': 3
+  };
+
+  function mountWindow(wrap, stage, key) {
     var ref = createWindow(wrap);
-    var rx = Math.random(), ry = Math.random(), placed = false;
+    ref.win.classList.add('win-work');
+    ref.win.classList.add('win-work-' + key);
+
+    var placed = false;
     function place() {
-      var maxLeft = Math.max(10, window.innerWidth - ref.win.offsetWidth - 10);
-      var maxTop = Math.max(10, window.innerHeight - ref.win.offsetHeight - 10);
-      ref.win.style.left = (10 + rx * (maxLeft - 10)) + 'px';
-      ref.win.style.top = (10 + ry * (maxTop - 10)) + 'px';
+      var col = WORK_COLUMNS[key] !== undefined ? WORK_COLUMNS[key] : 0;
+      var openInCol = 0;
+      var wins = document.querySelectorAll('.win-work-' + key);
+      for (var i = 0; i < wins.length; i++) {
+        if (wins[i] === ref.win) {
+          break;
+        }
+        openInCol++;
+      }
+
+      var leftVal = col * (window.innerWidth / 4) + 8 + (openInCol * 12);
+      var topVal = window.innerHeight - ref.win.offsetHeight - 16 - (openInCol * 12);
+
+      ref.win.style.left = leftVal + 'px';
+      ref.win.style.top = Math.max(10, topVal) + 'px';
     }
+
     function placeOnce() { if (!placed) { placed = true; place(); } }
     place();
+
     stage.addEventListener('load', placeOnce, true);
     stage.addEventListener('loadedmetadata', placeOnce, true);
+
+    var onResize = function () {
+      place();
+    };
+    window.addEventListener('resize', onResize);
+
+    ref.win.remove = function () {
+      window.removeEventListener('resize', onResize);
+      Element.prototype.remove.call(ref.win);
+    };
+
     return ref;
   }
 
@@ -1555,7 +1599,7 @@
             anchor = c.wrap;                            // apila los formatos en orden bajo la categoría
             items.push({ stop: c.stop, el: c.wrap });
           } else {
-            var ref = mountWindow(c.wrap, c.stage);
+            var ref = mountWindow(c.wrap, c.stage, key);
             ref.close.addEventListener('click', function () { closeWork(key, row); });
             items.push({ stop: c.stop, ref: ref });
           }
