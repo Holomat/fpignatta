@@ -490,6 +490,14 @@
       .skins-art svg   { width: min(62vw, 220px); }
       .lat-art svg     { width: 100%; }
     }
+
+    /* screensaver de inactividad: círculos del color de la tipografía */
+    .idle-screensaver { position: fixed; inset: 0; z-index: 99999; pointer-events: none; }   /* deja navegar el sitio por los huecos */
+    .idle-circle {
+      position: absolute; border-radius: 50%; background: var(--text);
+      pointer-events: auto; cursor: pointer; opacity: 0;
+      transition: opacity 0.6s ease; will-change: left, top;
+    }
   </style>
 </head>
 <body>
@@ -586,6 +594,10 @@
           <div class="skins-art" id="skinsArt"></div>
           <p class="lat-cap" id="skinsCap"></p>
           <p class="skins-lead">según f. hundertwasser · «las cinco pieles»</p>
+        </div>
+        <div class="sys-row" id="rowPuntos">
+          <span class="checkbox">[<span class="mark"></span>]</span>
+          <span class="tag-label">puntos</span>
         </div>
         <div class="sys-row" id="rowModo">
           <span class="checkbox">[<span class="mark"></span>]</span>
@@ -2251,6 +2263,96 @@
         stop(); panel.hidden = true; setRow(row, false);
       }
     });
+  })();
+
+  // ===== screensaver de inactividad: círculos que flotan, chocan y se quitan con clic =====
+  (function () {
+    var IDLE_MS = 150 * 1000;       // 2:30 min sin interacción → se activa
+    var APPEAR_MS = 5000;           // aparecen escalonados en 5 s
+    var COUNT = 42;   // sin meta de 10: se sacan todos, uno por uno
+    var rowPuntos = document.getElementById('rowPuntos');
+    var layer = null, circles = [], raf = null, idleT = null, removed = 0, active = false;
+    function rand(a, b) { return a + Math.random() * (b - a); }
+
+    function start() {
+      if (active) return;
+      active = true; removed = 0;
+      layer = document.createElement('div'); layer.className = 'idle-screensaver';
+      document.body.appendChild(layer);
+      var W = window.innerWidth, H = window.innerHeight, R = Math.min(W, H) * 0.07;
+      circles = [];
+      for (var i = 0; i < COUNT; i++) {
+        var r = R;   // todos iguales, sin jerarquía
+        var el = document.createElement('div'); el.className = 'idle-circle';
+        el.style.width = el.style.height = (r * 2) + 'px';
+        layer.appendChild(el);
+        var c = { el: el, r: r, x: rand(r, W - r), y: rand(r, H - r), vx: rand(-0.2, 0.2), vy: rand(-0.2, 0.2), gone: false };
+        (function (cc) { el.addEventListener('pointerdown', function (e) { e.stopPropagation(); removeCircle(cc); }); })(c);
+        circles.push(c);
+        (function (ee, d) { setTimeout(function () { if (active) ee.style.opacity = '1'; }, d); })(el, i / COUNT * APPEAR_MS);
+      }
+      loop();
+      if (rowPuntos) setRow(rowPuntos, true);   // enciende el item "puntos"
+      document.addEventListener('keydown', escClose, true);
+    }
+
+    function loop() {
+      if (!active) return;
+      var W = window.innerWidth, H = window.innerHeight, i, j, a, b;
+      for (i = 0; i < circles.length; i++) {
+        a = circles[i]; if (a.gone) continue;
+        a.x += a.vx; a.y += a.vy;
+        if (a.x - a.r < 0) { a.x = a.r; a.vx = Math.abs(a.vx); } else if (a.x + a.r > W) { a.x = W - a.r; a.vx = -Math.abs(a.vx); }
+        if (a.y - a.r < 0) { a.y = a.r; a.vy = Math.abs(a.vy); } else if (a.y + a.r > H) { a.y = H - a.r; a.vy = -Math.abs(a.vy); }
+      }
+      for (i = 0; i < circles.length; i++) {
+        a = circles[i]; if (a.gone) continue;
+        for (j = i + 1; j < circles.length; j++) {
+          b = circles[j]; if (b.gone) continue;
+          var dx = b.x - a.x, dy = b.y - a.y, d = Math.sqrt(dx * dx + dy * dy), mn = a.r + b.r;
+          if (d > 0 && d < mn) {
+            var nx = dx / d, ny = dy / d, ov = (mn - d) / 2;
+            a.x -= nx * ov; a.y -= ny * ov; b.x += nx * ov; b.y += ny * ov;
+            var diff = (b.vx * nx + b.vy * ny) - (a.vx * nx + a.vy * ny);   // rebote elástico suave
+            a.vx += diff * nx; a.vy += diff * ny; b.vx -= diff * nx; b.vy -= diff * ny;
+          }
+        }
+      }
+      for (i = 0; i < circles.length; i++) { a = circles[i]; if (a.gone) continue; a.el.style.left = (a.x - a.r) + 'px'; a.el.style.top = (a.y - a.r) + 'px'; }
+      raf = requestAnimationFrame(loop);
+    }
+
+    function removeCircle(c) {
+      if (c.gone || !active) return;
+      c.gone = true;
+      c.el.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
+      c.el.style.opacity = '0'; c.el.style.transform = 'scale(0.3)';
+      var el = c.el; setTimeout(function () { el.style.display = 'none'; }, 260);
+      removed++;
+      if (removed >= circles.length) setTimeout(function () { if (active) stop(); }, 320);   // los quitó todos → reinicia el contador
+    }
+    function stop() {
+      active = false;
+      if (raf) cancelAnimationFrame(raf); raf = null;
+      document.removeEventListener('keydown', escClose, true);
+      if (layer) { layer.remove(); layer = null; }
+      circles = [];
+      if (rowPuntos) setRow(rowPuntos, false);   // apaga el item "puntos"
+      resetIdle();                                // reinicia el contador (2:30) para volver a llenarse
+    }
+    function escClose(e) { if (e.key === 'Escape') { e.stopPropagation(); stop(); } }   // solo Escape cierra; el resto del teclado sigue navegable
+
+    function resetIdle() {
+      if (active) return;
+      clearTimeout(idleT);
+      idleT = setTimeout(start, IDLE_MS);
+    }
+    ['pointerdown', 'pointermove', 'keydown', 'wheel', 'scroll', 'touchstart'].forEach(function (ev) {
+      window.addEventListener(ev, resetIdle, { passive: true });
+    });
+    // item "puntos" (Core): toggle manual — off → aparecen todos sin esperar; on → se apaga
+    if (rowPuntos) rowPuntos.addEventListener('click', function () { active ? stop() : start(); });
+    resetIdle();
   })();
 
   // re-medir los renglones de la bio al cambiar el ancho (si Info está abierto)
