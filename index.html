@@ -1899,9 +1899,9 @@
   (function () {
     var STEPS = 16, bpm303 = 130;
     var pattern = [], cells = [], vizRow = null;
-    var muted = false, fxOn = false, eqOn = false, volOn = false, playing = false;
+    var muted = false, fxOn = false, eqOn = false, volOn = false, octOn = false, playing = false;
     var current = 0, nextTime = 0, startTime = 0, schedTimer = null, shownStep = -1, prevFreq = 0;
-    var panel, built = false, playBtn = null, fxBtn = null, eqBtn = null, volBtn = null, bpmWrap = null, bpmVal = null;
+    var panel, built = false, playBtn = null, fxBtn = null, eqBtn = null, volBtn = null, octBtn = null, bpmWrap = null, bpmVal = null;
     var ctx, master303, drive303, fxSend, delay303, tone303, post303;
     var POST_LVL = 0.27, VOL_CUT = 0.708;   // nivel de línea y atenuación de −3 dB (10^(−3/20))
 
@@ -1971,7 +1971,7 @@
 
     // voz acid: saw → filtro 24 dB/oct resonante con envelope → amp env → drive
     function note(t, semi, accent, slide, dur) {
-      var freq = droneRoot() * Math.pow(2, semi / 12);    // afinado al drone/909
+      var freq = droneRoot() * Math.pow(2, (semi + (octOn ? -12 : 0)) / 12);    // afinado al drone/909 (oct− baja una octava)
       var o = ctx.createOscillator(); o.type = 'square';
       o.frequency.setValueAtTime((slide && prevFreq) ? prevFreq : freq, t);
       if (slide && prevFreq) o.frequency.exponentialRampToValueAtTime(freq, t + 0.11);    // glide más largo/notorio
@@ -2096,7 +2096,9 @@
       eqBtn.addEventListener('click', function () { setEq(!eqOn); });   // filtra agudos → más grave
       volBtn = document.createElement('button'); volBtn.className = 'seq-btn'; volBtn.textContent = 'vol';
       volBtn.addEventListener('click', function () { setVol(!volOn); });   // −3 dB
-      tr.appendChild(rndBtn); tr.appendChild(fxBtn); tr.appendChild(eqBtn); tr.appendChild(volBtn);
+      octBtn = document.createElement('button'); octBtn.className = 'seq-btn'; octBtn.textContent = 'oct−';
+      octBtn.addEventListener('click', function () { octOn = !octOn; octBtn.classList.toggle('on', octOn); });   // baja una octava
+      tr.appendChild(rndBtn); tr.appendChild(fxBtn); tr.appendChild(eqBtn); tr.appendChild(volBtn); tr.appendChild(octBtn);
       b.appendChild(tr);
       // misma geometría que la 909 (grilla + hueco del vúmetro) → pasos alineados a los de arriba
       var main = document.createElement('div'); main.className = 'seq-main';
