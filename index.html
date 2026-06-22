@@ -142,15 +142,15 @@
       border: none; background: none; padding: 0; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
     }
-    .seq-cell::before {   /* paso apagado: marcador de posición tenue */
-      content: ''; width: 4px; height: 4px; border-radius: 50%;
+    .seq-cell::before {   /* paso apagado: marcador tenue, escala con la celda (tope 4px) */
+      content: ''; width: 22%; height: 22%; max-width: 4px; max-height: 4px; border-radius: 50%;
       background: var(--text); opacity: 0.2;
     }
     .seq-cell.beat::before { background: var(--accent); opacity: 0.45; }   /* downbeat 1·5·9·13 */
     .seq-cell.on::after {   /* paso activo: cuadradito con punto calado al centro */
       content: ''; position: absolute; inset: 19%; border-radius: 2px; background: var(--text);
-      -webkit-mask: radial-gradient(circle at center, transparent 0 2.2px, #000 2.7px);
-      mask: radial-gradient(circle at center, transparent 0 2.2px, #000 2.7px);
+      -webkit-mask: radial-gradient(circle at center, transparent 0 28%, #000 36%);
+      mask: radial-gradient(circle at center, transparent 0 28%, #000 36%);
     }
     .seq-cell.cue::before { background: var(--accent); opacity: 0.6; }     /* playhead */
     .seq-cell.cue.on::after { background: var(--accent); }
