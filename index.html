@@ -587,7 +587,7 @@
           <div class="lat-art" id="latArt"></div>
           <p class="lat-cap" id="latCap"></p>
         </div>
-        <div class="sys-row" id="rowSkins">
+        <div class="sys-row" id="rowSkins" style="display:none">
           <span class="checkbox">[<span class="mark"></span>]</span>
           <span class="tag-label">Cinco pieles</span>
         </div>
@@ -792,7 +792,7 @@
 
   // Sistema (mobile): un solo item abierto por vez (Reloj·Respira·Re-materialización·Lattice·Cinco pieles)
   (function () {
-    var rows = ['rowReloj', 'rowRespira', 'rowSkins']
+    var rows = ['rowReloj', 'rowRespira']
       .map(function (id) { return document.getElementById(id); }).filter(Boolean);
     var busy = false;
     rows.forEach(function (row) {
