@@ -126,11 +126,7 @@
     .music-transport .seq-btn { flex: 1; padding: 4px 4px; }   /* 5 botones en una fila, ocupan el ancho */
     .music-list { margin-top: 14px; }
     .music-list .cv-item { color: var(--muted); }
-    .music-list .cv-item:nth-child(odd)::before { opacity: 0.5; }   /* textura ░ permanente en impares */
-    #g-sound .music-list .cv-item:hover::before {   /* al hover: grilla más tupida (▒) */
-      content: "▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒";
-      opacity: 0.6;
-    }
+    .music-list .cv-item:nth-child(odd)::before { opacity: 0.5; }   /* textura ░ permanente en impares (hover ▒ lo cubre la regla general) */
     .scope-grid { fill: none; stroke: color-mix(in srgb, var(--text) 12%, transparent); stroke-width: 1; vector-effect: non-scaling-stroke; }
     .scope-wave { fill: none; stroke: color-mix(in srgb, var(--text) 85%, transparent); stroke-width: 0.4; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
     .seq909 { margin-top: 10px; }
@@ -243,6 +239,7 @@
 
     /* ── INFO / CV — interlineado uniforme + 1 espacio antes de cada sección ── */
     #g-info p.bio { text-transform: none; }   /* bio: respeta mayúsculas de inicio de oración */
+    #g-info p.bio + p.bio { margin-top: 14px; padding-top: 14px; border-top: 1px solid color-mix(in srgb, var(--text) 15%, transparent); }   /* línea separadora entre párrafos */
     .cv-section { margin-top: var(--row); }
     .cv-head { color: var(--text); }
     .cv-head:hover { text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
@@ -284,7 +281,10 @@
     #g-work .tag-row:hover::before,
     #g-system .sys-row:hover::before,
     #g-sound .sys-row:hover::before,
-    #g-sound .cv-item:hover::before { opacity: 0.5; }
+    #g-sound .cv-item:hover::before {
+      content: "▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒";
+      opacity: 0.5;   /* hover: grilla más tupida (▒) en todos */
+    }
 
     .clock { font-variant-numeric: tabular-nums; }
 
@@ -536,7 +536,6 @@
     <div class="col" data-cat>
       <div class="col-head cat-toggle" data-target="g-info"><span class="cat-mark">[<span class="mark">+</span>]</span> Info</div>
       <div class="group collapsed" id="g-info">
-        <p class="bio">Hago música, diseño y construyo cosas.</p>
         <p class="bio">Me interesa la tecnología desde que tengo memoria. Mi PlayStation fue un software para hacer música. Desde entonces me fascinan las herramientas creativas: sintetizadores, cajas de ritmo, secuenciadores y todas las tecnologías que amplían la forma en que creamos, trabajamos y pensamos.</p>
         <p class="bio">En los últimos años empecé a explorar qué puede aportar la IA a las personas creativas. No tanto para reemplazar procesos, sino para ampliar posibilidades y ayudar a que las ideas lleguen más lejos.</p>
         <p class="bio">Trabajo como diseñador, aunque cada vez me interesan más los espacios donde el diseño se cruza con nuevas herramientas y formas de crear. También me interesa el arte. Actualmente desarrollo mi trabajo final de egreso en la Facultad de Artes (Udelar).</p>
