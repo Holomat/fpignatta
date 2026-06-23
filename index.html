@@ -239,7 +239,7 @@
 
     /* ── INFO / CV — interlineado uniforme + 1 espacio antes de cada sección ── */
     #g-info p.bio { text-transform: none; }   /* bio: respeta mayúsculas de inicio de oración */
-    #g-info p.bio + p.bio { margin-top: 14px; padding-top: 14px; border-top: 1px solid color-mix(in srgb, var(--text) 15%, transparent); }   /* línea separadora entre párrafos */
+    #g-info p.bio + p.bio { margin-top: 14px; }   /* separación entre párrafos (sin línea) */
     .cv-section { margin-top: var(--row); }
     .cv-head { color: var(--text); }
     .cv-head:hover { text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
@@ -575,7 +575,7 @@
     <div class="col" data-cat>
       <div class="col-head cat-toggle" data-target="g-work"><span class="cat-mark">[<span class="mark">+</span>]</span> Diseño</div>
       <div class="group collapsed" id="g-work">
-        <div class="tag-row"><span class="checkbox">[<span class="mark"></span>]</span><span class="tag-label">identidad_visual</span></div>
+        <div class="tag-row" style="display:none"><span class="checkbox">[<span class="mark"></span>]</span><span class="tag-label">identidad_visual</span></div>
         <div class="tag-row"><span class="checkbox">[<span class="mark"></span>]</span><span class="tag-label">holomate</span></div>
         <div class="tag-row"><span class="checkbox">[<span class="mark"></span>]</span><span class="tag-label">motion</span></div>
       </div>
@@ -799,6 +799,7 @@
   function openWorkAll() {
     if (!mobileView()) return;
     document.querySelectorAll('#g-work .tag-row').forEach(function (row) {
+      if (row.offsetParent === null) return;   // saltea filas ocultas (display:none)
       if (row.classList.contains('active')) return;
       row.classList.add('active');
       var m = row.querySelector('.mark'); if (m) m.textContent = '●';
