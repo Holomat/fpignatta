@@ -126,7 +126,11 @@
     .music-transport .seq-btn { flex: 1; padding: 4px 4px; }   /* 5 botones en una fila, ocupan el ancho */
     .music-list { margin-top: 14px; }
     .music-list .cv-item { color: var(--muted); }
-    .music-list .cv-item:nth-child(odd)::before { opacity: 0.5; }   /* textura ░ alternada (uno sí, uno no) */
+    .music-list .cv-item:nth-child(odd)::before { opacity: 0.5; }   /* textura ░ permanente en impares */
+    #g-sound .music-list .cv-item:hover::before {   /* al hover: grilla más tupida (▒) */
+      content: "▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒";
+      opacity: 0.6;
+    }
     .scope-grid { fill: none; stroke: color-mix(in srgb, var(--text) 12%, transparent); stroke-width: 1; vector-effect: non-scaling-stroke; }
     .scope-wave { fill: none; stroke: color-mix(in srgb, var(--text) 85%, transparent); stroke-width: 0.4; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
     .seq909 { margin-top: 10px; }
@@ -524,7 +528,7 @@
     <div class="col col-label">
       <div class="brand-mark">
         <span class="brand-mark__star">●</span>
-        <span><span class="keepcase">Federico Pignatta</span><br>arte | diseño | sonido<br>montevideo, uy</span>
+        <span><span class="keepcase">Federico Pignatta</span><br>Hago música, diseño y construyo cosas.<br>montevideo, uy</span>
       </div>
     </div>
 
@@ -532,8 +536,12 @@
     <div class="col" data-cat>
       <div class="col-head cat-toggle" data-target="g-info"><span class="cat-mark">[<span class="mark">+</span>]</span> Info</div>
       <div class="group collapsed" id="g-info">
-        <p class="bio">Federico Pignatta es un diseñador multidisciplinar radicado en Montevideo. Su práctica combina criterio visual, pensamiento de producto y tecnologías emergentes para construir sistemas de marca, herramientas y lenguajes visuales que comunican, organizan y expanden ideas.</p>
-        <p class="bio">Actualmente desarrolla su tesis de grado en Artes y explora la producción de música electrónica con hardware como campo de experimentación sonora y creativa.</p>
+        <p class="bio">Hago música, diseño y construyo cosas.</p>
+        <p class="bio">Me interesa la tecnología desde que tengo memoria. Mi PlayStation fue un software para hacer música. Desde entonces me fascinan las herramientas creativas: sintetizadores, cajas de ritmo, secuenciadores y todas las tecnologías que amplían la forma en que creamos, trabajamos y pensamos.</p>
+        <p class="bio">En los últimos años empecé a explorar qué puede aportar la IA a las personas creativas. No tanto para reemplazar procesos, sino para ampliar posibilidades y ayudar a que las ideas lleguen más lejos.</p>
+        <p class="bio">Trabajo como diseñador, aunque cada vez me interesan más los espacios donde el diseño se cruza con nuevas herramientas y formas de crear. También me interesa el arte. Actualmente desarrollo mi trabajo final de egreso en la Facultad de Artes (Udelar).</p>
+        <p class="bio">Creo que internet puede ser un lugar mejor. Menos orientado a capturar atención y más orientado a compartir lo que hacemos. Por eso existe esta web.</p>
+        <p class="bio">Acá comparto proyectos, experimentos y aprendizajes. Algunas cosas que hice y que quise reunir en un mismo lugar.</p>
 
         <div class="cv-section">
           <div class="cv-head"><span class="mail-ico">✉&#xFE0E;</span> Contacto para colaboraciones y trabajos por encargo</div>
